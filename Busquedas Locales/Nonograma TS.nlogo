@@ -12,11 +12,12 @@ to setup
     ask patches [
         set estado ifelse-value (random 100 < %-inicial) [true][false]
         set estado-previo true ]
-    setupFigura1
+    setupFigura2
     comprobarFigura
     muestraEstados
     calcularError-Global
     actualizaPlotError
+    set temperatura 10
 end
 
 to go
@@ -36,6 +37,7 @@ to go
     muestraEstados
     calcularError-Global
     actualizaPlotError
+    set temperatura temperatura * .9999
     if Error-Global = 0 [stop]
 end
 
@@ -54,7 +56,7 @@ to setupFigura2
         [8 3]     [8 3]     [3]       [3]      [3 3]
         [2 4]     [1 5]     [2]       [3 3]    [3 8]
         [3 8 1]   [2 8 2]   [1 1 3]   [2 4]    [3 5]
-        [3 6]     [3 7]     [11 8]    [11 9]   ;[11 10]
+        [3 6]     [3 7]     [11 8]    [11 9]   [11 10]
      ]
     set dist-columnas [
         [2 10]    [2 9]     [2 8]     [2 7]     [5 5 5]
@@ -67,11 +69,11 @@ end
 
 to comprobarFigura
     if (length dist-filas != world-height) [
-        show sentence "screen-size-y  should be " length dist-filas
+        user-message (word "El mundo debe tener " (length dist-filas) " filas")
         stop
     ] 
     if (length dist-columnas != world-width) [
-        show sentence "screen size-x  should be " length dist-columnas
+      user-message (word "El mundo debe tener " (length dist-columnas) " columnas")
         stop
     ] 
 end
@@ -118,8 +120,9 @@ to calcularError-Global
 end
 
 to-report evaluaFila [fila]
-  let elementosFila patches with [pycor = fila]
-  let estadosFila [estado] of elementosFila
+  ;let elementosFila patches with [pycor = fila]
+  ;let estadosFila [estado] of elementosFila
+  let estadosFila map [[estado] of ?] (sort patches with [pycor = fila])
   let unaFilaDibujo agrupar estadosFila
   let target item ( fila + max-pycor ) dist-filas
   let errorFila calculaError unaFilaDibujo target
@@ -127,8 +130,9 @@ to-report evaluaFila [fila]
 end
 
 to-report evaluaColumna [columna]
-  let elementosColumna patches with [pxcor = columna]
-  let estadosColumna [estado] of elementosColumna
+  ;let elementosColumna patches with [pxcor = columna]
+  ;let estadosColumna [estado] of elementosColumna
+  let estadosColumna map [[estado] of ?] (sort patches with [pxcor = columna])
   let unaColumnaDibujo agrupar estadosColumna
   set unaColumnaDibujo reverse unaColumnaDibujo
   let target item ( columna + max-pxcor ) dist-columnas
@@ -246,10 +250,10 @@ GRAPHICS-WINDOW
 321
 10
 566
-180
-3
-3
-20.0
+191
+-1
+-1
+5.0
 1
 10
 1
@@ -259,10 +263,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--3
-3
--3
-3
+0
+24
+0
+29
 0
 0
 1
@@ -327,7 +331,7 @@ temperatura
 temperatura
 0.1
 5
--1.6858838272886673E-12
+1.3426758725420128E-4
 0.1
 1
 NIL
@@ -371,7 +375,7 @@ wt-kill
 wt-kill
 0
 10
-5
+2
 1
 1
 NIL
@@ -386,7 +390,7 @@ wt-breed
 wt-breed
 0
 10
-5
+2
 1
 1
 NIL
@@ -401,7 +405,7 @@ wt-move
 wt-move
 0
 10
-5
+2
 1
 1
 NIL
@@ -526,7 +530,6 @@ which means that the three central blocks must be occupied thus:
 � � # # # � �
 
 You can then use this as a constraint on the column clues, working out what cells can and cannot be occupied, and continue in this fashion till the nonogram is solved. You can find a Java program that uses this approach at http://www.morleysoft.freeserve.co.uk/computing/java/griddler.html. It might be fast, but it's not as much fun as boiling the chicken and cooling it down.
-
 @#$#@#$#@
 default
 true
@@ -757,7 +760,7 @@ Polygon -6459832 true true 46 128 33 120 21 118 11 123 3 138 5 160 13 178 9 192 
 Polygon -6459832 true true 67 122 96 126 63 144
 
 @#$#@#$#@
-NetLogo 5.0.2
+NetLogo 5.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -765,9 +768,9 @@ NetLogo 5.0.2
 @#$#@#$#@
 default
 0.0
--0.2 0 1.0 0.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0
