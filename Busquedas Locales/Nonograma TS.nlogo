@@ -8,155 +8,114 @@ globals [
 patches-own [estado estado-previo]
 
 to setup
-    ca
-    ask patches [
-        set estado ifelse-value (random 100 < %-inicial) [true][false]
-        set estado-previo true ]
-    setupFigura2
-    comprobarFigura
-    muestraEstados
-    calcularError-Global
-    actualizaPlotError
-    set temperatura 10
+  ca
+  ; Carga la figura seleccionada  
+  run Figura
+  ; Ajusta el mundo al tamaño de la figura
+  resize-world 0 (length dist-columnas - 1) 0 (length dist-filas - 1) 
+  set-patch-size (25 * 16) / (max (list world-width world-height))
+  
+  ; Inicializa los patches al azar
+  ask patches [
+    set estado ifelse-value (random 100 < %-inicial) [true][false]
+    set estado-previo true ]
+  
+  ; Muestra el estado del mundo actual
+  muestraEstados
+  ; Calcula el error del mundo actual
+  calcularError-Global
+  ; Actualiza el Plot
+  actualizaPlotError
+  ;Inicia la temperatura
+  set temperatura 5
+  reset-ticks
 end
 
 to go
-  let old-score 0
-  let new-score 0
+  let energia-anterior 0
+  let energia-actual 0
   let accept 0
   
-    ;ask random-one-of patches [                            ;this line if using modifyPatch0
-    ask one-of patches with [ estado ] [               ;this line if using modifyPatch1
-        set old-score calculateStrip pxcor pycor
-        recuerdaEstados
-        modificaPatch1
-        set new-score calculateStrip pxcor pycor
-        set accept aceptarModificacion new-score old-score
-        if not accept [ revertirEstados ]
-    ]
-    muestraEstados
-    calcularError-Global
-    actualizaPlotError
-    set temperatura temperatura * .9999
-    if Error-Global = 0 [stop]
-end
-
-to setupFigura1
-  ;dist-filas de arriba a abajo
-  set dist-filas [ [2] [1] [4] [5] [3 2] [2 1] [3] ]
-  
-  ;dist-columnas de izquierda a derecha
-  set dist-columnas [ [1] [3] [1 3] [5 1] [4] [3] [2] ]
-end
-
-to setupFigura2
-    set dist-filas [
-        [10 3 3]  [9 3 2]   [8 9 1]   [7 7 1]  [6 2 2]
-        [5 3 3]   [4 2 2]   [3 1 1 3] [2 5]    [1 8 5]
-        [8 3]     [8 3]     [3]       [3]      [3 3]
-        [2 4]     [1 5]     [2]       [3 3]    [3 8]
-        [3 8 1]   [2 8 2]   [1 1 3]   [2 4]    [3 5]
-        [3 6]     [3 7]     [11 8]    [11 9]   [11 10]
-     ]
-    set dist-columnas [
-        [2 10]    [2 9]     [2 8]     [2 7]     [5 5 5]
-        [6 4 5]   [7 3 4]   [2 3]     [2 4 8 2] [2 5 7 1]
-        [2 6 6]   [3 2 3]   [3 3 3]   [3 3 3]   [3 3 3 3]
-        [3 3 6]   [1 8]     [2 2 2 2] [3 5 2]   [4 4 2]
-        [5 5 2]   [6 5 2]   [7 4 3]   [8 3 2]   [9 1 1]
-    ]
-end
-
-to comprobarFigura
-    if (length dist-filas != world-height) [
-        user-message (word "El mundo debe tener " (length dist-filas) " filas")
-        stop
-    ] 
-    if (length dist-columnas != world-width) [
-      user-message (word "El mundo debe tener " (length dist-columnas) " columnas")
-        stop
-    ] 
+  ;ask one-of patches [
+  ask one-of patches with [ estado ] [
+    set energia-anterior calculaEnergiaEntorno pxcor pycor
+    recuerdaEstados
+    estrategia1
+    set energia-actual calculaEnergiaEntorno pxcor pycor
+    if not aceptarModificacion energia-actual energia-anterior [ revertirEstados ]
+  ]
+  muestraEstados
+  calcularError-Global
+  actualizaPlotError
+  set temperatura temperatura * .999
+  if Error-Global = 0 [stop]
+  tick
 end
 
 to recuerdaEstados
-    ask neighbors [ set estado-previo estado ]
-    set estado-previo estado
+  ask neighbors [ set estado-previo estado ]
+  set estado-previo estado
 end
 
-to-report calculateStrip [ x y ]
-    report
-        ( evaluaFila dec y max-pycor ) + ( evaluaFila y ) + ( evaluaFila inc y max-pycor ) + 
-        ( evaluaColumna dec x max-pxcor ) + ( evaluaColumna pxcor ) + ( evaluaColumna inc x max-pxcor )
+to-report calculaEnergiaEntorno [ x y ]
+  report sum map evaluaFila (entorno y) + sum map evaluaColumna (entorno x)
+end
+
+to-report entorno [x]
+  report (list (x - 1) x (x + 1))
 end
 
 to revertirEstados
-    ask neighbors [ set estado estado-previo ]
-    set estado estado-previo
+  ask neighbors [ set estado estado-previo ]
+  set estado estado-previo
 end
 
 to-report aceptarModificacion [ nuevo antiguo ]
-    ifelse nuevo < antiguo
+  ifelse nuevo < antiguo
+    [ report true ]
+    [
+      let prob exp ( ( antiguo - nuevo ) / temperatura )
+      ifelse random-float 1.0 < prob 
         [ report true ]
-        [
-            let prob exp ( ( antiguo - nuevo ) / temperatura )
-            ifelse random-float 1.0 < prob 
-                [ report true ]
-                [ report false ]
-        ]
+        [ report false ]
+    ]
 end
 
 to calcularError-Global
-  let error-fila    sum map [evaluaFila    ?] n-values world-width [? + min-pycor]
-  let error-columna sum map [evaluaColumna ?] n-values world-width [? + min-pycor]  
-;  repeat world-height [
-;    set error-fila ( error-fila + evaluaFila y )
-;    set y ( y + 1 )  ]
-;  set x min-pxcor
-;  let error-columna 0
-;  repeat world-width [
-;    set error-columna ( error-columna + evaluaColumna x )
-;    set x ( x + 1 )  ]
-  set Error-Global ( error-fila + error-columna )
+  let error-filas    sum map [evaluaFila    ?] (n-values world-height [?])
+  let error-columnas sum map [evaluaColumna ?] (n-values world-width [?])
+  set Error-Global ( error-filas + error-columnas )
 end
 
 to-report evaluaFila [fila]
-  ;let elementosFila patches with [pycor = fila]
-  ;let estadosFila [estado] of elementosFila
+  if fila < 0 or fila > max-pycor [report 0]
   let estadosFila map [[estado] of ?] (sort patches with [pycor = fila])
-  let unaFilaDibujo agrupar estadosFila
-  let target item ( fila + max-pycor ) dist-filas
-  let errorFila calculaError unaFilaDibujo target
+  let patronFila agrupar estadosFila
+  let errorFila calculaError patronFila (item fila dist-filas)
   report errorFila
 end
 
 to-report evaluaColumna [columna]
-  ;let elementosColumna patches with [pxcor = columna]
-  ;let estadosColumna [estado] of elementosColumna
+  if columna < 0 or columna > max-pxcor [report 0]
   let estadosColumna map [[estado] of ?] (sort patches with [pxcor = columna])
-  let unaColumnaDibujo agrupar estadosColumna
-  set unaColumnaDibujo reverse unaColumnaDibujo
-  let target item ( columna + max-pxcor ) dist-columnas
-  let errorColumna calculaError unaColumnaDibujo target    
+  let patronColumna agrupar estadosColumna
+  set patronColumna reverse patronColumna
+  let errorColumna calculaError patronColumna (item columna dist-columnas)
   report errorColumna
 end
 
-to-report calculaError [ vector1 vector2 ]
-  ; penaliza una diferencia en la longitud
-  let dif abs (length vector1 - length vector2)
-  ; get the two vectors to be the same length by padding the shorter with zeroes
-  while [ (length vector1) < (length vector2) ]
-    [ set vector1 lput 0 vector1 ]
-  while [ (length vector2) < (length vector1) ]
-    [ set vector2 lput 0 vector2 ]
-  ; calculate the distance between the two vectors
-  let er 0
-  let i 0
-  repeat length vector1 [
-    ;        set error ( error + abs( ( item i vector1 ) - ( item i vector2 ) ) )
-    set er er + ( ( item i vector1 ) - ( item i vector2 ) ) * ( ( item i vector1 ) - ( item i vector2 ) )
-    set i ( i + 1 )
-  ]
-  set er er + ( dif * wt-diff)
+to-report calculaError [ v1 v2 ]
+  ; calcula diferencia de longitudes
+  let dif abs (length v1 - length v2)
+  ; Iguala las longitudes de ambos vectores añadiendo 0's al más corto
+  if (length v1) < (length v2) 
+    [ set v1 sentence v1 (n-values dif [0]) ]
+  if (length v2) < (length v1) 
+    [ set v2 sentence v2 (n-values dif [0]) ]
+  ; calcula la distancia euclídea entre los vectores
+  let er sum (map [(?1 - ?2) ^ 2] v1 v2)
+  ; añade la penalización por diferencia de longitudes
+  set er er + ( dif * Peso-diferencias)
   report er
 end
 
@@ -179,94 +138,134 @@ to-report agrupar[ estados ]
   report a-clue
 end
 
-;==================
-; UTILITY FUNCTIONS
-;==================
-to-report inc [ x limite ]
-    ifelse x < limite
-        [ report x + 1 ]
-        [ report -1 * limite ]
+;============================
+; Estrategias de Modificacion
+;============================
+to estrategia0
+  set estado not estado
 end
 
-to-report dec [ x limite ]
-    ifelse x > (-1 * limite)
-        [ report x - 1 ]
-        [ report limite ] 
-end
-
-;========================
-; PERTURBATION STRATEGIES
-;========================
-to modificaPatch0
-    set estado not estado
-end
-
-to modificaPatch1
-  let wt-total (wt-kill + wt-breed + wt-move)
-  let ran random-float wt-total
-  ifelse ran < wt-kill 
-  [ killPatch ]
+to estrategia1
+  let total (prob-eliminar + prob-crear + prob-intercambiar)
+  let prob random-float total  
+  ifelse prob < prob-eliminar 
+  [ eliminaPatch ]
   [
-    ifelse (ran < (wt-kill + wt-breed) ) 
-    [ breedPatch ]
-    [ movePatch ]
+    ifelse (prob < (prob-eliminar + prob-crear) ) 
+    [ creaPatch ]
+    [ intercambiaPatch ]
   ]
 end
 
-to killPatch
+to eliminaPatch
+  set estado false
+end
+
+to creaPatch
+  let blancos neighbors with [not estado]
+  if any? blancos [ ask one-of blancos [set estado true]]
+end
+
+to intercambiaPatch
+  let blancos neighbors with [not estado]
+  if any? blancos [
+    ask one-of blancos [set estado true]
     set estado false
-end
-
-to breedPatch
-    let vacant neighbors with [not estado]
-    if count vacant > 0 [ ask one-of vacant [set estado true]]
-end
-
-to movePatch
-    let vacant neighbors with [not estado]
-    if count vacant > 0 [
-        ask one-of vacant [set estado true]
-        set estado false
-    ]
+  ]
 end
 
 ;==================
 ; PLOTTING ROUTINES
 ;==================
 to muestraEstados
-    ask patches [
-        ifelse estado
-            [set pcolor black]
-            [set pcolor white]
-    ]
+  ask patches [
+    set pcolor ifelse-value estado [black][white]
+  ]
 end
 
 to actualizaPlotError
-    set-current-plot "global error"
+    set-current-plot "Error Global"
     plot Error-Global
+end
+
+;; ;;;;;;;;;;;;;;;;;;;;;
+;; EJEMPLOS
+;; ;;;;;;;;;;;;;;;;;;;;;
+
+to Figura1
+  ;dist-filas de arriba a abajo
+  set dist-filas [ [2] [1] [4] [5] [3 2] [2 1] [3] ]
+  
+  ;dist-columnas de izquierda a derecha
+  set dist-columnas [ [1] [3] [1 4] [4 1] [4] [3] [2] ]
+end
+
+to Figura2
+    set dist-filas [
+        [10 3 3]  [9 3 2]   [8 9 1]   [7 7 1]  [6 2 2]
+        [5 3 3]   [4 2 2]   [3 1 1 3] [2 5]    [1 8 5]
+        [8 3]     [8 3]     [3]       [3]      [3 3]
+        [2 4]     [1 5]     [2]       [3 3]    [3 8]
+        [3 8 1]   [2 8 2]   [1 1 3]   [2 4]    [3 5]
+        [3 6]     [3 7]     [11 8]    [11 9]   [11 10]
+     ]
+    set dist-columnas [
+        [2 10]    [2 9]     [2 8]     [2 7]     [5 5 5]
+        [6 4 5]   [7 3 4]   [2 3]     [2 4 8 2] [2 5 7 1]
+        [2 6 6]   [3 2 3]   [3 3 3]   [3 3 3]   [3 3 3 3]
+        [3 3 6]   [1 8]     [2 2 2 2] [3 5 2]   [4 4 2]
+        [5 5 2]   [6 5 2]   [7 4 3]   [8 3 2]   [9 1 1]
+    ]
+end
+
+to Figura3
+    set dist-filas [
+        [0][0][0][1]  [3]   [5]   [7] 
+     ]
+    set dist-columnas [
+        [1] [2] [3] [4] [3] [2] [1]
+    ]
+end
+  
+to Figura4
+    set dist-filas [
+        [1 3] [1 1] [1 1] [5] [2 4] [7] [7] [5] 
+     ]
+    set dist-columnas [
+        [3] [1 5] [3 5] [1 5] [8] [1 5] [3]
+    ]
+end
+
+to Figura5
+    set dist-filas [
+        [2 2] [2 3] [2 2 1] [2 1] [2 2] [3] [3] [1] [2] [1 1] [1 2] [2]
+     ]
+    set dist-columnas [
+        [2 1] [1 3] [2 4] [3 4] [4][3][3][3][2][2]
+    ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-321
+190
 10
-566
-191
+533
+440
 -1
 -1
-5.0
+33.333333333333336
 1
 10
 1
 1
 1
 0
-1
-1
+0
+0
 1
 0
-24
+9
 0
-29
+11
 0
 0
 1
@@ -274,10 +273,10 @@ ticks
 30.0
 
 BUTTON
-13
-50
-80
-83
+105
+15
+180
+48
 setup
 setup
 NIL
@@ -291,25 +290,25 @@ NIL
 1
 
 SLIDER
-14
-146
-186
-179
+10
+60
+180
+93
 %-inicial
 %-inicial
 0
 100
-10
+50
 1
 1
 %
 HORIZONTAL
 
 BUTTON
-13
-97
-81
-130
+10
+100
+180
+133
 go
 go
 T
@@ -323,26 +322,26 @@ NIL
 1
 
 SLIDER
-14
-193
-187
-226
+10
+140
+180
+173
 temperatura
 temperatura
 0.1
-5
-1.3426758725420128E-4
+10
+1.548552500287823E-8
 0.1
 1
 NIL
 HORIZONTAL
 
 PLOT
-304
-268
-710
-570
-global error
+10
+320
+185
+455
+Error Global
 NIL
 NIL
 0.0
@@ -356,10 +355,10 @@ PENS
 "default" 1.0 0 -65536 true "" ""
 
 MONITOR
-304
-215
-390
-260
+10
+455
+96
+500
 Error Global
 Error-Global
 3
@@ -367,169 +366,104 @@ Error-Global
 11
 
 SLIDER
-15
-263
-187
-296
-wt-kill
-wt-kill
+10
+180
+180
+213
+prob-eliminar
+prob-eliminar
 0
 10
-2
+1
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-15
-296
-187
-329
-wt-breed
-wt-breed
+10
+215
+180
+248
+prob-crear
+prob-crear
 0
 10
-2
+1
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-15
-327
-187
-360
-wt-move
-wt-move
+10
+250
+180
+283
+prob-intercambiar
+prob-intercambiar
 0
 10
-2
+4
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-16
-396
-188
-429
-wt-diff
-wt-diff
+10
+285
+180
+318
+Peso-diferencias
+Peso-diferencias
 0
 50
-1
+4
 1
 1
 NIL
 HORIZONTAL
 
+CHOOSER
+10
+10
+102
+55
+Figura
+Figura
+"Figura1" "Figura2" "Figura3" "Figura4" "Figura5"
+4
+
 @#$#@#$#@
-## WHAT IS IT?
+## ¿QUÉ ES?
 
-This program solves nonograms (sometimes) using simulated annealing. 
+Este programa resuelve nonogramas usando **Templado simulado**. 
 
-A nonogram is a logic problem, invented in Japan and popularised in the UK. It consists of a rectangular grid with one set of clues for each row and column of the grid.  Solving the clues determines which cells in the puzzle are to be shaded to produce a picture.  Clues are of the form �x1,x2, ... ,xn�, which translates as x1 shaded cells followed by at least one blank cell, followed by x2 shaded squares followed by at least one blank cell etc.
+Un **nonograma** es un puzle de lógica inventado en Japón que ha tenido un gran éxito en los últimos años. 
 
-For example, the following nonogram (it's a chicken, honest) has clues as shown
+Las reglas son simples:
 
-    � # # # � � �    3
-    # # � # � � �    2,1
-    � # # # � # #    3,2
-    � � # # # # #    5
-    � � # # # # �    4
-    � � � � # � �    1
-    � � � # # � �    2
+  + Tienes una cuadrícula de casillas, que deben ser pintadas de negro o dejadas en blanco (también hay versiones con más colores, pero no las abordaremos aquí). 
+  + Al lado de cada fila en la cuadrícula aparecen los tamaños de los grupos de casillas negras que se pueden encontrar en esa fila. Y sobre cada columna de la cuadrícula aparecen los tamaños de los grupos de casillas negras que se pueden encontrar en esa columna. 
+  + El objetivo es encontrar todas las casillas negras que se ajustan a esa distribución.
 
+![Imagen](http://twanvl.nl/image/nonogram/nonogram-lambda1.png)
 
-    1 3 1 5 4 3 2
-        3 1
+## ¿CÓMO FUNCIONA?
 
-If you want to solve anything other than the 'chicken' nonogram, you'll need to download the file and tinker with the input routines.
+Aunque existe un algoritmo determinista (y relativamente rápido) para resolver este tiop de puzles, en este modelo usamos una aproximación de búsqueda local para resolverlo, concretamente haremos uso del método de templado simulado:  
 
-## HOW IT WORKS
+  1. La energía, E1, de la mala se calcula a partir de los errores que se comenten en las filas y columnas (según lo parecido que sea la distribución obtenida de la que es objetivo).
+  2. Se selecciona un agente al azar, y se le permite que se mueva, se marque negro o se marque blanco.  
+  3. Se calcula de nuevo la energía de la malla con ese nuevo cambio, E2.
+  4. Si E2<=E1, entonces se acepta el cambio realizado en 2. Si E2>E1, el cambio se produce con una cierta probabilidad, que es proporcional a exp(-(E2-E1)/T), donde T es una "temperatura" que gradualmente disminuye a medida que el proceso continúa.
 
-Although there is a deterministic (and fast) algorithm - see "Related Models" below - I decided to try a simulated annealing approach:  
-1) The 'energy' of the grid is calculated (an objective function comparing the clues that would be created by the current pattern against the desired target clues - when this reaches zero the nonagram is solved), E1.  
-2) An agent is selected at random and allowed to move, breed or die.  
-3) The energy of the grid is calculated again, E2.  
-4) If E2<=E1, then the change in (2) is accepted. If E2>E1, the change in (2) has a probability of acceptance of exp(-(E2-E1)/T), where T is a 'temperature' that is gradually reduced as the annealing proceeds.
+## ¿CÓMO USARLO?
 
-## HOW TO USE IT
-
-1) Initialise the nonagram by selecting a value for fraction-on (the fraction of patches that are originally occupied) and pressing 'setup'.
-
-2) Set temperature (somewhere around the top end of the scale is good), and set the relative weights of agent death, breeding and moving (the bigger the weight, the more likely that action will be chosen by an agent). Leave wt-diff at zero for the time being (see 'Things to Try').
-
-3) Press go. You'll see the developing solution in the grid and a graph of the global error as the annealing progresses. When this graph hits zero, the solution is found and the run automatically stops.
-
-## THINGS TO NOTICE
-
-As the global error reduces and you start to see the emergence of some vague pattern, start reducing the temperature. Somewhere round the 0.4 - 0.6 mark, you'll get a solution. If the temperature is much hotter, the probability of moving away from the solution is too high.
-
-Once you have reduced the temperature, you might find that the global error gets stuck at some low but non-zero number (i.e. it's fallen into a local minimum). If this happens just briefly boil the chicken again and return to a low simmer.
-
-## THINGS TO TRY
-
-1) Different objective functions (I). Use a Euclidean distance in the objective function rather than a city-block distance. Any effect?
-
-2) Different objective functions (II). On a large nonogram with large contiguous blocks, it might be a good idea to penalise differences in number of clues (see to-report calculateError). Does this have an effect?
-
-3) Large nonagrams. I have included the clues for a 25 x 29 nonagram called 'Tea Break' (I got it off the Web somewhere). To use it:
-	(i) In 'to setup', replace setupChickenClues by setupTeaBreakClues
-	(ii) change the world size (by manual edit of the interface)
-	to screen-edge-x = screen-edge-y = 3
-
-The solution is below. I've not been able to converge to it. This rather suggests that simulated annealing is *not* the best solution to solving nonagrams (also see 'Related models' below).
-
-
-    ###########�����#########
-    ###########������########
-    ����###�����������#######
-    ����###������������######
-    ����###��������������####
-    �����##���������������###
-    ����#�#�########�������##
-    ����##��########��������#
-    ����###�########���������
-    ����###�###��������������
-    ����###��##��������������
-    ��������#�#####����������
-    ��������##�####����������
-    ��������###�###����������
-    ��������###��������������
-    ��������###��������������
-    ��������########��###����
-    ��������########��###����
-    #�������########�#####���
-    ##���������������#####���
-    ###�������������#�#�###��
-    ####������������##���##��
-    #####����������###���###�
-    ######���������##�����##�
-    #######��������#######�#�
-    ########������#########�#
-    #########�����###�����##�
-    ##########����###�����###
-
-
-## NETLOGO FEATURES
-
-I used patches rather than turtles as my agents because of the one-to-one correspondence between patches and cells of the grid - I didn't need to worry about how to evaluate objective functions if multiple turtles decided to squat on the same patch.
-
-## RELATED MODELS
-
-Simulated annealing might be fun but it's criminally slow. It's actually possible to work out an extremely fast algorithm that relies solely on the same sort of logical processes you'd use if you were solving one long-hand. For example, you'd probably start with that 5-row in the middle. The extreme positions for the block are either all the way left and all the way right, that is:
-
-# # # # # � �  and � � # # # # #
-   
-which means that the three central blocks must be occupied thus:
-
-� � # # # � �
-
-You can then use this as a constraint on the column clues, working out what cells can and cannot be occupied, and continue in this fashion till the nonogram is solved. You can find a Java program that uses this approach at http://www.morleysoft.freeserve.co.uk/computing/java/griddler.html. It might be fast, but it's not as much fun as boiling the chicken and cooling it down.
+  1. Seleccionar la figura que se desea  resolver (se pueden añadir más en código). Fijar los parámetros de inicio, y pulsar 'setup'.
+  2. Fijar los parámetros de ejecución del algoritmo (de la estrategia a seguir).
+  2. Pulsar "go" y esperar que el algoritmo se estabilice... idealmente, en la solución óptima (aunque es posible que se estabilice en una solución local). 
 @#$#@#$#@
 default
 true
@@ -778,5 +712,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-0
+1
 @#$#@#$#@
