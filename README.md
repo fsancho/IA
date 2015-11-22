@@ -14,6 +14,8 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
   + [Ascenso Colina.nlogo](https://github.com/fsancho/IA/blob/master/Busquedas%20Locales/Ascenso%20Colina.nlogo): Modelo básico de demostración del algoritmo de Ascenso de la colina usando los patches como estructura de datos con valores a optimizar. También se ofrece una [versión 3D](https://github.com/fsancho/IA/blob/master/Busquedas%20Locales/Ascenso%20Colina%203D.nlogo3d) del mismo problema, para ser usada con NetLogo3D.
   + [Templado Simulado.nlogo](https://github.com/fsancho/IA/blob/master/Busquedas%20Locales/Templado%20Simulado.nlogo): Ejemplo básico de la metodología del Templado simulado para optimización de problemas.
   + [Nonograma TS.nlogo](https://github.com/fsancho/IA/blob/master/Busquedas%20Locales/Nonograma%20TS.nlogo): Un ejemplo de cómo usar el método de Templado Simulado para resolver (a veces) puzles de nonogramas.
++ [**Lógica**](http://www.cs.us.es/~fsancho/?e=120):
+  + [Resolución LP.nlogo](https://github.com/fsancho/IA/blob/master/Logica/Resolucion%20LP.nlogo): Demostración gráfica del método de Resolución para la Lógica Proposicional.
 + [**Computación Evolutiva**](http://www.cs.us.es/~fsancho/?e=65):
   + [Biomorphs Girasol.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Biomorphs%20Girasol.nlogo): Modelo básico de demostración de reproducción sexual y asexual para analizar cómo se puede dirigir la descendencia.
   + [Tiburones y pececillos evolutivos.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Tiburones%20y%20pececillos%20evolutivos.nlogo): Un ejemplo de optimizción por selección natural en entornos hostiles.
