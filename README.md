@@ -21,3 +21,8 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
   + [Tiburones y pececillos evolutivos.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Tiburones%20y%20pececillos%20evolutivos.nlogo): Un ejemplo de optimizción por selección natural en entornos hostiles.
   + [Paisaje Evolutivo.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Paisaje%20Evolutivo.nlogo): Muestra cómo los métodos de optimización por poblaciones pueden ser eficientes cuando las condiciones del problema cambian dinámicamente.
   + [Algoritmo Genético.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Algoritmo%20Genetico.nlogo): Ejemplo muy básico de algoritmo genético para la optimización de un problema.
++ [**Optimización con Hormigas**](http://www.cs.us.es/~fsancho/?e=71)[** y PSO**](http://www.cs.us.es/~fsancho/?e=70):
+  + [Codigo1.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Biomorphs%20Girasol.nlogo): Modelo básico de demostración de reproducción sexual y asexual para analizar cómo se puede dirigir la descendencia.
+  + [Codigo2.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Tiburones%20y%20pececillos%20evolutivos.nlogo): Un ejemplo de optimizción por selección natural en entornos hostiles.
+  + [Codigo3.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Paisaje%20Evolutivo.nlogo): Muestra cómo los métodos de optimización por poblaciones pueden ser eficientes cuando las condiciones del problema cambian dinámicamente.
+  + [Codigo4.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Algoritmo%20Genetico.nlogo): Ejemplo muy básico de algoritmo genético para la optimización de un problema.
