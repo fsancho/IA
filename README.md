@@ -21,7 +21,7 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
   + [Tiburones y pececillos evolutivos.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Tiburones%20y%20pececillos%20evolutivos.nlogo): Un ejemplo de optimizción por selección natural en entornos hostiles.
   + [Paisaje Evolutivo.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Paisaje%20Evolutivo.nlogo): Muestra cómo los métodos de optimización por poblaciones pueden ser eficientes cuando las condiciones del problema cambian dinámicamente.
   + [Algoritmo Genético.nlogo](https://github.com/fsancho/IA/blob/master/Computacion%20Evolutiva/Algoritmo%20Genetico.nlogo): Ejemplo muy básico de algoritmo genético para la optimización de un problema.
-+ [**Optimización con Hormigas**](http://www.cs.us.es/~fsancho/?e=71)[** y PSO**](http://www.cs.us.es/~fsancho/?e=70):
++ [**Optimización con Hormigas**](http://www.cs.us.es/~fsancho/?e=71)[ **y PSO**](http://www.cs.us.es/~fsancho/?e=70):
   + [AntSystem.nlogo](https://github.com/fsancho/IA/blob/master/Optimizacion_AS_PSO/AntSystem.nlogo): Resolución clásica del problema TSP haciendo uso de colonias de hormigas.
   + [Particle Swarm Optimization.nlogo](https://github.com/fsancho/IA/blob/master/Optimizacion_AS_PSO/Particle%20Swarm%20Optimization.nlogo): Un ejemplo de optimización de funciones bidimensionales haciendo uso de enjambres de partículas.
   + [PSO Trafico1D.nlogo](https://github.com/fsancho/IA/blob/master/Optimizacion_AS_PSO/PSO%20Trafico1D.nlogo): Uso de PSO para optimización de parámetros de modelos de simulación. En este caso, hace uso de Muestra cómo los métodos de optimización por poblaciones pueden ser eficientes cuando las condiciones del problema cambian dinámicamente.
