@@ -32,3 +32,10 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
   + [Distribucion Riqueza.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/DistribucionRiqueza.nlogo): Modelo de distribución de riqueza en un entorno simple que muestra que, bajo ciertas condiciones de distribución y acceso, se tiende a cumplir el [Principio de Pareto](https://www.wikiwand.com/es/Principio_de_Pareto).
   + [PD Iterado Evolutivo.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/PD%20Iterado%20Evolutivo.nlogo): Versión Iterada y evolutiva del [Dilema del Prisionero](https://www.wikiwand.com/es/Dilema_del_prisionero).
   + [Anasazi.zip](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/Anasazi%20NetLogo.zip): Paquete ZIP con los ficheros relacionados con la simulación de evolución de la cultura [Anasazi](https://www.wikiwand.com/es/Anasazi). Puedes encontrar el artículo original sobre esta simulación [aquí](http://jasss.soc.surrey.ac.uk/12/4/13.html).
++ [**Aprendizaje Automático**](http://www.cs.us.es/~fsancho/?e=75):
+  + [K-Medias.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/K-medias2.nlogo): 
+  + [ID3.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/ID3.zip): 
+  + [SOM.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/SOM2015.zip): 
+  + [Redes Neuronales.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/Redes%20Neuronales.zip): 
+  + [Smart Sweepers.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/smart_sweepers.zip): 
+  + [Q-Learning.zip](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/QLearning%20-%20Hanoi.nlogo): 
