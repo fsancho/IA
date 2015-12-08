@@ -33,9 +33,9 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
   + [PD Iterado Evolutivo.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/PD%20Iterado%20Evolutivo.nlogo): Versión Iterada y evolutiva del [Dilema del Prisionero](https://www.wikiwand.com/es/Dilema_del_prisionero).
   + [Anasazi.zip](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/Anasazi%20NetLogo.zip): Paquete ZIP con los ficheros relacionados con la simulación de evolución de la cultura [Anasazi](https://www.wikiwand.com/es/Anasazi). Puedes encontrar el artículo original sobre esta simulación [aquí](http://jasss.soc.surrey.ac.uk/12/4/13.html).
 + [**Aprendizaje Automático**](http://www.cs.us.es/~fsancho/?e=75):
-  + [K-Medias.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/K-medias2.nlogo): 
-  + [ID3.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/ID3.zip): 
-  + [SOM.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/SOM2015.zip): 
-  + [Redes Neuronales.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/Redes%20Neuronales.zip): 
-  + [Smart Sweepers.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/smart_sweepers.zip): 
-  + [Q-Learning.zip](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/QLearning%20-%20Hanoi.nlogo): 
+  + [K-Medias.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/K-medias2.nlogo): Ejemplo de cómo implementar el algoritmo de K-medias en dimensión 2. Además, presenta una primera aproximación a encontrar el número de clusters óptimo.
+  + [ID3.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/ID3.zip): Paquete ZIP con el algoritmo ID3 y algunos ejemplos de demostración. Solo trabaja sobre variables categóricas, no considera variables numéricas continuas.
+  + [SOM.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/SOM2015.zip): Paquete ZIP con el algoritmo Self-Optimization Maps con algunos ejemplos de demostración. Vienen dos versiones: malla cuadrada y malla hexagonal.
+  + [Redes Neuronales.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/Redes%20Neuronales.zip): Paquete ZIP con un algoritmo de aprendizaje que hace uso de Back Propagation para aprender caracteres. viene con algunos ejemplos de demostración que se pueden precargar (dígitos, letras mayúsculas y letras minúsculas) 
+  + [Smart Sweepers.nlogo](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/smart_sweepers.zip): Paquete ZIP con una demostración de cómo aplicar algoritmos genéticos para optimizar redes neuronales con un fin prefijado. En este caso, se intenta aprender el movimiento de un par de motores de un robot para alcanzar comida en el entorno. 
+  + [Q-Learning.zip](https://github.com/fsancho/IA/blob/master/Aprendizaje%20Automatico/QLearning%20-%20Hanoi.nlogo): Ejemplo del algoritmo por refuerzo Q-Learning para aprender busquedas en espacios de estado. Se ejemplifica con la búsqueda de la solución óptima en el problema de las Torres de Hanoi.
