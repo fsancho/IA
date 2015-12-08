@@ -25,3 +25,10 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
   + [AntSystem.nlogo](https://github.com/fsancho/IA/blob/master/Optimizacion_AS_PSO/AntSystem.nlogo): Resolución clásica del problema TSP haciendo uso de colonias de hormigas.
   + [Particle Swarm Optimization.nlogo](https://github.com/fsancho/IA/blob/master/Optimizacion_AS_PSO/Particle%20Swarm%20Optimization.nlogo): Un ejemplo de optimización de funciones bidimensionales haciendo uso de enjambres de partículas.
   + [PSO Trafico1D.nlogo](https://github.com/fsancho/IA/blob/master/Optimizacion_AS_PSO/PSO%20Trafico1D.nlogo): Uso de PSO para optimización de parámetros de modelos de simulación. En este caso, hace uso de Muestra cómo los métodos de optimización por poblaciones pueden ser eficientes cuando las condiciones del problema cambian dinámicamente.
++ [**Simulación Social**](http://www.cs.us.es/~fsancho/?e=52):
+  + [Difusión Cultural.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/Difusion%20Cultural.nlogo): Modelo de difusión cultural de Axelrod.
+  + [Segregacion.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/Segregacion.nlogo): Modelo de segregación de Schelling.
+  + [Voto.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/Voto.nlogo): Modelo simple de votación en malla cuadrada.
+  + [Distribucion Riqueza.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/DistribucionRiqueza.nlogo): Modelo de distribución de riqueza en un entorno simple que muestra que, bajo ciertas condiciones de distribución y acceso, se tiende a cumplir la ley de Pareto.
+  + [PD Iterado Evolutivo.nlogo](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/PD%20Iterado%20Evolutivo.nlogo): Versión Iterada y evolutiva del Dilema del Prisionero.
+  + [Anasazi.zip](https://github.com/fsancho/IA/blob/master/Simulacion%20Social/Anasazi%20NetLogo.zip): Paquete ZIP con los ficheros relacionados con la simulación de evolución de la cultura [Anasazi](https://www.wikiwand.com/es/Anasazi).
