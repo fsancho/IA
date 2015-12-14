@@ -1,4 +1,4 @@
-# Modelos de la asignatura Inteligencia Artificial de Ingeniería de Computadores de la ETSII-US
+# Modelos de la asignatura [Inteligencia Artificial de Ingeniería de Computadores](http://www.cs.us.es/~fsancho/?p=p1) de la ETSII-US
 
 En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usando en las clases de la asignatura. Por ahora lo que hay disponible es:
 
