@@ -1,162 +1,199 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
-[
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
+; Agents will to store clauses
+breed [clauses clause]
+
+; We will store the literals by numbers, negation makes them negatove,
+; and a clause es simply an ordered list of values
+
+clauses-own [
+  content    ; Clause
+  involved?  ; If the clause is involved or not to reach the empty clause
 ]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
-[
-  regla   ; Almacena la versión "representable" de la regla aplicada
+globals [
+  variables ; Propositional variables in alphanumeric
+  numCl     ; Number of clauses in the previous step
+  examples  ; List of examples
 ]
 
-;--------------- Funciones personalizables -------------------
-
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
-end
-
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
-
-to BFS [estado-inicial estado-final]
-  ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
-  [
-    set shape "circle"
-    set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+; Report to decide if a resolution is able betwen the clauses
+to-report resolubles? [c1 c2]
+  foreach c1 [
+    if member? (neg ?) c2 [report true]
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
-  [
-    ask estados with [not explorado?]
-    [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
+  report false
+end
+
+; Returns the literlas that allow to make resolution (only with one sign)
+to-report lit-resolvents [c1 c2]
+  let res []
+  foreach c1 [
+    if member? (neg ?) c2 [set res lput ? res]
+  ]
+  report res
+end
+
+; Clean and sort a clause
+to-report clean [c1]
+  report sort-by [(abs ?1 < abs ?2) or ((abs ?1 = abs ?2) and ?1 > ?2)] remove-duplicates c1
+end
+
+; Decide if is a tautology (to remove it)
+to-report tautology? [c1]
+  foreach c1 [
+    if member? (neg ?) c1 [report true]
+  ]
+  report false
+end
+
+; Negation of a literal
+to-report neg [lit]
+  report -1 * lit
+end
+
+; Compute the resolvent of c1 and c2 using lit
+to-report resolvent [c1 c2 lit]
+  let c11 remove lit (remove (neg lit) c1)
+  let c22 remove lit (remove (neg lit) c2)
+  report clean (sentence c11 c22)
+end
+
+; Start the global variables
+to startup
+  set variables "_PQRSTUVW"
+  set examples [
+    [[1 2] [-1 2]]
+    [[1 2] [-1 2] [-2]]
+    [[1 2] [-1 2] [1 -2] [-1 -2]]
+    [[1 -2 3 -4 -5] [1 3 4 5] [1 -3 4] [1 3  -4 5] [1 -3 -4] [-1 -2] [-2 3 4 -5] [4 -5]]
+    [[1 2 3] [-1 2] [-2 3] [-3] [1 3]]
+    [[-1 -2 3] [-4 5] [-5 1] [4] [-4 6] [-6 2] [-3]]
+    [[1 2] [2 3] [3 8] [-3 -1] [-8 -2] [-2 -3]]
+    [[-1 -2 3] [-1 -7 8] [-1 -8 6] [-7 2] [7] [1] [-6]]
+  ]
+end
+
+; Create the clause agents for a set of clauses
+to load-set [cls]
+  ask clauses [die]
+  foreach cls [
+    let c ?
+    create-clauses 1 [
+      set content clean c
+      set shape "square"
+      set label print-clause content
+      set color blue
+      set size 2
+      set involved? true
+    ]
+  ]
+  layout-circle clauses 10
+  set numCl count clauses
+end
+
+; Returns the clause representation of a set
+to-report print-set [c]
+  report (word "{ { "
+               (reduce [word ?1 (word " }, { " ?2)] (map print-clause c))
+               " } }")
+end
+
+; Returns the clause representation of a clause
+to-report print-clause [c]
+  ifelse c = []
+  [report ""]
+  [report reduce [word ?1 (word " v " ?2)] (map [literal ?] c)]
+end
+
+; Returns the Propositional Variable associated to a number
+to-report literal [i]
+  let lit (item (abs i) variables)
+  if i < 0 [set lit word "-" lit]
+  report lit
+end
+
+; One Step Procedure
+to process
+  ; Fix the current clauses
+  let current-clauses clauses with [content != []]
+  ; Compare all the clauses
+  ask current-clauses [
+    let c1 content
+    let nc1 self
+    ; with all the other suitable clauses
+    ask other current-clauses with [resolubles? c1 content] [
+      foreach lit-resolvents c1 content [
+        let newClause clean (resolvent c1 content ?)
+        ; if it is not yet, and is not tautology, we add it
+        if not any? clauses with [content = newClause] and not tautology? newClause[
+          hatch-clauses 1 [
+            set content newClause
+            create-link-from myself
+            create-link-from nc1
+            set label print-clause content
+            set color (rgb 0 155 0)
+            set involved? false
+            setxy ([xcor] of myself + [xcor] of nc1) / 2 ([ycor] of myself + [ycor] of nc1) / 2
           ]
         ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
       ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
     ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
+  ]
+  ; Erase Tautologies
+  ask clauses [
+    set content clean content
+    if tautology? content [die]
   ]
 end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
-end
-
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
+; Main procedure
+to go
+  ; process new clauses
+  process
+  ; If we reach the empty clause
+  ifelse any? clauses with [content = []]
+  [ let empty one-of clauses with [content = []]
+    ; we mark it
+    ask empty [set color red set shape "square 2"]
+    ; and leave only hte clauses involved in the way to get it
+    comeback empty
+    ask clauses with [not involved? ]
+    [
+      ht
+      ask my-out-links [hide-link]
+      ask my-in-links [hide-link]
+    ]
+    layout-radial (clauses with [not hidden?]) links empty
+    repeat 100 [layout-spring clauses links 0 2 .1]
+    stop]
   [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
+    ; If there is no new clauses, it is satisfiable
+    ;layout-circle clauses 10
+    if count clauses = numCL [
+      user-message "The clause set is satisfiable"
+      stop]
+    set numCL count clauses
   ]
 end
 
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
-end
-
-; Representación del grafo de forma más adecuada
-to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
-end
-
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
+; Recursive process to mark all the clauses that points to c (it will be used  from the
+; empty clause)
+to comeback [c]
+  ask c [
+    set involved? true
+    ask in-link-neighbors [ comeback self]
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+107
 10
-649
+546
 470
 16
 16
 13.0
 1
-10
+15
 1
 1
 1
@@ -174,14 +211,57 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
+MONITOR
+14
+10
+107
+55
+Num Clauses
+count clauses
+17
+1
+11
+
 BUTTON
-125
-430
-191
-463
+14
+55
+107
+88
 NIL
-layout\n
+go
 T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+211
+515
+303
+548
+Clause-Set
+Clause-Set
+0
+10
+7
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+346
+515
+437
+548
+Select
+load-set (item Clause-Set examples)
+NIL
 1
 T
 OBSERVER
@@ -192,126 +272,17 @@ NIL
 1
 
 MONITOR
-15
-420
-120
-465
-Estados Explorados
-count turtles
+5
+470
+675
+515
+Clauses Sets
+print-set (item Clause-Set examples)
 17
 1
 11
 
-INPUTBOX
-9
-10
-179
-70
-Estado_Inicial
-5
-1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Estado_final
-159
-1
-0
-String
-
-BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-15
-210
-210
-405
-12
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
-
 @#$#@#$#@
-## WHAT IS IT?
-
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -626,7 +597,7 @@ NetLogo 5.3
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -637,5 +608,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-1
+0
 @#$#@#$#@

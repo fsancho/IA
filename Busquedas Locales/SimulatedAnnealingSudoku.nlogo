@@ -1,186 +1,213 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
-[
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
+extensions [rnd]
+
+globals [ temperature global-energy]
+patches-own [
+  value          ; Value in the cell
+  block          ; Block 3x3 the cell belongs to
+  constraints    ; Number of constraints the cell has in the current state:
+                 ;    Number Cells in the same Row with the same value
+                 ;    + Number Cells in the same Column with the same value
+                 ;    + Number Cells in the same Block with the same value
+                 ;   Finally, we take the exponential of this sum.
 ]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
-[
-  regla   ; Almacena la versión "representable" de la regla aplicada
-]
+; Setup procedure to prepare the data for the algorithm.
+; The world is a Sudoku 9x9 patches/cells
+to setup
+  clear-all
 
-;--------------- Funciones personalizables -------------------
-
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
-end
-
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
-
-to BFS [estado-inicial estado-final]
-  ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
-  [
-    set shape "circle"
-    set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+  ; Fill the initial data on patches
+  ask patches [
+;    ifelse pycor < 3
+;    [ set block 1 + int (pxcor / 3) ]
+;    [ ifelse pycor < 6
+;      [ set block 4 + int (pxcor / 3) ]
+;      [ set block 7 + int (pxcor / 3) ]
+;    ]
+    ; Block the cell belongs to (9 blocks 3x3)
+    set block (3 * int (pycor / 3)) + 1 + int (pxcor / 3)
+    ; Each block is filled with a slightly different color
+    set pcolor scale-color black block -1 12
+    ; Initial value in the cell: ordered in a row
+    set value 1 + pxcor
+    set plabel value
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
-  [
-    ask estados with [not explorado?]
-    [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
-          ]
-        ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
 
-        ; Actualizamos la representación
-        if layout? [layout]
-      ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
-    ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
+  ; Make a random swap of the cells
+  repeat 100 [
+    swap-values (one-of patches) (one-of patches)
+  ]
+
+  ; Compute the constraints of every cell
+  compute-constraints
+
+  ; The global energy of the system is the sum of local energies (constraints)
+  ;   of the cells
+  set global-energy (sum [constraints] of patches )
+  ;
+  ; Update the view showing
+  update-view
+
+  ; Initial temperature
+  set temperature 1
+
+  ; Reset the tick counter
+  reset-ticks
+end
+
+; Go Procedure, where controls the execution of the Simulated Annealing Algorithm
+to go
+  ; In every tick, with the same temperature, we make some swaps
+  repeat 1
+  [
+    ; The swapping is made between 2 random cells. The cells are chosen
+    ; proportionally to their constraints, in order to change the worst
+    ; with higher probability
+    let p1 rnd:weighted-one-of patches [constraints]
+    let p2 rnd:weighted-one-of patches [constraints]
+    try-swap p1 p2
+  ]
+  ; Cool the system
+  set temperature temperature * (1 - cooling-rate / 100)
+  ; Compute the energy after the swaps
+  set global-energy (sum [constraints] of patches )
+  update-view
+  ; The miminum energy of the system is 81, since the minimum constraint of a cell
+  ; is e^0 = 1
+  if global-energy = 81 [stop]
+  tick
+end
+
+; Procedure to compute the constraints of every cell.
+; It can be improved by computing only the new constraints of the cells that
+;   have been affected by a swap (rows, columns and blocks of the swapped cells).
+;   We compute 81 constraints, and the minimal case is <= 9 + 9 + 12 + 10 = 40
+to compute-constraints
+  ask patches [
+    set constraints e ^ (same-in-row + same-in-column + same-in-block)
   ]
 end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
+; Auxiliary reports to compute the different constraints
+to-report same-in-row
+  let x pxcor
+  report -1 + length filter [? = value] ([value] of patches with [pxcor = x])
 end
 
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
+to-report same-in-column
+  let y pycor
+  report -1 + length filter [? = value] ([value] of patches with [pycor = y])
+end
+
+to-report same-in-block
+  let b block
+  report -1 + length filter [? = value] ([value] of patches with [block = b])
+end
+
+; Swap procedure between cells p1 and p2
+to try-swap [p1 p2]
+  ; If they have the same value, there is no need to change them
+  if ([value] of p1 = [value] of p2)
+    [ stop ]
+  ; Try the swap
+  swap-values p1 p2
+  ; Compute new energy after the swapping
+  compute-constraints
+  let new-energy (sum [constraints] of patches)
+  ; If the swap is accepted
+  ifelse (accept-swap? global-energy new-energy)
   [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
+    ; Set the new energy as global
+    set global-energy new-energy
+  ]
+  [
+    ; If not, swap them again and compute their constraints
+    swap-values p1 p2
+    compute-constraints
   ]
 end
 
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
+; Auxiliary swap procedure between values of cells
+to swap-values [ p1 p2 ]
+  let temp [ value ] of p1
+  ask p1 [ set value [value] of p2 ]
+  ask p2 [ set value temp ]
 end
 
-; Representación del grafo de forma más adecuada
-to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
+; A swap is accepted if it improves the energy or randomly depending on
+; the temperature of the system (it is the central idea of the Simulated
+; Annealing Algorithm)
+to-report accept-swap? [ previous-energy new-energy]
+  report (new-energy <= previous-energy)
+         or ((random-float 1.0) < temperature)
 end
 
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
+; Update View procedure. It gives a scale-red color to the label of the cell
+; according to the relative energy of the cell
+;    dark: correct, bright: higher energy
+; It also plots the energy
+to update-view
+  let M max [constraints] of patches
+  ask patches [
+    set plabel-color scale-color red constraints 0 M
+    set plabel value
   ]
+  plot global-energy
 end
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-649
-470
-16
-16
-13.0
+455
+257
+-1
+-1
+24.0
 1
-10
+24
 1
 1
 1
 0
-0
-0
 1
--16
-16
--16
-16
+1
+1
 0
+8
 0
+8
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-125
-430
-191
-463
+13
+10
+103
+43
 NIL
-layout\n
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+108
+10
+198
+43
+NIL
+go
 T
 1
 T
@@ -191,127 +218,62 @@ NIL
 NIL
 1
 
+SLIDER
+13
+100
+193
+133
+cooling-rate
+cooling-rate
+0
+50
+0.5
+0.1
+1
+%
+HORIZONTAL
+
 MONITOR
-15
-420
-120
-465
-Estados Explorados
-count turtles
-17
+53
+50
+153
+95
+NIL
+Temperature
+10
 1
 11
 
-INPUTBOX
-9
-10
-179
-70
-Estado_Inicial
-5
+MONITOR
+52
+140
+157
+185
+Global Energy
+global-energy
+4
 1
-0
-String
+11
 
-INPUTBOX
-10
-70
-180
-130
-Estado_final
-159
-1
-0
-String
-
-BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-15
-210
-210
-405
+PLOT
 12
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
+190
+192
+340
+Global Energy
+Time
+Energy
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2674135 true "" ""
 
 @#$#@#$#@
-## WHAT IS IT?
-
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -505,22 +467,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -605,13 +551,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -626,7 +565,7 @@ NetLogo 5.3
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -637,5 +576,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-1
+0
 @#$#@#$#@

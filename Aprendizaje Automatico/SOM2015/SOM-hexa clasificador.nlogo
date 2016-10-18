@@ -1,162 +1,156 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
-[
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
+; Cada celda tiene una variable en la que almacena el vector (peso) que representa
+
+breed [ celdas celda ]
+
+celdas-own [
+  peso
+  err
 ]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
-[
-  regla   ; Almacena la versión "representable" de la regla aplicada
-]
+; TSet almacena los vectores de entrenamiento
+globals [
+  TSet
+  Cabecera
+  ]
 
-;--------------- Funciones personalizables -------------------
-
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
+to setup-celdas
+  set-default-shape celdas "hex"
+  ask patches
+    [ sprout-celdas 1
+        [ set size 1.28
+          set peso n-values (length first Tset) [random-float 1]
+          set color map [255 * ?] (sublist peso 0 4)
+          if pxcor mod 2 = 0
+            [ set ycor ycor - 0.5 ] ] ]
+  ask celdas with [xcor <= min-pxcor or ycor <= min-pycor or xcor >= max-pxcor]  [die]
 end
 
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
-end
-
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
-
-to BFS [estado-inicial estado-final]
+; Inicialmente, asignamos un peso aleatorio a cada patch y generamos aleatoriamente
+; los vectores de entrenamiento
+to setup
   ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
+  resize-world 0 Tamaño-mundo 0 Tamaño-mundo
+  set-patch-size 400 / Tamaño-mundo
+  leer-datos
+  setup-celdas
+  reset-ticks
+end
+
+; Función que devuelve el radio de influencia dependiente el tiempo.
+;   Es una función que tiende a disminuir suavemente el radio, hasta
+;   hacer que el entorno de influencia de cada punto sea unitario.
+to-report R [t]
+  let r0 Tamaño-mundo / 2
+  let T-Cons Tiempo-Entrenamiento / (ln r0)
+  report r0 * exp (-1 * t / T-Cons)
+end
+
+; Función que calcula la distancia euclídea de 2 vectores.
+;   Por motivos de eficiencia, se quita la raiz cuadrada.
+to-report distancia [v1 v2]
+  report sum (map [(?1 - ?2) ^ 2] v1 v2)
+end
+
+; Función que devuelve el nuevo peso de cada punto.
+;   Cuando más cercano al BMU, más se modifica. Cuanto más cercano
+;   al borde del entorno, menos. Depende de una tasa de aprendizaje (L)
+;   y de una función que suaviza el comportamiento en el entorno (D).
+to-report nuevo-peso [W V t]
+  report (map [?1 + (D t) * (L t) * (?2 - ?1)] W V)
+end
+
+; Función que calcula la tasa de aprendizaje. Comienza con un valor
+;   que introduce el usuario, y disminuye en cada paso de ejecución.
+to-report L [t]
+  report Aprendizaje-Inicial * exp (-1 * t / Tiempo-Entrenamiento)
+end
+
+; Función que suaviza el comportamiento del cálculo del peso en
+;   función de la ditancia al BMU.
+to-report D [t]
+  report exp (-1 * (distance myself) / (2 * (R t)))
+end
+
+; Devuelve el BMU de un vector, es decir, la celda que más lo aproxima.
+to-report BMU [V]
+  report min-one-of celdas [distancia ([peso] of self) V]
+end
+
+; Iteración del SOM: para cada vector de entrenamiento se toma su BMU,
+;   y al entorno de éste se le aplica la modificación de sus pesos para
+;   que se acerquen al vector. Está preparado para dar un número fijo de
+;   pasos, y se representan los pesos como colores del patch.
+to SOM
+  ask celdas [set label ""]
+ (foreach TSet Cabecera [
+    let V ?1
+    let W BMU V
+    ask W [set label ifelse-value (label = "") [?2][(word label "!" ?2)]]
+    ask W [
+      ask celdas in-radius (R ticks) [
+        set peso nuevo-peso peso V ticks
+        set color map [255 * ?] (sublist peso 0 4)
+        ]]])
+  tick
+  if ticks > Tiempo-Entrenamiento [ask celdas [set color (lput 100 bl color)] stop]
+end
+
+to muestra-error
+  ask celdas [
+    let vec other celdas in-radius R-error
+    set err sum map [distancia peso ?] ([peso] of vec) / (count vec)
+    set color scale-color black err 0.05 0 ]
+  let MM max [err] of celdas
+  ask celdas [ set color scale-color black err MM 0 ]
+  display
+end
+
+to muestra-mapa
+  ask celdas [
+    let f ifelse-value (factor-error = 0) [1][(.1 - err) * factor-error]
+    set color rgb
+    (255 * item 0 peso * f)
+    (255 * item 1 peso * f)
+    (255 * item 2 peso * f) ]
+  display
+end
+
+to leer-datos
+  file-close-all
+  let f user-file
+  if (f = false) [stop]
+  file-open f
+  set Cabecera bf read-from-string (word "[" file-read-line "]")
+  let att []
+  while [not file-at-end?]
   [
-    set shape "circle"
-    set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+    let linea (bf read-from-string (word "[" file-read-line "]"))
+    let mlinea max linea
+    set linea map [? / mlinea] linea
+    set att lput linea att
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
+  file-close-all
+  set TSet []
+  foreach (n-values length Cabecera [?])
   [
-    ask estados with [not explorado?]
-    [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
-          ]
-        ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
-      ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
-    ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
+    let i ?
+    set Tset lput (map [item i ?] att) TSet
+    show (word (item i Cabecera) ": " (item i Tset))
   ]
 end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
-end
 
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
-  [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
-  ]
-end
-
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
-end
-
-; Representación del grafo de forma más adecuada
-to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
-end
-
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
-  ]
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+187
 10
-649
-470
-16
-16
-13.0
+607
+451
+-1
+-1
+10.0
 1
-10
+8
 1
 1
 1
@@ -164,24 +158,56 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
 0
+40
 0
+40
+1
+1
 1
 ticks
 30.0
 
-BUTTON
-125
-430
-191
-463
+SLIDER
+9
+43
+181
+76
+Tiempo-Entrenamiento
+Tiempo-Entrenamiento
+0
+1000
+146
+1
+1
 NIL
-layout\n
+HORIZONTAL
+
+BUTTON
+118
+109
+181
+142
+SOM!
+SOM
 T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+9
+109
+72
+142
+NIL
+setup\n
+NIL
 1
 T
 OBSERVER
@@ -192,89 +218,131 @@ NIL
 1
 
 MONITOR
-15
-420
-120
-465
-Estados Explorados
-count turtles
+9
+231
+70
+276
+Radio
+precision (R ticks) 3
 17
 1
 11
 
-INPUTBOX
+MONITOR
+70
+231
+181
+276
+Tasa-Aprendizaje
+precision (L ticks) 5
+17
+1
+11
+
+SLIDER
+9
+76
+181
+109
+Aprendizaje-Inicial
+Aprendizaje-Inicial
+0
+1
+0.1
+.001
+1
+NIL
+HORIZONTAL
+
+BUTTON
+10
+276
+89
+309
+Muertra error
+muestra-error
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+89
+276
+181
+309
+R-error
+R-error
+1
+10
+1
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+10
+309
+89
+342
+Muestra Mapa
+muestra-mapa
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
 9
 10
-179
-70
-Estado_Inicial
-5
+181
+43
+Tamaño-Mundo
+Tamaño-Mundo
 1
+400
+40
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+89
+309
+181
+342
+factor-error
+factor-error
 0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Estado_final
-159
-1
+25
 0
-String
+.2
+1
+NIL
+HORIZONTAL
 
-BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
-NIL
+MONITOR
+9
+142
+181
+187
+Tamaño Entrenamiento
+length Cabecera
+17
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-15
-210
-210
-405
-12
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -455,6 +523,11 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
+hex
+false
+0
+Polygon -7500403 true true 0 150 75 30 225 30 300 150 225 270 75 270
+
 house
 false
 0
@@ -626,7 +699,7 @@ NetLogo 5.3
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -637,5 +710,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-1
+0
 @#$#@#$#@

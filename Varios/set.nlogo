@@ -1,150 +1,82 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
-[
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
-]
-
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
-[
-  regla   ; Almacena la versión "representable" de la regla aplicada
-]
-
-;--------------- Funciones personalizables -------------------
-
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
+to-report set:list-to-set [l]
+  report remove-duplicates l
 end
 
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
+to-report set:union [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report set:list-to-set (sentence s1 s2) ]
+  [ error "set:union only works on sets. Please, verify that arguments are sets" ]
 end
 
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
+to-report set:intersection [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report filter [member? ? s2] s1 ]
+  [ error "set:intersection only works on sets. Please, verify that arguments are sets" ]
+end
 
-to BFS [estado-inicial estado-final]
-  ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
+to-report set:subset? [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
   [
-    set shape "circle"
-    set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+    ifelse empty? s1
+    [ report true]
+    [ report reduce and (map [member? ? s2] s1) ]
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
-  [
-    ask estados with [not explorado?]
-    [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
-          ]
-        ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
-      ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
-    ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
-  ]
+  [ error "set:subset? only works on sets. Please, verify that arguments are sets" ]
 end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
+to-report set:equal? [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report (set:subset? s1 s2) and (set:subset? s2 s1) ]
+  [ error "set:equal? only works on sets. Please, verify that arguments are sets" ]
 end
 
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
-  [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
-  ]
+to-report set:dif [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report filter [not member? ? s2] s1 ]
+  [ error "set:dif-set? only works on sets. Please, verify that arguments are sets" ]
 end
 
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
+to-report set:sym-dif [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report set:union (set:dif s1 s2) (set:dif s2 s1) ]
+  [ error "set:sym-dif only works on sets. Please, verify that arguments are sets" ]
 end
 
-; Representación del grafo de forma más adecuada
-to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
+to-report set:member? [x s]
+  ifelse set:is-set? s
+  [ report member? x s ]
+  [ error "set:member? only works on sets. Please, verify that second argument is a set" ]
 end
 
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
-  ]
+to-report set:is-set? [s]
+  report s = (set:list-to-set s)
+end
+
+to-report set:size [s]
+  ifelse set:is-set? s
+  [ report length s ]
+  [ error "set:size only works on sets. Please, verify that the argument is a set" ]
+end
+
+to set:test
+ let s1 [1 2 3 4 5]
+ let s2 [4 3 5 6 7 8]
+ let l1 [1 2 3 4 5 4 3 2 1]
+ show set:list-to-set l1
+ show set:union s1 s2
+ show set:intersection s1 s2
+ show set:subset? [5 3] s1
+ show set:subset? s1 s2
+ show set:equal? s1 s2
+ show set:equal? [1 2] [2 1]
+ show set:dif s1 s2
+ show set:dif s2 s1
+ show set:sym-dif s1 s2
+ show set:member? 1 s1
+ show set:member? 1 s2
+ show set:is-set? l1
+ show set:is-set? s1
+ show set:size s1
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -161,8 +93,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -16
 16
@@ -173,108 +105,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-BUTTON
-125
-430
-191
-463
-NIL
-layout\n
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-15
-420
-120
-465
-Estados Explorados
-count turtles
-17
-1
-11
-
-INPUTBOX
-9
-10
-179
-70
-Estado_Inicial
-5
-1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Estado_final
-159
-1
-0
-String
-
-BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-15
-210
-210
-405
-12
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -619,14 +449,14 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -637,5 +467,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-1
+0
 @#$#@#$#@

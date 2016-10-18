@@ -1,147 +1,183 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
+; In this solution we represent the states of the problem by means of agents
+breed [states state]
+states-own
 [
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
+  content   ; Stores the content (value) of the state
+  explored? ; Tells if the state has been explored or not
+  path      ; Stores the path to reach this state from the initial state
 ]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
+; Transitions will be represented by means of links
+directed-link-breed [transitions transition]
+transitions-own
 [
-  regla   ; Almacena la versión "representable" de la regla aplicada
+  rule   ; Stores the printable version of the applied rule
 ]
 
-;--------------- Funciones personalizables -------------------
+;--------------- Customizable Reports -------------------
 
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
+; These reports must be customized in order to solve different problems using the
+; same BFS function.
 
-to-report transiciones-aplicables
+; Rules are represented by using pairs [ "representation" f ]
+; in such a way that f allows to transform states (it is the transition function)
+; and "representation" is a string to identify the rule. We will use tasks in
+; order to store the transition functions.
+
+to-report applicable-transitions
   report (list
            (list "*3" (task [? * 3]))
            (list "+7" (task [? + 7]))
            (list "-2" (task [? - 2])))
 end
 
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
+; valid? is a boolean report to say which states are valid
+to-report valid? [x]
+  report (x > 0)
 end
 
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
+; children-states is an agent report that returns the children for the current state.
+; it will return a list of pairs [ns tran], where ns is the content of the children-state,
+; and tran is the applicable transition to get it.
+; It maps the applicable transitions on the current content, and then filters those
+; states that are valid.
 
-to BFS [estado-inicial estado-final]
+to-report children-states
+  report filter [valid? (first ?)]
+                (map [(list (run-result (last ?) content) ?)]
+                     applicable-transitions)
+end
+
+; final-state? is an agent report that identifies the final states for the problem.
+; It usually will be a property on the content of the state (for example, if it is
+; equal to the Final State). It allows the use of parameters because maybe the
+; verification of reaching the goal depends on some extra information from the problem.
+
+to-report final-state? [params]
+  report ( content = params)
+end
+
+;-------------------- BFS Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the goal is
+; reached (using final-state? report).
+; It needs two reports:
+;   a) children-states : reports the children states of the current state.
+;   b) final-state?    : reports if the current state is a final one.
+
+to BFS [#initial-state #final-state]
   ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
+  show-output
+  ; Create the agent associated to the initial state
+  create-states 1
   [
     set shape "circle"
     set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+    set content #initial-state
+    set label content
+    set path (list self)
+    set explored? false
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [any? states with [not explored?]]
   [
-    ask estados with [not explorado?]
+    foreach sort (states with [not explored?])
     [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
+      ask ?
       [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
+        ; Compute the children states by applying every rule to the current state
+        foreach children-states
         [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
+          ; We separate the contents and transitions from each children
+          let new-state first ?
+          let applied-rule last ?
+          ; We consider only new states (states that have not been visited previously)
+          if not any? states with [content = new-state]
           [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
+            ; Clone one new agent for each new state
+            hatch-states 1
+            [
+              set content new-state
+              set label content
+              set explored? false
+              ; and link it with its father using a transition link
+              create-transition-from myself [
+                set rule applied-rule
+                set label first applied-rule
+              ]
+              set color blue
+              ; Update the path for the new state (remember that the clone is a
+              ; copy of the father, so we only need to add the new state to the
+              ; father's path)
+              set path lput self path
+            ]
           ]
+          ; Update the layout
+          if layout? [layout]
+          if run-mode = "By state" [wait .5]
         ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
+        ; When all its children have been computed, we mark the current stat as explored
+        set explored? true
       ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
+      ; After a new level is totally generated, we check if the goal has been reached
+      if any? states with [final-state? #final-state]
+      [
+        ; If it is the case, we highlight the goal and the path from the initial state
+        ; (we use reduce with an appropriate function).
+        ; It could be that we find severalfinal states in the same level, so we choose
+        ; only one of them.
+        output-print ""
+        output-print "The Solution is:"
+        output-print "----------------"
+        output-print (word "From " initial_state)
+        ask one-of states with [final-state? #final-state]
+        [
+          set color red
+          let a reduce highlight path
+        ]
+        ; Print the number of explored states, and stop de procedure
+        output-print ""
+        output-print (word count turtles " explored states" )
+        stop
+      ]
     ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
+    if run-mode = "By level" [wait 1]
   ]
 end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
+; Highlight report is used as a reduce parameters. Given two connected nodes (states),
+; it will highlight the link and returns the second state.
+
+to-report highlight [x y]
+  ask transition [who] of x [who] of y [
+    set color red
+    set thickness .3
+    output-print (word (first rule) " -> " [content] of y)]
   report y
 end
 
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
-  [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
+; Clean function erases all the nodos not in the solution path (in red).
+
+to clean
+  ask states with [not any? my-links with [color = red]] [die]
+  repeat 10000 [
+    layout-spring states transitions 1 5 1
   ]
 end
 
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
-end
+; Radial Layout for the tree of generated states
 
-; Representación del grafo de forma más adecuada
 to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
+  layout-radial states transitions state 0
 end
 
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
+; Shows some information about the problem to be solved.
+
+to show-output
+  output-print (word "Go from " Initial_State " to " Final_State)
+  output-print (word "using the transitions:")
+  foreach applicable-transitions
   [
     output-print (first ?)
   ]
@@ -196,18 +232,18 @@ MONITOR
 420
 120
 465
-Estados Explorados
+Explored States
 count turtles
 17
 1
 11
 
 INPUTBOX
-9
 10
-179
+10
+180
 70
-Estado_Inicial
+Initial_State
 5
 1
 0
@@ -218,7 +254,7 @@ INPUTBOX
 70
 180
 130
-Estado_final
+Final_State
 159
 1
 0
@@ -227,10 +263,10 @@ String
 BUTTON
 15
 135
-115
+110
 168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
+Run Search
+BFS (read-from-string Initial_State) (read-from-string Final_State)
 NIL
 1
 T
@@ -244,10 +280,10 @@ NIL
 BUTTON
 15
 170
-115
+110
 203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
+Clean Solution
+clean
 NIL
 1
 T
@@ -260,10 +296,10 @@ NIL
 
 OUTPUT
 15
+220
 210
-210
-405
-12
+415
+10
 
 SWITCH
 115
@@ -272,9 +308,19 @@ SWITCH
 168
 layout?
 layout?
-1
+0
 1
 -1000
+
+CHOOSER
+115
+170
+207
+215
+Run-mode
+Run-mode
+"Continuous" "By level" "By state"
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

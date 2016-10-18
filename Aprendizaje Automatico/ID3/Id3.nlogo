@@ -1,160 +1,268 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
-[
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
-]
+breed [nodos nodo]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
-[
-  regla   ; Almacena la versión "representable" de la regla aplicada
-]
+;; Los datasets son matrices de datos. La primera línea es la cabecera de atributos
+;;  La última columna es el atributo que se va a clasificar.
 
-;--------------- Funciones personalizables -------------------
-
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
-end
-
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
-
-to BFS [estado-inicial estado-final]
-  ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
-  [
-    set shape "circle"
-    set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+globals [
+  dataset
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
+
+; Devuelve la entropia de una lista
+to-report entropia [l]
+  ; Calculamos la frecuencia relativa de cada uno de sus elementos
+  let l2 map [frec ? l] (remove-duplicates l)
+  ; Aplicamos la función de entropía a la lista de frecuencias relativas
+  report sum map [ifelse-value (? = 0)[0][(-1) * ? * log ? 2]] l2 
+end
+
+; Devuelve la entropía relativa de un atributo en un dataset
+to-report entropia-rel [ds atr]
+  ; Extraemos la lista de atributos del dataset
+  let atrs first ds
+  ; Extraemos los posibles valores del atributo
+  let val  bf (columna atr ds)
+  ;show val
+  ; Nº de columna asociada al atributo
+  let p position atr atrs
+  ;show p
+  ; Acumulador para calcular la entropia relativa
+  let s 0
+  ; Para cada posible valor del atributo:
+  foreach remove-duplicates val
   [
-    ask estados with [not explorado?]
+    let v ?
+    ; Calculamos su frecuencia relativa
+    let f frec v val
+    ; Filtramos solo aquellas filas que tienen ese valor en el atributo, y 
+    ; formamos un nuevo dataset, con cabecera, con esas filas
+    let ds2 (fput (first ds) filter [(item p ?) = v] (bf ds))
+    ;show-dataset ds2
+    ; Calculamos la entropia de la última columna en el dataset filtrado
+    let ex entropia  bf (columna (last atrs) ds2)
+    ; Lo acumulamos
+    set s s + f * ex
+  ]
+  report s
+end
+
+to-report GI [ds atr]
+  let atrs first ds
+  report (entropia bf (columna (last atrs) ds)) - (entropia-rel ds atr)
+end
+
+; Devuelve la frecuencia relativa de un elemento en una lista
+to-report frec [el lista]
+  report (length (filter [? = el] lista)) / (length lista)
+end
+
+; Devuelve de un dataset la columna correspondiente a uno de sus atributos. 
+; Importante: CON LA CABECERA
+to-report columna [at ds]
+  let ats first ds
+  let p position at ats
+  report map [item p ?] ds
+end
+
+; Muestra un dataset de forma ordenada
+to show-dataset [ds]
+  let m 1 + max map [max map [length (word ?)] ?] ds
+  output-print "Dataset:"
+  repeat 1 + (m + 1) * length (first ds) [output-type "-"]
+  output-print ""
+  foreach ds
+  [
+    output-type "|"
+    foreach ?
     [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
-          ]
-        ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
-      ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
+      output-type ? 
+      repeat (m - length (word ?)) [output-type " "]
+      output-type "|"
     ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
+    output-print ""
+    repeat 1 + (m + 1) * length (first ds) [output-type "-"]
+    output-print ""
   ]
 end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
-end
-
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
+to-report output-dataset [ds]
+  let s "Dataset:\n"
+  let atrs first ds
+  let long map [1 + max map [length (word ?)] (columna ? ds)] atrs
+  set s (word s "\n")
+  ;; Lineas
+  let lin "├"
+  foreach long
   [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
+    repeat (1 + ?) [set lin (word lin "─")]
+    set lin (word lin "┼")
+  ]
+  set lin (word (bl lin) "┤\n")
+  ;; Cabecera
+  set s (word s "│ ")
+  (foreach (first ds) long
+    [
+      set s (word s  ?1 )
+      repeat (?2 - length (word ?1)) [set s (word s " ")]
+      set s (word s "│ ")
+    ])
+  set s (word s "\n" lin)
+  ; Cuerpo
+  foreach bf ds
+  [
+    set s (word s lin)
+    set s (word s "│ ")
+    (foreach ? long
+    [
+      set s (word s  ?1 )
+      repeat (?2 - length (word ?1)) [set s (word s " ")]
+      set s (word s "│ ")
+    ])
+    set s (word s "\n")
+    ;set s (word s lin)
+  ]
+  ;; Linea final
+  let lin2 "└"
+  foreach long
+  [
+    repeat (1 + ?) [set lin2 (word lin2 "─")]
+    set lin2 (word lin2 "┴")
+  ]
+  set lin2 (word (bl lin2) "┘\n")
+  set s (word s lin2)
+  ; Devolución
+  report s
+end
+
+; Carga un Dataset desde un fichero
+to-report load-Dataset
+  ca
+  file-close-all
+  let f user-file
+  ;let f "Test3-ID3.txt"
+  ifelse is-string? f
+  [
+    set dataset []
+    file-open f
+    while [not file-at-end?]
+    [
+      set dataset lput (read-from-string (word "[" file-read-line "]")) dataset
+    ]
+    file-close
+    report true
+  ]
+  [report false]
+end
+
+; Devuelve el atributo de máxima ganancia de un dataset
+to-report Max-GI [ds]
+  let atr1 map [(list ? (GI ds ?) )] (bl first ds) 
+  report first first sort-by [(last ?1) > (last ?2)] atr1
+end 
+
+; Devuelve el atributo de máxima ganancia de un dataset
+to-report Max-GR [ds]
+  let atr1 map [(list ? (ifelse-value ((entropia bf columna ? ds) = 0) [0] [(GI ds ?) / (entropia bf columna ? ds)]))] (bl first ds) 
+  report first first sort-by [(last ?1) > (last ?2)] atr1
+end 
+
+; Devuelve si un Dataset está ya calsificado
+to-report clasificado? [ds]
+  let clas (last first ds)
+  let val bf (columna clas ds)
+  let vals length remove-duplicates val
+  report ifelse-value (vals = 1) [true] [false]
+end
+
+; Procedimiento principal q genera el árbol de decisión obtenido por ID3
+to ID3-main 
+  ca
+  if load-dataset
+  [
+    create-nodos 1 [ 
+      set size 3
+      set shape "circle"
+      set color red
+      set label (last first dataset)
+      create-link-to ID3 dataset
+    ]
+  layout-radial nodos links (nodo 0)
+  output-print output-dataset dataset
   ]
 end
 
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
+; Algoritmo ID3 recursivo.
+;  Diferencia entre un nodo-hoja (lo que queda ya está clasificado)
+;                 o un nodo-decisión (hay que clasificar más)
+;  Devuelve siempre el nodo correspondiente, y si hay que continuar
+;   con la clasificación, entonces genera las ramas correspondientes
+;   y llama recursivamente al procedimiento con los nuevos datasets.
+to-report ID3 [ds]
+  let r nobody
+  ifelse clasificado? ds
+  [
+    hatch-nodos 1
+    [
+      set shape "square"
+      set color red
+      set size 2
+      set r self
+      set label (word last last ds)
+      setxy random-pxcor random-pycor
+    ]
+  ]
+  [
+    let mx 0
+    ifelse Max.Metodo = "Ganancia Información"
+    [set mx Max-GI ds]
+    [set mx Max-GR ds]
+    hatch-nodos 1
+    [
+      set label mx
+      set r self
+      set color blue
+      set size 4
+      set shape "decision"
+      setxy random-pxcor random-pycor
+      foreach (remove-duplicates bf (columna mx ds))
+      [
+        create-link-to (ID3 filtra ds mx ?) 
+        [
+          set color green 
+          set label ?
+          set label-color green + 3
+        ]
+      ]
+    ] 
+  ]
+  report r
+end
+  
+; Devuelve el subdataset que se obtiene filtrando uno de sus atributos por un valor
+to-report filtra [ds atr val]
+  let atrs first ds
+  let p position atr atrs
+  let ds2 (fput (first ds) filter [(item p ?) = val] (bf ds))
+  report ds2
 end
 
-; Representación del grafo de forma más adecuada
+
 to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
-end
-
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
-  ]
+  layout-spring nodos links .5 8 .3
+  let cx sum [xcor] of nodos / count nodos
+  let cy sum [ycor] of nodos / count nodos
+  ask nodos [
+    setxy xcor - cx ycor - cy
+    setxy xcor * .999 ycor * .999]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+4
 10
-649
-470
+509
+460
+19
 16
-16
-13.0
+12.7
 1
 10
 1
@@ -164,8 +272,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
+-19
+19
 -16
 16
 0
@@ -175,62 +283,12 @@ ticks
 30.0
 
 BUTTON
-125
-430
-191
-463
-NIL
-layout\n
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-15
-420
-120
-465
-Estados Explorados
-count turtles
-17
-1
-11
-
-INPUTBOX
-9
+139
 10
-179
-70
-Estado_Inicial
-5
-1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Estado_final
-159
-1
-0
-String
-
-BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
+206
+43
+ID3
+ID3-main
 NIL
 1
 T
@@ -242,13 +300,13 @@ NIL
 1
 
 BUTTON
-15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
+443
+10
+509
+43
 NIL
+layout
+T
 1
 T
 OBSERVER
@@ -259,22 +317,21 @@ NIL
 1
 
 OUTPUT
-15
-210
-210
-405
-12
+509
+10
+1047
+460
+10
 
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
+CHOOSER
+5
+10
+139
+55
+Max.Metodo
+Max.Metodo
+"Ganancia Información" "Razón de Ganancia"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -391,6 +448,11 @@ cylinder
 false
 0
 Circle -7500403 true true 0 0 300
+
+decision
+false
+0
+Polygon -7500403 true true 0 150 150 0 300 150 150 300 0 150
 
 dot
 false
@@ -619,23 +681,23 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.0.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
 link direction
 true
 0
-Line -7500403 true 150 150 90 180
-Line -7500403 true 150 150 210 180
+Line -7500403 true 150 30 105 150
+Line -7500403 true 150 30 195 150
 
 @#$#@#$#@
-1
+0
 @#$#@#$#@

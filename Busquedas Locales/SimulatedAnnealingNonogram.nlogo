@@ -1,207 +1,280 @@
-; Variables globales
+; Global Variables
 globals [
-  dist-filas     ; Distribución de activos en las filas, por ejemplo [3] o [2 5 2]
-  dist-columnas  ; Distribución de activos en las columnas
-  Error-Global   ; Energía del sistema global
+  rows-dist     ; Distribution of cells in rows, for example: [3] or [2 5 2]
+  cols-dist     ; Distribution of cells in columns
+  Global-Energy ; Global Energy of the system
+  Temperature   ; Temperature of the system
 ]
 
-patches-own [estado estado-previo]
+; Variables for patches: Patches = Cells
+patches-own [
+  state           ; False/True = deactivated/active
+  previous-state  ; Previous state when we try changes
+]
 
+; Setup procedure prepares the data for the Simulated Annealing Algorithm
 to setup
   ca
-  ; Carga la figura seleccionada  
-  run Figura
-  ; Ajusta el mundo al tamaño de la figura
-  resize-world 0 (length dist-columnas - 1) 0 (length dist-filas - 1) 
+  ; Load Selected Figure (it simply fill rows-dist and cols-dist variables)
+  run Figure
+  ; Resize the world to fit the figure
+  resize-world 0 (length cols-dist - 1) 0 (length rows-dist - 1)
   set-patch-size (25 * 16) / (max (list world-width world-height))
-  
-  ; Inicializa los patches al azar
+
+  ; Starts cell randomly (in the interface we choose the % of initially
+  ;   activated cells)
   ask patches [
-    set estado ifelse-value (random 100 < %-inicial) [true][false]
-    set estado-previo true ]
-  
-  ; Muestra el estado del mundo actual
-  muestraEstados
-  ; Calcula el error del mundo actual
-  calcularError-Global
-  ; Actualiza el Plot
-  actualizaPlotError
-  ;Inicia la temperatura
-  set temperatura 5
+    set state (random 100 < %-initial)
+    set previous-state true
+  ]
+
+  ; Show the current states of the cells
+  show-states
+  ; Compute the current Energy of the system
+  Compute-Global-Energy
+  ; Update plot
+  Update-Plot
+  ; Reset the Temperature
+  set Temperature 1
   reset-ticks
 end
 
+; Main Algorithm prodecure
+;   Associated to a forever button, hence we define one only step
 to go
-  let energia-anterior 0
-  let energia-actual 0
-  let accept 0
-  
-  ;ask one-of patches [
-  ask one-of patches with [ estado ] [
-    set energia-anterior calculaEnergiaEntorno pxcor pycor
-    recuerdaEstados
-    estrategia1
-    set energia-actual calculaEnergiaEntorno pxcor pycor
-    if not aceptarModificacion energia-actual energia-anterior [ revertirEstados ]
+  ; Make a change on one cell
+  ask one-of patches [
+    ; We compute the part of the energy depending on this cell
+    let old-energy Compute-Context-Energy pxcor pycor
+    ; and store the previous states
+    Store-Previous-States
+    ; Apply the change following one of the strategies. It will
+    ;   affect only to the neighbors of the cell
+    If Strategy = "Change-me" [strategy1]
+    if Strategy = "Probabilistic" [strategy2]
+    ; Compute the new energy after the change
+    let current-energy Compute-Context-Energy pxcor pycor
+    ; If the change is not accepted, we reverse the changes made
+    if not Accept-Change? current-energy old-energy [ Reverse-changes ]
   ]
-  muestraEstados
-  calcularError-Global
-  actualizaPlotError
-  set temperatura temperatura * .999
-  if Error-Global = 0 [stop]
+  ; Update the view of the cells
+  show-states
+  ; Compute and plot the energy of the system
+  Compute-Global-Energy
+  Update-Plot
+  ; Stop if the process has reached the goal
+  if Global-Energy = 0 [stop]
+  ; Cooling process
+  set Temperature Temperature * .999
+
   tick
 end
 
-to recuerdaEstados
-  ask neighbors [ set estado-previo estado ]
-  set estado-previo estado
+; Procedure to store (and reverse) states before any change
+to Store-Previous-States
+  ask neighbors4 [ set previous-state state ]
+  set previous-state state
 end
 
-to-report calculaEnergiaEntorno [ x y ]
-  report sum map evaluaFila (entorno y) + sum map evaluaColumna (entorno x)
+to Reverse-changes
+  ask neighbors4 [ set state previous-state ]
+  set state previous-state
 end
 
-to-report entorno [x]
-  report (list (x - 1) x (x + 1))
-end
-
-to revertirEstados
-  ask neighbors [ set estado estado-previo ]
-  set estado estado-previo
-end
-
-to-report aceptarModificacion [ nuevo antiguo ]
-  ifelse nuevo < antiguo
+; Report to accept or not the changes. It is the usual method
+to-report Accept-Change? [ new old ]
+  ifelse new < old
     [ report true ]
     [
-      let prob exp ( ( antiguo - nuevo ) / temperatura )
-      ifelse random-float 1.0 < prob 
-        [ report true ]
-        [ report false ]
+      let prob exp ( ( old - new ) / Temperature )
+      report random-float 1.0 < prob
     ]
 end
 
-to calcularError-Global
-  let error-filas    sum map [evaluaFila    ?] (n-values world-height [?])
-  let error-columnas sum map [evaluaColumna ?] (n-values world-width [?])
-  set Error-Global ( error-filas + error-columnas )
+; Report to evaluate the energy in the context (row and column) of the
+; cell at (x,y)
+to-report Compute-Context-Energy [ x y ]
+  report sum map Energy-Row (Context y) + sum map Energy-Column (Context x)
 end
 
-to-report evaluaFila [fila]
-  if fila < 0 or fila > max-pycor [report 0]
-  let estadosFila map [[estado] of ?] (sort patches with [pycor = fila])
-  let patronFila agrupar estadosFila
-  let errorFila calculaError patronFila (item fila dist-filas)
-  report errorFila
+; Auxiliary report to take the context of a location
+to-report Context [x]
+  report (list (x - 1) x (x + 1))
 end
 
-to-report evaluaColumna [columna]
-  if columna < 0 or columna > max-pxcor [report 0]
-  let estadosColumna map [[estado] of ?] (sort patches with [pxcor = columna])
-  let patronColumna agrupar estadosColumna
-  set patronColumna reverse patronColumna
-  let errorColumna calculaError patronColumna (item columna dist-columnas)
-  report errorColumna
+; Procedure to compute the Global ENergy of the system as the sum of energies
+; of rows and columns
+to Compute-Global-Energy
+  let rows-error sum map [Energy-Row    ?] (n-values world-height [?])
+  let cols-error sum map [Energy-Column ?] (n-values world-width  [?])
+  set Global-Energy ( rows-error + cols-error )
 end
 
-to-report calculaError [ v1 v2 ]
-  ; calcula diferencia de longitudes
+; The energy of a row is computed from the error between the pattern
+; of the goal row and the current row
+to-report Energy-Row [row]
+  if row < 0 or row > max-pycor [report 0]
+  let Row-states map [[state] of ?] (sort patches with [pycor = row])
+  let Row-Pattern group Row-states
+  let Row-Error Compute-Error Row-Pattern (item row rows-dist)
+  report Row-Error
+end
+
+; The energy of a column is computed from the error between the pattern
+; of the goal column and the current column
+to-report Energy-Column [col]
+  if col < 0 or col > max-pxcor [report 0]
+  let Col-States map [[state] of ?] (sort patches with [pxcor = col])
+  let Col-Pattern group Col-States
+  set Col-Pattern reverse Col-Pattern
+  let Col-Error Compute-Error Col-Pattern (item col cols-dist)
+  report Col-Error
+end
+
+; The error between 2 patterns
+to-report Compute-Error [ v1 v2 ]
+  ; Compute the differnce in lengths
   let dif abs (length v1 - length v2)
-  ; Iguala las longitudes de ambos vectores añadiendo 0's al más corto
-  if (length v1) < (length v2) 
+  ; Euqalize the patterns by adding 0`s ti the shortest
+  if (length v1) < (length v2)
     [ set v1 sentence v1 (n-values dif [0]) ]
-  if (length v2) < (length v1) 
+  if (length v2) < (length v1)
     [ set v2 sentence v2 (n-values dif [0]) ]
-  ; calcula la distancia euclídea entre los vectores
+  ; Compute the euclidean distance between patterns
   let er sum (map [(?1 - ?2) ^ 2] v1 v2)
-  ; añade la penalización por diferencia de longitudes
-  set er er + ( dif * Peso-diferencias)
+  ; Adding a penalty for the diference of lengths
+  set er er + ( dif * Weight-Dif)
   report er
 end
 
-to-report agrupar[ estados ]
-  let a-clue 0
-  ifelse item 0 estados
-    [set a-clue [0 1] ]
-    [set a-clue [0] ]
-  let i 1
-  let i-max length estados
-  repeat ( i-max - 1 ) [
-    if (item i estados) and (item ( i - 1 ) estados)
-      [ set a-clue replace-item ( -1 + length a-clue ) a-clue (1 + last a-clue) ]
-    if (item i estados) and  not (item ( i - 1 ) estados)
-      [ set a-clue lput 1 a-clue ]
-    set i ( i + 1 )
-  ]    
-  if a-clue != [0]
-    [ set a-clue remove 0 a-clue ]
-  report a-clue
+; Report to get the groups of a row/column of states:
+;   [true true true false false true true false] -> [3 2]
+; It works with reduce, leaving the false's and counting consecutive
+;   true's with the help of an auxiliary report. After that, we must
+;   remover the false's
+to-report group [states]
+  let res filter is-number? (reduce auxiliary-group (fput [false] states))
+  ifelse res = []
+  [ report [0] ]
+  [ report res ]
 end
 
-;============================
-; Estrategias de Modificacion
-;============================
-to estrategia0
-  set estado not estado
-end
-
-to estrategia1
-  let total (prob-eliminar + prob-crear + prob-intercambiar)
-  let prob random-float total  
-  ifelse prob < prob-eliminar 
-  [ eliminaPatch ]
+to-report auxiliary-group [L x]
+  ; false's are added directly
+  ifelse x = false
+  [report lput x L]
   [
-    ifelse (prob < (prob-eliminar + prob-crear) ) 
-    [ creaPatch ]
-    [ intercambiaPatch ]
+    ; if x is a true, we must see if the last one was a true too or not.
+    ; We recognize this because L ends in a number that we must increment
+    let a last L
+    ifelse is-number? a
+    [
+      report lput (a + 1) (bl L)
+    ]
+    [
+      ; Otherwise, x is the first true of a serie... and we count it as 1
+      report lput 1 L
+    ]
   ]
 end
 
-to eliminaPatch
-  set estado false
+;to-report group2[ states ]
+;  let a-clue 0
+;  ifelse item 0 states
+;    [set a-clue [0 1] ]
+;    [set a-clue [0] ]
+;  let i 1
+;  let i-max length states
+;  repeat ( i-max - 1 ) [
+;    if (item i states) and (item ( i - 1 ) states)
+;      [ set a-clue replace-item ( -1 + length a-clue ) a-clue (1 + last a-clue) ]
+;    if (item i states) and  not (item ( i - 1 ) states)
+;      [ set a-clue lput 1 a-clue ]
+;    set i ( i + 1 )
+;  ]
+;  if a-clue != [0]
+;    [ set a-clue remove 0 a-clue ]
+;  if a-clue != group2 states [print states]
+;  report a-clue
+;end
+
+;============================
+; Strategies of Changes
+;============================
+
+; Here we proppose two Strategis to decide the change
+
+; The first one is simply change the state of the cell
+to strategy1
+  set state not state
 end
 
-to creaPatch
-  let blancos neighbors with [not estado]
-  if any? blancos [ ask one-of blancos [set estado true]]
-end
-
-to intercambiaPatch
-  let blancos neighbors with [not estado]
-  if any? blancos [
-    ask one-of blancos [set estado true]
-    set estado false
+; The second one applies ons legal operator with different probabilities
+; (to be decided through the interface):
+;      Remove the cell (deactivate it)
+;      Add a cell    (activate one neighbor)
+;      Swap the content with a neighbor
+to strategy2
+  let total (Prob-Remove + Prob-Add + Prob-Swap)
+  let prob random-float total
+  ifelse prob < Prob-Remove
+  [ Remove-Cell ]
+  [
+    ifelse (prob < (Prob-Remove + Prob-Add) )
+    [ Add-Cell ]
+    [ Swap-Cell ]
   ]
+end
+
+to Remove-Cell
+  set state false
+end
+
+to Add-Cell
+  set state true
+end
+
+to Swap-Cell
+  let s1 state
+  let s2 0
+  ask one-of neighbors4 [
+    set s2 state
+    set state s1
+  ]
+  set state s2
 end
 
 ;==================
 ; PLOTTING ROUTINES
 ;==================
-to muestraEstados
+
+; Update the visual representation of cells
+to show-states
   ask patches [
-    set pcolor ifelse-value estado [black][white]
+    set pcolor ifelse-value state [black][white]
   ]
 end
 
-to actualizaPlotError
-    set-current-plot "Error Global"
-    plot Error-Global
+; Plot the Global Energy of the system
+to Update-Plot
+    set-current-plot "Global Energy"
+    plot Global-Energy
 end
 
 ;; ;;;;;;;;;;;;;;;;;;;;;
-;; EJEMPLOS
+;; Examples
 ;; ;;;;;;;;;;;;;;;;;;;;;
 
-to Figura1
-  ;dist-filas de arriba a abajo
-  set dist-filas [ [2] [1] [4] [5] [3 2] [2 1] [3] ]
-  
-  ;dist-columnas de izquierda a derecha
-  set dist-columnas [ [1] [3] [1 4] [4 1] [4] [3] [2] ]
+to Figure1
+  ;rows-dist: up to down
+  set rows-dist [ [2] [1] [4] [5] [3 2] [2 1] [3] ]
+
+  ;cols-dist: left to right
+  set cols-dist [ [1] [3] [1 4] [4 1] [4] [3] [2] ]
 end
 
-to Figura2
-    set dist-filas [
+to Figure2
+    set rows-dist [
         [10 3 3]  [9 3 2]   [8 9 1]   [7 7 1]  [6 2 2]
         [5 3 3]   [4 2 2]   [3 1 1 3] [2 5]    [1 8 5]
         [8 3]     [8 3]     [3]       [3]      [3 3]
@@ -209,7 +282,7 @@ to Figura2
         [3 8 1]   [2 8 2]   [1 1 3]   [2 4]    [3 5]
         [3 6]     [3 7]     [11 8]    [11 9]   [11 10]
      ]
-    set dist-columnas [
+    set cols-dist [
         [2 10]    [2 9]     [2 8]     [2 7]     [5 5 5]
         [6 4 5]   [7 3 4]   [2 3]     [2 4 8 2] [2 5 7 1]
         [2 6 6]   [3 2 3]   [3 3 3]   [3 3 3]   [3 3 3 3]
@@ -218,29 +291,29 @@ to Figura2
     ]
 end
 
-to Figura3
-    set dist-filas [
-        [0][0][0][1]  [3]   [5]   [7] 
+to Figure3
+    set rows-dist [
+        [0][0][0][1]  [3]   [5]   [7]
      ]
-    set dist-columnas [
+    set cols-dist [
         [1] [2] [3] [4] [3] [2] [1]
     ]
 end
-  
-to Figura4
-    set dist-filas [
-        [1 3] [1 1] [1 1] [5] [2 4] [7] [7] [5] 
+
+to Figure4
+    set rows-dist [
+        [1 3] [1 1] [1 1] [5] [2 4] [7] [7] [5]
      ]
-    set dist-columnas [
+    set cols-dist [
         [3] [1 5] [3 5] [1 5] [8] [1 5] [3]
     ]
 end
 
-to Figura5
-    set dist-filas [
+to Figure5
+    set rows-dist [
         [2 2] [2 3] [2 2 1] [2 1] [2 2] [3] [3] [1] [2] [1 1] [1 2] [2]
      ]
-    set dist-columnas [
+    set cols-dist [
         [2 1] [1 3] [2 4] [3 4] [4][3][3][3][2][2]
     ]
 end
@@ -248,8 +321,8 @@ end
 GRAPHICS-WINDOW
 190
 10
-533
-440
+532
+439
 -1
 -1
 33.333333333333336
@@ -274,9 +347,9 @@ ticks
 
 BUTTON
 105
-15
+10
 180
-48
+55
 setup
 setup
 NIL
@@ -291,24 +364,24 @@ NIL
 
 SLIDER
 10
-60
+55
 180
-93
-%-inicial
-%-inicial
+88
+%-initial
+%-initial
 0
 100
-50
+19
 1
 1
 %
 HORIZONTAL
 
 BUTTON
-10
-100
+125
+90
 180
-133
+135
 go
 go
 T
@@ -321,29 +394,14 @@ NIL
 NIL
 1
 
-SLIDER
-10
-140
-180
-173
-temperatura
-temperatura
-0.1
-10
-1.548552500287823E-8
-0.1
-1
-NIL
-HORIZONTAL
-
 PLOT
 10
 320
-185
+180
 455
-Error Global
-NIL
-NIL
+Global Energy
+Time
+Energy
 0.0
 10.0
 0.0
@@ -357,10 +415,10 @@ PENS
 MONITOR
 10
 455
-96
+97
 500
-Error Global
-Error-Global
+Global Energy
+Global-Energy
 3
 1
 11
@@ -370,8 +428,8 @@ SLIDER
 180
 180
 213
-prob-eliminar
-prob-eliminar
+Prob-Remove
+Prob-Remove
 0
 10
 1
@@ -385,8 +443,8 @@ SLIDER
 215
 180
 248
-prob-crear
-prob-crear
+Prob-Add
+Prob-Add
 0
 10
 1
@@ -400,11 +458,11 @@ SLIDER
 250
 180
 283
-prob-intercambiar
-prob-intercambiar
+Prob-Swap
+Prob-Swap
 0
 10
-4
+2
 1
 1
 NIL
@@ -415,11 +473,11 @@ SLIDER
 285
 180
 318
-Peso-diferencias
-Peso-diferencias
+Weight-Dif
+Weight-Dif
 0
 50
-4
+1
 1
 1
 NIL
@@ -428,34 +486,55 @@ HORIZONTAL
 CHOOSER
 10
 10
-102
+105
 55
-Figura
-Figura
-"Figura1" "Figura2" "Figura3" "Figura4" "Figura5"
+Figure
+Figure
+"Figure1" "Figure2" "Figure3" "Figure4" "Figure5"
 4
+
+MONITOR
+10
+135
+180
+180
+NIL
+Temperature
+17
+1
+11
+
+CHOOSER
+10
+90
+125
+135
+Strategy
+Strategy
+"Change-me" "Probabilistic"
+1
 
 @#$#@#$#@
 ## ¿QUÉ ES?
 
-Este programa resuelve nonogramas usando **Templado simulado**. 
+Este programa resuelve nonogramas usando **Templado simulado**.
 
-Un **nonograma** es un puzle de lógica inventado en Japón que ha tenido un gran éxito en los últimos años. 
+Un **nonograma** es un puzle de lógica inventado en Japón que ha tenido un gran éxito en los últimos años.
 
 Las reglas son simples:
 
-  + Tienes una cuadrícula de casillas, que deben ser pintadas de negro o dejadas en blanco (también hay versiones con más colores, pero no las abordaremos aquí). 
-  + Al lado de cada fila en la cuadrícula aparecen los tamaños de los grupos de casillas negras que se pueden encontrar en esa fila. Y sobre cada columna de la cuadrícula aparecen los tamaños de los grupos de casillas negras que se pueden encontrar en esa columna. 
+  + Tienes una cuadrícula de casillas, que deben ser pintadas de negro o dejadas en blanco (también hay versiones con más colores, pero no las abordaremos aquí).
+  + Al lado de cada fila en la cuadrícula aparecen los tamaños de los grupos de casillas negras que se pueden encontrar en esa fila. Y sobre cada columna de la cuadrícula aparecen los tamaños de los grupos de casillas negras que se pueden encontrar en esa columna.
   + El objetivo es encontrar todas las casillas negras que se ajustan a esa distribución.
 
 ![Imagen](http://twanvl.nl/image/nonogram/nonogram-lambda1.png)
 
 ## ¿CÓMO FUNCIONA?
 
-Aunque existe un algoritmo determinista (y relativamente rápido) para resolver este tiop de puzles, en este modelo usamos una aproximación de búsqueda local para resolverlo, concretamente haremos uso del método de templado simulado:  
+Aunque existe un algoritmo determinista (y relativamente rápido) para resolver este tiop de puzles, en este modelo usamos una aproximación de búsqueda local para resolverlo, concretamente haremos uso del método de templado simulado:
 
   1. La energía, E1, de la mala se calcula a partir de los errores que se comenten en las filas y columnas (según lo parecido que sea la distribución obtenida de la que es objetivo).
-  2. Se selecciona un agente al azar, y se le permite que se mueva, se marque negro o se marque blanco.  
+  2. Se selecciona un agente al azar, y se le permite que se mueva, se marque negro o se marque blanco.
   3. Se calcula de nuevo la energía de la malla con ese nuevo cambio, E2.
   4. Si E2<=E1, entonces se acepta el cambio realizado en 2. Si E2>E1, el cambio se produce con una cierta probabilidad, que es proporcional a exp(-(E2-E1)/T), donde T es una "temperatura" que gradualmente disminuye a medida que el proceso continúa.
 
@@ -463,7 +542,7 @@ Aunque existe un algoritmo determinista (y relativamente rápido) para resolver 
 
   1. Seleccionar la figura que se desea  resolver (se pueden añadir más en código). Fijar los parámetros de inicio, y pulsar 'setup'.
   2. Fijar los parámetros de ejecución del algoritmo (de la estrategia a seguir).
-  2. Pulsar "go" y esperar que el algoritmo se estabilice... idealmente, en la solución óptima (aunque es posible que se estabilice en una solución local). 
+  2. Pulsar "go" y esperar que el algoritmo se estabilice... idealmente, en la solución óptima (aunque es posible que se estabilice en una solución local).
 @#$#@#$#@
 default
 true
@@ -694,7 +773,7 @@ Polygon -6459832 true true 46 128 33 120 21 118 11 123 3 138 5 160 13 178 9 192 
 Polygon -6459832 true true 67 122 96 126 63 144
 
 @#$#@#$#@
-NetLogo 5.2.0
+NetLogo 5.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

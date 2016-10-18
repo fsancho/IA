@@ -1,186 +1,159 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
+breed [nodes node]       ; nodes of the network
+breed [climbers climber] ; agents that will make the search
+
+climbers-own
 [
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
+  on-hill?     ; shows if the climber has reached one hill
+  localization ; the node where the climber is
 ]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
+nodes-own
 [
-  regla   ; Almacena la versión "representable" de la regla aplicada
+  height ; value of the nodes to optimize
 ]
 
-;--------------- Funciones personalizables -------------------
+globals [
+  num-states ; counts the number of states have been visited
+]
 
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
-end
-
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
-
-to BFS [estado-inicial estado-final]
+; Procedure to create a network with heights
+to setup
   ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
-  [
-    set shape "circle"
-    set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
-  ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
-  [
-    ask estados with [not explorado?]
+  ; Create a landscape with hills and valleys.
+  ; Initially, the height will be stored in patches color. It will be in the interval [0,10]
+  ask n-of 10 patches [ set pcolor 100 ]
+  repeat 100 [ diffuse pcolor 1 ]
+  let M max [pcolor] of patches
+  ask patches [ set pcolor pcolor / M * 9.9]
+
+  ; Create a network of size 1500. The heights will be taken from the color of the patch they are
+
+  ask n-of 1500 patches [
+    sprout-nodes 1
     [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
-          ]
-        ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
-      ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
+      set shape "circle"
+      set height pcolor
+      set size height / 10
+      set color scale-color white height 0 M
     ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
   ]
-end
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
-end
-
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
+  ; Remove the auxiliary information on patches and highlight where the maximum is
+  cp
+  ask nodes with-max [height]
   [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
+    ask patches in-radius 2 [set pcolor blue]
   ]
-end
 
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
-end
-
-; Representación del grafo de forma más adecuada
-to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
-end
-
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
+  ; Create the links for the network (a geometrical network)
+  ask nodes [
+    create-links-with other nodes in-radius 3.5
   ]
+
+  ; Create some climbers randomly in the network
+  ask n-of Num-climbers nodes [
+    hatch-climbers 1 [
+      set on-hill? false
+      set color red
+      set label-color red
+      set shape "default"
+      set size 1
+      set localization myself
+      pen-down
+      set pen-size 5
+    ]
+  ]
+
+  set num-states 0
+  reset-ticks
+end
+
+to go
+  ; Stop when all the climbers are on a hill
+  ifelse all? climbers [on-hill?]
+    [
+      ;Highlight the best climber
+      ask one-of climbers with-max [climber-height] [ watch-me ]
+      stop
+    ]
+    [
+      ; Move the climbers uphill
+      ask climbers [
+        ; Look for the best neighbor of this localization
+        let max-neighbor max-one-of ([link-neighbors] of localization) [height]
+        ; if it is higher than the current localization
+        ifelse [height] of max-neighbor > climber-height
+        [
+          ; move the climber
+          move-to max-neighbor
+          set localization max-neighbor
+          set num-states num-states + 1
+        ]
+        [
+          ; otherwise, the climber is on a hill
+          set on-hill? true
+        ]
+      ]
+    ]
+  tick
+end
+
+; Auxiliary report to take the height of the localization of the climber
+to-report climber-height
+  report [height] of localization
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-649
-470
-16
-16
-13.0
+138
+11
+548
+442
+-1
+-1
+4.0
 1
-10
+11
 1
 1
 1
 0
-0
-0
 1
--16
-16
--16
-16
+1
+1
 0
+99
 0
+99
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-125
-430
-191
-463
+24
+51
+115
+84
 NIL
-layout\n
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+24
+90
+115
+123
+NIL
+go
 T
 1
 T
@@ -191,127 +164,62 @@ NIL
 NIL
 1
 
+SLIDER
+4
+10
+134
+43
+Num-climbers
+Num-climbers
+1
+1000
+10
+1
+1
+NIL
+HORIZONTAL
+
 MONITOR
-15
-420
-120
-465
-Estados Explorados
-count turtles
+10
+128
+130
+173
+Num. Visited States
+num-states
 17
 1
 11
 
-INPUTBOX
+MONITOR
 9
-10
-179
-70
-Estado_Inicial
-5
-1
-0
-String
-
-INPUTBOX
-10
-70
-180
+175
 130
-Estado_final
-159
+220
+Optimum / Reached
+(word \nprecision (max [height] of nodes) 2\n\" / \"\nprecision (max [climber-height] of climbers) 2\n)
+17
 1
-0
-String
+11
 
-BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-15
-210
-210
-405
-12
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
+PLOT
+552
+16
+752
+166
+Best Climber
+Time
+Height
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot max [climber-height] of climbers"
 
 @#$#@#$#@
-## WHAT IS IT?
-
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -505,22 +413,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -605,13 +497,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -623,10 +508,18 @@ NetLogo 5.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>success?</metric>
+    <steppedValueSet variable="Num-climbers" first="1" step="1" last="100"/>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -637,5 +530,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-1
+0
 @#$#@#$#@
