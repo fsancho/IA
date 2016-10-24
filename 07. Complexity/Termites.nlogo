@@ -1,491 +1,231 @@
-;;;;------------------------------------------------------------------------
-;;;; Variables Globales
-
-globals 
-[
-  raiz ; Raíz del árbol generado
-  cont ; Contador para ir numerando los nodos visitados de forma secuencial
-  acont; Contador para numerar la profundidad de las aristas
-]
-
-;;;; Familia de Agentes
-
-breed [nodos nodo]   ; Familia de agentes para los nodos del árbol/grafo
-
-nodos-own
-[
-  visitado?        ; Indica si el nodo ha sido visitado en la búsqueda 
-                   ;       (usado en DFS y BFS)
-  en-desarrollo?   ; Indica si el nodo ya ha sido desarrollado/expandido 
-                   ;        en la búsqueda (usado en BFS)
-  indice           ; Muestra el índice del nodo dentro del recorrido
-  
-  altura
-]
-
-;;;;------------------------------------------------------------------------
-;;;; Generación de árboles/grafos
-
-; Genera un árbol de ramificación constante indicando la profundidad 
-; (número de niveles) y anchura (número de hijos)
-
-to genera-arbol [#profundidad #anchura]
-  ; El módulo principal genera un solo nodo (la raíz) y lanza el módulo 
-  ;   recursivo de generación de hijos
-  create-nodos 1
-  [
+to setup
+  clear-all
+  set-default-shape turtles "bug"
+  ;; randomly distribute wood chips
+  ask patches
+  [ if random-float 100 < density
+    [ set pcolor yellow ] ]
+  ;; randomly distribute termites
+  create-turtles number [
+    set color white
     setxy random-xcor random-ycor
-    set shape "square"
-    set color blue
-    set label-color white
-    set size 1
-    set raiz self
-    set visitado? true
-    set en-desarrollo? false
-    set indice -1
-    ; Llamada al módulo recursivo auxiliar. Ver abajo
-    genera-arbol-aux (#profundidad - 1) #anchura self
-  ]
-  ; Tras haber generado el árbol, le damos layout radial
-  layout-radial nodos links raiz
-end
-  
-; El módulo recursivo auxiliar recibe la profundidad, anchura, y un nodo, 
-; y genera el subárbol que pende de ese nodo
-to genera-arbol-aux [#profundidad #anchura padre]
-  ; El módulo solo se ejecuta si la profundidad es > 0
-  if #profundidad > 0
-  [
-    ; Pedimos al nodo que genere sus hijos y los una a él
-    ask padre
-    [
-      hatch-nodos #anchura
-      [
-        set visitado? false
-        set en-desarrollo? false
-        create-link-with padre
-        ; Para cada hijo, repetimos el proceso
-        genera-arbol-aux (#profundidad - 1) #anchura self
-      ]
-    ]
-  ]   
-end
-
-; Módulo para generar un grafo aleatorio con el número de nodos y número
-;  de aristas dados por el usuario.
-
-to genera-grafo
-  ca
-  ; Primero, generamos todos los nodos
-  create-nodos num-nodos
-  [
-    setxy random-xcor random-ycor
-    set shape "square"
-    set color blue
-    set label-color white
-    set size 1
-    set visitado? true
-    set en-desarrollo? false
-    set indice -1
-  ]
-  ; En un grafo no hay raíz, por eso tomamos uno de ellos como raíz
-  set raiz nodo 0
-  ; Generamos aristas al azar, controlando que se generen la cantidad 
-  ;   adecuada
-  while [count links < Num-aristas]
-  [
-    ask one-of nodos
-    [ create-link-with one-of other nodos ]
-  ]
-  ; Damos un layout que permita visualizarlos más fácilmente
-  repeat 500 [ layout-spring nodos links 0.2 (sqrt num-nodos) / num-nodos 1 ]
-end
-
-; Módulo para reiniciar los valores de los nodos
-to reset
-  set cont 0
-  set acont 1
-  ask nodos 
-  [
-    set visitado? false
-    set en-desarrollo? false
-    set label ""
+    set size 5  ;; easier to see
   ]
 end
 
-; Módulo para centrar en el nodo de inicio
-to re-layout
-  layout-radial nodos links (one-of nodos with [indice = 0])
+to go  ;; turtle procedure
+  search-for-chip
+  find-new-pile
+  put-down-chip
 end
 
-;;;;------------------------------------------------------------------------
-;;;; Algoritmos de búsqueda (realmente, algoritmos de recorrido en los que 
-;;;; se muestra el orden de recorrido de cada nodo)
-
-; Algoritmo de recorrido en anchura: Recibe como dato de entrada el nodo del 
-;   que comienza.
-; En cada paso numera cada corona de forma ordenada (primero, los hijos de 
-;   los que tengan nuemración más baja)
-; Los nodos que han sido visitados pero que están por expandir se encuentran 
-;   "en-desarrollo"
-to recorrido-BFS [#start]
-  ; Comenzamos marcando el nodo de inicio
-  ask #start
-  [
-    set en-desarrollo? true
-    set visitado? true
-    set label cont
-    set indice cont
-    set cont cont + 1
-  ]
-  ; La etiqueta "en-desarrollo?" nos permite saber si hay nodos que deban
-  ;   ser desarrollados 
-  while [any? nodos with [en-desarrollo?]]
-  [
-    ; Se toman por orden de indice los nodos que han de desarrollarse
-    let siguientes sort-by [[indice] of ?1 <= [indice] of ?2] nodos with [en-desarrollo?];
-    ; Y cada uno de ellos (siguiendo ese orden) se expande y se numeran 
-    ;   sus hijos
-    foreach siguientes
-    [
-      ask ?
-      [
-        ; Una vez se ha expandido, sigue estando visitado, pero ya no está 
-        ; en-desarrollo
-        set en-desarrollo? false
-        ask link-neighbors with [not visitado?]
-        [
-          set en-desarrollo? true
-          set visitado? true
-          set label cont
-          set indice cont
-          set cont cont + 1
-          wait (1 - velocidad)
-        ]
-      ]
-    ]
-  ]
+to search-for-chip  ;; turtle procedure -- "picks up chip" by turning orange
+  ifelse pcolor = yellow
+  [ set pcolor black
+    set color orange
+    fd 20 ]
+  [ wiggle
+    search-for-chip ]
 end
 
-; Algoritmo de recorrido en profundidad: Recibe como dato de entrada el 
-;   nodo del que comienza.
-; En cada paso avanza todo lo posible en cada rama, hasta llegar a las 
-;   hojas, y da numeración sucesiva.
-; Usa backtracking para volver arriba.
-;   A diferencia del BFS, es un procedimiento recursivo.
-
-to recorrido-DFS [#start]
-  ; Cada nodo de entrada se marca como visitado, se numera, y se 
-  ;   profundiza hacia sus hijos.
-  ask #start
-  [
-    set visitado? true
-    set label cont
-    set indice cont
-    set cont cont + 1
-    wait (1 - velocidad)
-    ; Para cada hijo suyo no visitado, se repite la operación
-    ;   es importante notar que la propia llamada recursiva genera que 
-    ;   el marcado sea en profundidad
-    ask link-neighbors with [not visitado?]
-    [
-      if not visitado? [ recorrido-DFS self ] ; Podría ocurrir q se hubiera visitado
-                                              ; en el mismo ciclo
-    ]
-  ] 
+to find-new-pile  ;; turtle procedure -- look for yellow patches
+  if pcolor != yellow
+  [ wiggle
+    find-new-pile ]
 end
 
-; Algoritmo de recorrido por azar exhaustivo: Recibe como dato de entrada
-;   el nodo por el que comienza.
-; Una vez marcado el nodo de inicio. Recorre el resto de nodos al azar,
-;   pero con la precaución de no repetir nodos.
+to put-down-chip  ;; turtle procedure -- finds empty spot & drops chip
+  ifelse pcolor = black
+  [ set pcolor yellow
+    set color white
+    get-away ]
+  [ rt random 360
+    fd 1
+    put-down-chip ]
+end
 
-to recorrido-azar-exahustivo [#start]
-  ask #start
-  [
-    set visitado? true
-    set label cont
-    set indice cont
-    set cont cont + 1
-    wait (1 - velocidad)
-  ]
-  ask nodos with [not visitado?]
-  [
-    set visitado? true
-    set label cont
-    set indice cont
-    set cont cont + 1
-    wait (1 - velocidad)
-  ]
-end      
+to get-away  ;; turtle procedure -- escape from yellow piles
+  rt random 360
+  fd 20
+  if pcolor != black
+    [ get-away ]
+end
+
+to wiggle ; turtle procedure
+  fd 1
+  rt random 50
+  lt random 50
+end
+
+
+; Copyright 1997 Uri Wilensky.
+; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+200
 10
-781
-602
-16
-16
-17.0
+612
+443
+100
+100
+2.0
 1
-12
+10
 1
 1
 1
 0
-0
-0
 1
--16
-16
--16
-16
-0
-0
 1
+1
+-100
+100
+-100
+100
+0
+0
+0
 ticks
 30.0
 
+BUTTON
+100
+115
+165
+148
+go
+go
+T
+1
+T
+TURTLE
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+25
+115
+90
+148
+setup
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 SLIDER
-7
 10
-110
-43
-Profundidad
-Profundidad
+30
+185
+63
+number
+number
 1
+2000
+400
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
 10
-6
+70
+185
+103
+density
+density
+0.0
+100.0
+20
+1.0
 1
-1
-NIL
+%
 HORIZONTAL
-
-SLIDER
-7
-42
-110
-75
-Anchura
-Anchura
-1
-5
-3
-1
-1
-NIL
-HORIZONTAL
-
-BUTTON
-110
-10
-189
-75
-Genera Arbol
-ca\ngenera-arbol Profundidad Anchura
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-69
-258
-177
-291
-Numera Profundidad
-reset\nrun (word \"recorrido-DFS \" Inicio)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-6
-258
-69
-291
-NIL
-reset
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-CHOOSER
-6
-213
-177
-258
-Inicio
-Inicio
-"raiz" "(one-of nodos)"
-0
-
-BUTTON
-69
-291
-177
-324
-Numera Anchura
-reset\nrun (word \"recorrido-BFS \" Inicio)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-6
-291
-69
-324
-Re-Layout
-re-layout
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-7
-76
-110
-109
-Num-nodos
-Num-nodos
-0
-200
-52
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-7
-109
-110
-142
-Num-Aristas
-Num-Aristas
-0
-10 * Num-nodos
-60
-1
-1
-NIL
-HORIZONTAL
-
-BUTTON
-110
-76
-189
-142
-Genera Grafo
-genera-grafo
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-6
-364
-178
-397
-velocidad
-velocidad
-0
-1
-1
-.1
-1
-NIL
-HORIZONTAL
-
-BUTTON
-7
-324
-177
-357
-Numera Azar Exahustivo
-reset\nrun (word \"Recorrido-azar-exahustivo \" inicio)
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
+This project is inspired by the behavior of termites gathering wood chips into piles. The termites follow a set of simple rules. Each termite starts wandering randomly. If it bumps into a wood chip, it picks the chip up, and continues to wander randomly. When it bumps into another wood chip, it finds a nearby empty space and puts its wood chip down.  With these simple rules, the wood chips eventually end up in a single pile.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Click the SETUP button to set up the termites (white) and wood chips (yellow). Click the GO button to start the simulation.  The termites turn orange when they are carrying a wood chip.
+
+The NUMBER slider controls the number of termites. (Note: Changes in the NUMBER slider do not take effect until the next setup.) The DENSITY slider controls the initial density of wood chips.
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+As piles of wood chips begin to form, the piles are not "protected" in any way. That is, termites sometimes take chips away from existing piles. That strategy might seem counter-productive. But if the piles were "protected", you would end up with lots of little piles, not one big one.
+
+The final piles are roughly round.  Why is this?  What other physical situations also produce round things?
+
+In general, the number of piles decreases with time. Why? Some piles disappear, when termites carry away all of the chips. And there is no way to start a new pile from scratch, since termites always put their wood chips near other wood chips. So the number of piles must decrease over time. (The only way a "new" pile starts is when an existing pile splits into two.)
+
+This project is a good example of a "decentralized" strategy. There is no termite in charge, and no special pre-designated site for the piles. Each termite follows a set of simple rules, but the colony as a whole accomplishes a rather sophisticated task.
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Do the results change if you use just a single termite?  What if you use several thousand termites?
+
+When there are just two piles left, which of them is most likely to "win" as the single, final pile? How often does the larger of the two piles win? If one pile has only a single wood chip, and the other pile has the rest of the wood chips, what are the chances that the first pile will win?
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+Can you extend the model to have the termites sort several colors of wood?
+
+Plot the number of piles, or their average size, or the number of termites carrying wood chips, as the model runs.
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+Notice that the wood chips do not exist as objects. They are just represented as colors in the patches. The termites update the patch colors as they pick up and put down the wood chips. In effect, the patches are being used as the data structure. This strategy is useful in many NetLogo programs.
+
+Note than when you stop the GO forever button, the termites keep moving for a little while.  This is because they are each finishing the commands in the GO procedure.  To do this, they must finish their current cycle of finding a chip, finding a pile, and then finding an empty spot near the pile.  In most models, the GO function only moves the model forward one step, but in this model, the GO function is written to advance the turtles through a full cycle of activity.  See the "Buttons" section of the Programming Guide in the User Manual for more information on turtle forever buttons.
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+ * Painted Desert Challenge
+ * Shepherds
+ * State Machine Example
 
-## CREDITS AND REFERENCES
+## HOW TO CITE
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Wilensky, U. (1997).  NetLogo Termites model.  http://ccl.northwestern.edu/netlogo/models/Termites.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 1997 Uri Wilensky.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+This model was created as part of the project: CONNECTED MATHEMATICS: MAKING SENSE OF COMPLEX PHENOMENA THROUGH BUILDING OBJECT-BASED PARALLEL MODELS (OBPML).  The project gratefully acknowledges the support of the National Science Foundation (Applications of Advanced Technologies Program) -- grant numbers RED #9552950 and REC #9632612.
+
+This model was developed at the MIT Media Lab using CM StarLogo.  See Resnick, M. (1994) "Turtles, Termites and Traffic Jams: Explorations in Massively Parallel Microworlds."  Cambridge, MA: MIT Press.  Adapted to StarLogoT, 1997, as part of the Connected Mathematics Project.
+
+This model was converted to NetLogo as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227. Converted from StarLogoT to NetLogo, 2001.
+
+<!-- 1997 2001 MIT -->
 @#$#@#$#@
 default
 true
@@ -679,15 +419,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-0
-Rectangle -7500403 true true 151 225 180 285
-Rectangle -7500403 true true 47 225 75 285
-Rectangle -7500403 true true 15 75 210 225
-Circle -7500403 true true 135 75 150
-Circle -16777216 true false 165 76 116
-
 square
 false
 0
@@ -772,15 +503,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -7500403 true true 135 285 195 285 270 90 30 90 105 285
-Polygon -7500403 true true 270 90 225 15 180 90
-Polygon -7500403 true true 30 90 75 15 120 90
-Circle -1 true false 183 138 24
-Circle -1 true false 93 138 24
-
 x
 false
 0
@@ -788,17 +510,19 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0.3
+NetLogo 5.3.1
 @#$#@#$#@
+setup
+ask turtles [ repeat 150 [ go ] ]
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
 0.0
--0.2 0 1.0 0.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0
@@ -806,5 +530,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-0
+1
 @#$#@#$#@

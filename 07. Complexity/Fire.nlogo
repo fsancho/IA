@@ -1,137 +1,66 @@
-breed[nodos nodo]
-breed[buscadores buscador]
-
-buscadores-own [
-  memoria
-  coste-real
-  coste-total
-  localizacion
-  activo?
-]
-
 globals [
-  tiempo_inicio
-  tiempo_fin
-  Mejor-Camino
+  initial-trees   ;; how many trees (green patches) we started with
+  burned-trees    ;; how many have burned so far
 ]
+
+breed [fires fire]    ;; bright red turtles -- the leading edge of the fire
+breed [embers ember]  ;; turtles gradually fading from red to near black
 
 to setup
-  ca
-  crea-red
+  clear-all
+  set-default-shape turtles "square"
+  ;; make some green trees
+  ask patches with [(random-float 100) < density]
+    [ set pcolor green ]
+  ;; make a column of burning trees
+  ask patches with [pxcor = min-pxcor]
+    [ ignite ]
+  ;; set tree counts
+  set initial-trees count patches with [pcolor = green]
+  set burned-trees 0
+  reset-ticks
 end
 
-to crea-red
-  create-nodos Num-nodos [
-    setxy random-xcor random-ycor
-    set shape "circle"
-    set size .5
-    set color blue]
-  ask nodos [
-    create-links-with other nodos in-radius radio]
+to go
+  if not any? turtles  ;; either fires or embers
+    [ stop ]
+  ask fires
+    [ ask neighbors4 with [pcolor = green]
+        [ ignite ]
+      set breed embers ]
+  fade-embers
+  tick
 end
 
-to test
-  ask nodos [set color blue set size .5]
-  ask links with [color = yellow][set color grey set thickness 0]
-  let inicio one-of nodos
-  let fin one-of nodos with [distance inicio > max-pxcor]
-  ask fin [set color green set size 2]
-  
-  let camino (A* Inicio Fin Busqueda-visual?)
-  if camino != false [resalta-camino camino]
+;; creates the fire turtles
+to ignite  ;; patch procedure
+  sprout-fires 1
+    [ set color red ]
+  set pcolor black
+  set burned-trees burned-trees + 1
 end
 
-to-report heuristica [#Fin]
-  report [distance [localizacion] of myself] of #fin
+;; achieve fading color effect for the fire as it burns
+to fade-embers
+  ask embers
+    [ set color color - 0.3  ;; make red darker
+      if color < red - 3.5     ;; are we almost at black?
+        [ set pcolor color
+          die ] ]
 end
 
-to-report A* [#Inicio #Fin #Visible]
-  ask #inicio
-  [
-    hatch-buscadores 1
-    [
-      set hidden? not #Visible
-      set shape "circle"
-      set color red
-      set localizacion myself
-      set memoria (list localizacion)
-      set coste-real 0
-      set coste-total coste-real + heuristica #Fin
-      set activo? true
-     ]
-    set color green
-    set size 2
-  ]
-  set tiempo_inicio timer
 
-  while [not any? buscadores with [localizacion = #Fin] and any? buscadores with [activo?]]
-  [
-    ask min-one-of (buscadores with [activo?]) [coste-total]
-    [
-      set activo? false
-      let b self
-      let Lorig Localizacion
-      ask ([link-neighbors] of Lorig)
-      [
-        let enlace link-with Lorig
-        let c ([coste-real] of b) + [link-length] of enlace
-        if not any? buscadores-aqui with [coste-real < c]
-        [
-          hatch-buscadores 1
-          [
-            set hidden? not #Visible
-            set shape "circle"
-            set color red
-            set localizacion myself
-            set memoria lput localizacion ([memoria] of b)
-            set coste-real c
-            set coste-total coste-real + heuristica #Fin
-            set activo? true
-            ask other buscadores-aqui [die]
-          ]
-        ]
-      ]
-    ]
-  ]
-  set tiempo_fin timer
-  let res false
-  ifelse any? buscadores with [localizacion = #Fin]
-  [
-    let buscador-exitoso one-of buscadores with [localizacion = #Fin]
-    set res [memoria] of buscador-exitoso
-    set Mejor-Camino [coste-real] of buscador-exitoso
-  ]
-  [
-    set Mejor-Camino "#"
-  ]
-  ask buscadores [die]
-  report res
-end
-
-to resalta-camino [camino]
-  let a reduce resalta camino
-end
-
-to-report resalta [x y]
-  ask x
-  [
-    ask link-with y [set color yellow set thickness .4]
-  ]
-  report y
-end
-
-to-report buscadores-aqui
-  report buscadores with [localizacion = myself]
-end
+; Copyright 1997 Uri Wilensky.
+; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+200
 10
-649
-470
-16
-16
-13.0
+712
+543
+125
+125
+2.0
 1
 10
 1
@@ -141,40 +70,66 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
-0
-0
+-125
+125
+-125
+125
+1
+1
 1
 ticks
 30.0
 
-BUTTON
-22
-76
-85
-109
-NIL
-setup\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
+MONITOR
+43
 131
-76
-194
-109
+158
+176
+percent burned
+(burned-trees / initial-trees)\n* 100
+1
+1
+11
+
+SLIDER
+5
+38
+190
+71
+density
+density
+0.0
+99.0
+57
+1.0
+1
+%
+HORIZONTAL
+
+BUTTON
+106
+79
+175
+115
+go
+go
+T
+1
+T
+OBSERVER
 NIL
-test
+NIL
+NIL
+NIL
+0
+
+BUTTON
+26
+79
+96
+115
+setup
+setup
 NIL
 1
 T
@@ -184,128 +139,92 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-655
-10
-749
-55
-Nº Buscadores
-count Buscadores
-17
-1
-11
-
-MONITOR
-655
-55
-749
-100
-Mejor Camino
-Mejor-Camino
-3
-1
-11
-
-SLIDER
-22
-10
-194
-43
-radio
-radio
-0
-10
-1.5
-.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-22
-43
-194
-76
-Num-Nodos
-Num-Nodos
-0
-1000
-1000
-50
-1
-NIL
-HORIZONTAL
-
-MONITOR
-655
-100
-749
-145
-Tiempo (s)
-Tiempo_fin - tiempo_inicio
-4
-1
-11
-
-MONITOR
-22
-109
-85
-154
-Nº Aristas
-count links
-17
-1
-11
-
-SWITCH
-23
-159
-174
-192
-Busqueda-Visual?
-Busqueda-Visual?
-1
-1
--1000
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This project simulates the spread of a fire through a forest.  It shows that the fire's chance of reaching the right edge of the forest depends critically on the density of trees. This is an example of a common feature of complex systems, the presence of a non-linear threshold or critical parameter.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+The fire starts on the left edge of the forest, and spreads to neighboring trees. The fire spreads in four directions: north, east, south, and west.
+
+The model assumes there is no wind.  So, the fire must have trees along its path in order to advance.  That is, the fire cannot skip over an unwooded area (patch), so such a patch blocks the fire's motion in that direction.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Click the SETUP button to set up the trees (green) and fire (red on the left-hand side).
+
+Click the GO button to start the simulation.
+
+The DENSITY slider controls the density of trees in the forest. (Note: Changes in the DENSITY slider do not take effect until the next SETUP.)
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+When you run the model, how much of the forest burns. If you run it again with the same settings, do the same trees burn? How similar is the burn from run to run?
+
+Each turtle that represents a piece of the fire is born and then dies without ever moving. If the fire is made of turtles but no turtles are moving, what does it mean to say that the fire moves? This is an example of different levels in a system: at the level of the individual turtles, there is no motion, but at the level of the turtles collectively over time, the fire moves.
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Set the density of trees to 55%. At this setting, there is virtually no chance that the fire will reach the right edge of the forest. Set the density of trees to 70%. At this setting, it is almost certain that the fire will reach the right edge. There is a sharp transition around 59% density. At 59% density, the fire has a 50/50 chance of reaching the right edge.
+
+Try setting up and running a BehaviorSpace experiment (see Tools menu) to analyze the percent burned at different tree density levels.
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+What if the fire could spread in eight directions (including diagonals)? To do that, use "neighbors" instead of "neighbors4". How would that change the fire's chances of reaching the right edge? In this model, what "critical density" of trees is needed for the fire to propagate?
+
+Add wind to the model so that the fire can "jump" greater distances in certain directions.
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+Unburned trees are represented by green patches; burning trees are represented by turtles.  Two breeds of turtles are used, "fires" and "embers".  When a tree catches fire, a new fire turtle is created; a fire turns into an ember on the next turn.  Notice how the program gradually darkens the color of embers to achieve the visual effect of burning out.
+
+The `neighbors4` primitive is used to spread the fire.
+
+You could also write the model without turtles by just having the patches spread the fire, and doing it that way makes the code a little simpler.   Written that way, the model would run much slower, since all of the patches would always be active.  By using turtles, it's much easier to restrict the model's activity to just the area around the leading edge of the fire.
+
+See the "CA 1D Rule 30" and "CA 1D Rule 30 Turtle" for an example of a model written both with and without turtles.
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+* Percolation
+* Rumor Mill
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+https://en.wikipedia.org/wiki/Forest-fire_model
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Wilensky, U. (1997).  NetLogo Fire model.  http://ccl.northwestern.edu/netlogo/models/Fire.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 1997 Uri Wilensky.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+This model was created as part of the project: CONNECTED MATHEMATICS: MAKING SENSE OF COMPLEX PHENOMENA THROUGH BUILDING OBJECT-BASED PARALLEL MODELS (OBPML).  The project gratefully acknowledges the support of the National Science Foundation (Applications of Advanced Technologies Program) -- grant numbers RED #9552950 and REC #9632612.
+
+This model was developed at the MIT Media Lab using CM StarLogo.  See Resnick, M. (1994) "Turtles, Termites and Traffic Jams: Explorations in Massively Parallel Microworlds."  Cambridge, MA: MIT Press.  Adapted to StarLogoT, 1997, as part of the Connected Mathematics Project.
+
+This model was converted to NetLogo as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227. Converted from StarLogoT to NetLogo, 2001.
+
+<!-- 1997 2001 MIT -->
 @#$#@#$#@
 default
 true
@@ -499,22 +418,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -599,13 +502,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -613,17 +509,20 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0.4
+NetLogo 5.3.1
 @#$#@#$#@
+set density 60.0
+setup
+repeat 180 [ go ]
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
 0.0
--0.2 0 1.0 0.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0

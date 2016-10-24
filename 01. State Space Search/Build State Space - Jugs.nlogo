@@ -1,228 +1,114 @@
-globals
+;-------------- Include Files for commond processes -------------------------
+
+__includes [ "BSS.nls" "LayoutSpace.nls"]
+
+;----------------------------------------------------------------------------
+
+;------------------------- Preamble definitions -----------------------------
+
+; In this solution we represent the states of the problem by means of agents
+breed [states state]
+states-own
 [
-  p-validos   ; Patches que son válidos para moverse (los que no son muro)
-  Inicio      ; Punto de partida
-  Fin         ; Punto de llegada
-  Coste-Final ; El coste del camino final encontrado por A*
+  content   ; Stores the content (value) of the state
+  explored? ; Tells if the state has been explored or not
+  depth
 ]
 
-patches-own
+; Transitions will be representes by means of links
+directed-link-breed [transitions transition]
+transitions-own
 [
-  padre        ; Patch del que viene el actual
-  Coste-camino ; Almacena el coste del camino hasta el punto actual
-  visitado?    ; Indica si el patch ha sido visitado o no
-  activo?      ; Indica si el patch está en búsqueda activa o no
+  rule   ; Stores the printable version of the transition
 ]
 
-; Prepara el terreno para comenzar el algoritmo
-to setup
-  ca
-  ; Iniciamos los patches
-  ask patches
-  [
-    set padre nobody
-    set Coste-camino 0
-    set visitado? false
-    set activo? false
-  ]
-  ; Generamos los obstáculos aleatoriamente
-  ask n-of num-obstaculos patches
-  [
-    set pcolor brown
-    ask neighbors [set pcolor brown]
-  ]
-  ; Los patches válidos son los que no tienen obstáculos
-  set p-validos patches with [pcolor != brown]
-  ; Inicio y Fin el mismo punto (uno al azar)
-  set Fin one-of p-validos
-  set Inicio Fin
-  ask Inicio [set pcolor white]
-  ; Creamos la tortuga que se moverá entre esos puntos siguiendo el camino
-  ;  encontrado
-  crt 1 
-  [
-    ht 
-    set size 1
-    set color (lput 120 (n-values 3 [100 + random 155]))
-    set pen-size 2
-    set shape "square"
-  ]
+;--------------- Customizable Reports -------------------
+
+; These reports must be customized in order to solve different problems using the
+; same BFS function.
+
+; Rules are represented by using pairs [ "representation" f ]
+; in such a way that f allows to transform states (it is the transition function)
+; and "representation" is a string to identify the rule. We will use tasks in
+; order to store the transition functions.
+
+to-report applicable-transitions
+  report (list
+           (list "Empty(1)" (task [(list 0 (last ?))]))
+           (list "Empty(2)" (task [(list (first ?) 0)]))
+           (list "Pour 1 to 2" (task [pour1-2 (first ?) (last ?)]))
+           (list "Pour 2 to 1" (task [pour2-1 (first ?) (last ?)]))
+           (list "Fill(1)" (task [(list 3 (last ?))]))
+           (list "Fill(2)" (task [(list (first ?) 4)]))
+  )
 end
 
-; Función de patch que calcula el coste total del camino pasando por él que 
-;  une el #Inicio y el #Fin
-to-report Coste-total-esperado [#Fin]
-  report Coste-camino + Heuristica #Fin
+to-report pour1-2 [x1 x2]
+  let dif 4 - x2
+  ifelse dif <= x1
+  [report (list (x1 - dif) 4)]
+  [report (list 0 (x2 + x1))]
 end
 
-; Función de patch que devuelve la heurística desde el punto actual hasta el 
-;  #Fin
-to-report Heuristica [#Fin]
-  report distance #Fin
+to-report pour2-1 [x1 x2]
+  let dif 3 - x1
+  ifelse dif <= x2
+  [report (list 3 (x2 - dif))]
+  [report (list (x2 + x1) 0)]
 end
 
-; Algoritmo A*. Recibe como entrada:
-;   - #Inicio     : el punto del que sale.
-;   - #Fin        : el punto al que llega.
-;   - #Num-vecinos: 4/8, el número de vecinos q se va a considerar.
-;   - #mapa-valido: el conjunto de agentes por el que se puede mover.
-; Devuelve: 
-;   - Si hay camino   : lista de agentes por el que pasa el camino.
-;   - Si no hay camino: false
+; valid? is a boolean report to say which states are valid
+to-report valid? [x]
+  report ((first x <= 3) and (last x <= 4))
+end
 
-to-report A* [#Inicio #Fin #Num-vecinos #mapa-valido]
-  ; Se limpian los cálculos del camino anterior
-  ask #mapa-valido with [visitado?]
-  [
-    set padre nobody
-    set Coste-camino 0
-    set visitado? false
-    set activo? false
-    set plabel ""
-  ]
-  ; Se activa el Inicio para recomenzar el algoritmo
-  ask #Inicio
-  [
-    set padre self
-    set visitado? true
-    set activo? true
-  ]
-  ; existe? indica si en un momento dado no hay posibilidades de seguir... es
-  ;   decir, no existe un camino para unir Inicio y Fin
-  let existe? true
-  ; El procedimiento se repite mientras no lleguemos al Fin y "creamos" que
-  ;   existe un camino
-  while [not [visitado?] of #Fin and existe?]
-  [
-    ; Trabajamos sobre los patches válidos que están activos
-    let opciones #mapa-valido with [activo?]
-    ; Si los hay
-    ifelse any? opciones
-    [
-      ; Tomamos uno de los activos que tenga coste mínimo
-      ask min-one-of opciones [Coste-total-esperado #Fin]
-      [
-        ; Almacenamos su coste real para poder calcular el de sus hijos
-        let Coste-camino-padre Coste-camino
-        ; Y lo desactivamos porque ya hemos pasado por él
-        set activo? false
-        ; Nos quedamos con sus vecinos válidos
-        let vecinos ifelse-value (#Num-vecinos = 4) [neighbors4] [neighbors]
-        ask vecinos with [member? self #mapa-valido]
-        [
-          ; Hay dos tipos de vecinos: 
-          ;   - Aquellos por los que nunca se ha pasado (y por tanto no 
-          ;       poseen un posible camino mejor)
-          ;   - Aquellos que ya han sido visitados por otro sitio (y con
-          ;       los que hay que tener cuidado para no empeorarlo con el 
-          ;       camino que está siendo construido)
-          ; A los primeros se les da como posible coste desde ellos una
-          ; cota sufientemente grande (depende del mundo). A los segundos 
-          ; se les da el coste real que tengan por medio del otro camino 
-          ; que ha llegado a ellos.
-          let t ifelse-value visitado? [ Coste-total-esperado #Fin] [1000]
-          ; Si este coste temporal es peor que el que nos ofrece el camino 
-          ; actual (en los del primer caso siempre será así)
-          if t > (Coste-camino-padre + distance myself + Heuristica #Fin)
-          [
-            ; Lo ponemos como sucesor del camino actual
-            set padre myself
-            set visitado? true
-            set activo? true
-            ; y calculamos su coste real para llegar a él desde el Inicio
-            set Coste-camino Coste-camino-padre + distance padre
-            set coste-final precision Coste-camino 3
-          ]
-        ]
-      ]
+; children-states is an agent report that returns the children for the current state.
+; it will return a list of pairs [ns tran], where ns is the content of the children-state,
+; and tran is the applicable transition to get it.
+; It maps the applicable transitions on the current content, and then filters those
+; states that are valid.
+
+to-report children-states
+  report filter [valid? (first ?)]
+                (map [(list (run-result (last ?) content) ?)]
+                     applicable-transitions)
+end
+
+; Customized State Explorer Print procedure
+
+to state-explorer
+  if mouse-down? [
+    clear-output
+    let selected-state min-one-of states [distancexy mouse-xcor mouse-ycor]
+    ask selected-state [
+      output-print (word "Jug 1: " item 0 content)
+      output-print (word "Jug 2: " item 1 content)
     ]
-    ; Si no los hay es que no hay un camino
-    [
-      set existe? false
-    ] 
+    wait .1
   ]
-  ; Si se ha encontrado un camino
-  ifelse existe?
-  [
-    ; Formamos el camino de #Inicio a #Fin en una lista y lo devolvemos
-    let actual Fin
-    set coste-final (precision [Coste-camino] of #Fin 3)
-    let rep (list actual)
-    While [actual != Inicio]
-    [
-      set actual [padre] of actual
-      set rep fput actual rep
-    ]
-    report rep
-  ]
-  [
-    ; Si no se ha encontrado un camino, se devuelve False
-    report false
-  ]
-end
-
-; Procedimiento para seleccionar el nuevo punto que será el objetivo a alcanzar
-to select-fin
-  if mouse-down?
-  [
-    ; El Fin anterior pasa a ser el punto de Inicio actual
-    set inicio Fin
-    ; El nuevo Fin es el patch marcado con el ratón
-    set Fin patch mouse-xcor mouse-ycor
-    ask Fin [set pcolor White]
-    wait .2
-    ; Se calculan los nuevos patches válidos (por si acaso el usuario ha dibujado
-    ;   nuevo muro a mano)
-    set p-validos patches with [pcolor != brown]
-    ; Se lanza el algoritmo
-    let camino  A* Inicio Fin num-vecinos p-validos
-    if camino != false [
-      ask turtle 0 [set color (lput 150 (n-values 3 [100 + random 155]))]
-      foreach camino [
-        ask turtle 0 [
-          move-to ?
-          stamp]]
-    ]
-  ]
-end
-
-; Procedimiento para dibujar nuevo muro manualmente
-to dibuja-muro
-  if mouse-down?
-  [
-    ask patch mouse-xcor mouse-ycor [set pcolor brown]
-    wait .01
-  ]
-end
-
-; Limpia los caminos y puntos recorridos
-to limpia
-  cd
-  ask patches with [pcolor != black and pcolor != brown] [set pcolor black]
-  ask fin [set pcolor white]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+180
 10
-624
-445
--1
--1
-4.0
+879
+470
+26
+16
+13.0
 1
-10
+12
 1
 1
-1
-0
-0
-0
 1
 0
-100
 0
-100
+0
+1
+-26
+26
+-16
+16
 0
 0
 1
@@ -230,12 +116,12 @@ ticks
 30.0
 
 BUTTON
-138
-10
-201
-43
-NIL
-setup
+105
+150
+180
+195
+Layout
+layout-space layout\n
 NIL
 1
 T
@@ -245,89 +131,36 @@ NIL
 NIL
 NIL
 1
-
-SLIDER
-17
-10
-138
-43
-num-obstaculos
-num-obstaculos
-0
-1000
-708
-1
-1
-NIL
-HORIZONTAL
-
-BUTTON
-115
-78
-201
-111
-Siguiente
-select-fin
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-17
-44
-201
-77
-NIL
-dibuja-muro
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-17
-78
-114
-111
-Num-vecinos
-Num-vecinos
-4
-8
-8
-4
-1
-NIL
-HORIZONTAL
 
 MONITOR
-135
-400
-210
-445
-NIL
-Coste-Final
+105
+105
+180
+150
+# States
+count turtles
 17
 1
 11
 
+INPUTBOX
+10
+10
+180
+70
+Initial_State
+[4 0]
+1
+0
+String
+
 BUTTON
-17
-112
-200
-145
-Limpiar
-limpia
+10
+105
+105
+150
+Build
+BSS (read-from-string Initial_State) Depth-Level True\nstyle
 NIL
 1
 T
@@ -336,6 +169,55 @@ NIL
 NIL
 NIL
 NIL
+1
+
+SLIDER
+10
+70
+180
+103
+Depth-level
+Depth-level
+0
+10
+6
+1
+1
+NIL
+HORIZONTAL
+
+OUTPUT
+10
+195
+180
+370
+11
+
+BUTTON
+10
+370
+180
+403
+Explore
+state-explorer
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+10
+150
+105
+195
+layout
+layout
+"→" "↓" "o"
 1
 
 @#$#@#$#@
@@ -569,17 +451,24 @@ Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
 sheep
 false
-0
-Rectangle -7500403 true true 151 225 180 285
-Rectangle -7500403 true true 47 225 75 285
-Rectangle -7500403 true true 15 75 210 225
-Circle -7500403 true true 135 75 150
-Circle -16777216 true false 165 76 116
+15
+Circle -1 true true 203 65 88
+Circle -1 true true 70 65 162
+Circle -1 true true 150 105 120
+Polygon -7500403 true false 218 120 240 165 255 165 278 120
+Circle -7500403 true false 214 72 67
+Rectangle -1 true true 164 223 179 298
+Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
+Circle -1 true true 3 83 150
+Rectangle -1 true true 65 221 80 296
+Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
+Polygon -7500403 true false 276 85 285 105 302 99 294 83
+Polygon -7500403 true false 219 85 210 105 193 99 201 83
 
 square
 false
 0
-Rectangle -7500403 true true 0 0 300 300
+Rectangle -7500403 true true 30 30 270 270
 
 square 2
 false
@@ -663,11 +552,9 @@ Line -7500403 true 84 40 221 269
 wolf
 false
 0
-Polygon -7500403 true true 135 285 195 285 270 90 30 90 105 285
-Polygon -7500403 true true 270 90 225 15 180 90
-Polygon -7500403 true true 30 90 75 15 120 90
-Circle -1 true false 183 138 24
-Circle -1 true false 93 138 24
+Polygon -16777216 true false 253 133 245 131 245 133
+Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
+Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
 
 x
 false
@@ -676,17 +563,17 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.0
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-0.0
--0.2 0 1.0 0.0
+1.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0
@@ -694,5 +581,5 @@ Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
-0
+1
 @#$#@#$#@

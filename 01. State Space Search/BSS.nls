@@ -1,0 +1,127 @@
+;-------------------- BSS Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the maximum depth 
+; #level is reached.
+; It needs one report:
+;   a) children-states : reports the children states of the current state.
+
+to BSS [#initial-state #level #debug?]
+  ca
+  let level 0
+  ; Create the agent associated to the initial state
+  create-states 1
+  [
+    set shape "circle"
+    set color green
+    set content #initial-state
+    if #debug? [set label content]
+    set explored? false
+    set depth 0
+  ]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [level < #level]
+  ;while [any? states with [not explored?]]
+  [
+    ask states with [not explored?]
+    [
+      ; Compute the children states by applying every rule to the current state
+      foreach children-states
+      [
+        ; We separate the contents and transitions from each children
+        let new-state first ?
+        let applied-rule last ?
+        ; We consider only new states (states that have not been visited previously)
+        ifelse not any? states with [content = new-state]
+        [
+          ; Clone one new agent for each new state
+          hatch-states 1
+          [
+            set content new-state
+            if #debug? [set label content]
+            set explored? false
+            ; and link it with its father using a transition link
+            create-transition-from myself [
+              set rule applied-rule
+              if #debug? [set label first applied-rule]
+            ]
+            set color blue
+            set depth depth + 1
+          ]
+        ]
+        [
+;          ; We don't have to create the state, but we need to connect it
+;          let existing-state one-of states with [content = new-state]
+;          create-transition-to existing-state [
+;            set rule applied-rule
+;            set label first applied-rule
+;          ]
+        ]
+      ]
+      ; When all its children have been computed, we mark the current state as explored
+      set explored? true
+    ]
+    ; After a new level is totally generated, we check if the goal has been reached
+;    if level = #level
+;     [
+;       stop
+;     ]
+    set level level + 1
+  ]
+end
+
+
+;-------------------- BSSR Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the maximum depth
+; #level is reached. It can repeat nodes.
+; It needs two reports:
+;   a) children-states : reports the children states of the current state.
+
+to BSSR [#initial-state #level #debug?]
+  ca
+  let level 0
+  ; Create the agent associated to the initial state
+  create-states 1
+  [
+    set shape "circle"
+    set color green
+    set content #initial-state
+    if #debug? [set label content]
+    set explored? false
+    set depth 0
+  ]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [level < #level]
+  [
+    ask states with [not explored?]
+    [
+      ; Compute the children states by applying every rule to the current state
+      foreach children-states
+      [
+        ; We separate the contents and transitions from each children
+        let new-state first ?
+        let applied-rule last ?
+        ; Clone one new agent for each new state
+        hatch-states 1
+        [
+          set content new-state
+          if #debug? [set label content]
+          set explored? false
+          ; and link it with its father using a transition link
+          create-transition-from myself [
+            set rule applied-rule
+            if #debug? [set label first applied-rule]
+          ]
+          set color blue
+          set depth depth + 1
+        ]
+      ]
+      ; When all its children have been computed, we mark the current state as explored
+      set explored? true
+    ]
+    ; After a new level is totally generated, we check if the goal has been reached
+    set level level + 1
+  ]
+end

@@ -1,0 +1,83 @@
+;-------------------- BFS Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the goal is
+; reached (using final-state? report).
+; It needs two reports:
+;   a) children-states : reports the children states of the current state.
+;   b) final-state?    : reports if the current state is a final one.
+
+to BFS [#initial-state #final-state]
+  ca
+  show-output
+  ; Create the agent associated to the initial state
+  create-states 1
+  [
+    set shape "circle"
+    set color green
+    set content #initial-state
+    set label content
+    set path (list self)
+    set explored? false
+  ]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [any? states with [not explored?]]
+  [
+    ask states with [not explored?]
+    [
+      ; Compute the children states by applying every rule to the current state
+      foreach children-states
+      [
+        ; We separate the contents and transitions from each children
+        let new-state first ?
+        let applied-rule last ?
+        ; We consider only new states (states that have not been visited previously)
+        if not any? states with [content = new-state]
+        [
+          ; Clone one new agent for each new state
+          hatch-states 1
+          [
+            set content new-state
+            set label content
+            set explored? false
+            ; and link it with its father using a transition link
+            create-transition-from myself [
+              set rule applied-rule
+              set label first applied-rule
+            ]
+            set color blue
+            ; Update the path for the new state (remember that the clone is a
+            ; copy of the father, so we only need to add the new state to the
+            ; father's path)
+            set path lput self path
+          ]
+        ]
+        ; Update the layout
+        if layout? [layout-space "o"]
+      ]
+      ; When all its children have been computed, we mark the current state as explored
+      set explored? true
+    ]
+    ; After a new level is totally generated, we check if the goal has been reached
+    if any? states with [final-state? #final-state]
+     [
+       ; If it is the case, we highlight the goal and the path from the initial state
+       ; (we use reduce with an appropriate function).
+       ; It could be that we find severalfinal states in the same level, so we choose
+       ; only one of them.
+       output-print ""
+       output-print "The Solution is:"
+       output-print "----------------"
+       output-print (word "From " initial_state)
+       ask one-of states with [final-state? #final-state]
+       [
+         set color red
+         let a reduce highlight path
+       ]
+       ; Print the number of explored states, and stop de procedure
+       output-print ""
+       output-print (word count turtles " explored states" )
+       stop
+     ]
+  ]
+end

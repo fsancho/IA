@@ -1,5 +1,5 @@
-globals 
-[ 
+globals
+[
   obstacle-color ;; color of obstacles--see information about this
   space-color    ;; color of open space
   border-color   ;; color of the world border
@@ -35,7 +35,7 @@ bots-own
   done?     ;; boolean that indicates the search is over--may mean that no path can be found
   current   ;; the current a*node being examined or expanding the search
   o-current ;; the node that was previously current
-  d-mode    ;; directions mode, either 4 or 8 
+  d-mode    ;; directions mode, either 4 or 8
   heuristic ;; heuristic-mode used by this bot
 ]
 
@@ -47,33 +47,33 @@ maza-own
   maze-border-color      ;; color of maze-border
   maze-curviness         ;; probability that maza will choose a non-straight ahead path
   maze-timeout
-]  
+]
 
 to startup
    setup
 end
-   
+
 to setup
   ca
-    
+
    ;;
    ;; Initialize the color variables
    ;;
-   
+
    set obstacle-color blue
    set border-color pink
    set space-color black
    let bread-crumb-color red
-   
-   
+
+
    ;;
    ;; define the start and target patches
    ;; (for this demo, they are fixed, but you they could be dynamic
    ;;
-   
+
    let setup-start patch (min-pxcor + 2) ( min-pycor + 2 )
    let setup-target patch (max-pxcor - 2) ( max-pycor - 2 )
-   
+
    ;;
    ;; Setup the search space, based on the selected senario
    ;;
@@ -81,17 +81,17 @@ to setup
    ;;
    ;; A completely blank field
    ;;
-   
-   if senario = "blank" 
+
+   if senario = "blank"
    [ fill-patches space-color
      do-terrain
      border
    ]
-  
+
    ;;
    ;; A Random scattering of obstaces
    ;;
-   
+
    if senario = "random" ;; random scattering of patches
    [ do-terrain
      ask patches [ if random 100 < density [ set pcolor obstacle-color ] ]
@@ -102,28 +102,28 @@ to setup
      clear-around setup-start
      clear-around setup-target
    ]
-   
+
    ;;
    ;; A single path maze
    ;;
-   
-   if senario = "maze" 
+
+   if senario = "maze"
    [ senario-maze maze-new setup-start obstacle-color bread-crumb-color space-color border-color straightness 1
    ]
-   
+
    ;;
    ;; A maze with loops
    ;;
-   
-   if senario = "looped maze" 
+
+   if senario = "looped maze"
    [ senario-maze-looped density maze-new setup-start obstacle-color bread-crumb-color space-color border-color straightness 1
    ]
-   
+
    ;;
    ;; A random collection of circular regions that may overlap
    ;;
-   
-   if senario = "blobs" 
+
+   if senario = "blobs"
    [ fill-patches space-color
      do-terrain
      ask patch (min-pxcor + world-width * .5) (min-pycor + world-height * .55)
@@ -132,68 +132,68 @@ to setup
          [ set pcolor obstacle-color ]
        ]
      ]
-     ;ifelse terrain? 
+     ;ifelse terrain?
      ;[ border-3 ]
      ;[ border-2 ]
      border
      clear-around setup-start
      clear-around setup-target
    ]
-   
+
    ;;
    ;; A pair of bars, crossing the center
    ;;
-   
+
    if senario = "bars"
    [ fill-patches space-color
      do-terrain
      ;; draw horizontal and vertical bars, to within 5 units of edges
      ask patches with [ pxcor = 0 or pycor = 0 and abs pxcor + 5 < max-pxcor and abs pycor + 5 < max-pycor ]
      [ set pcolor obstacle-color ]
-     
-     
+
+
      ask patches with [ (    pxcor = int ( min-pxcor + world-width * .25 )
                           or pxcor = int ( max-pxcor - world-width * .25 )
-                        )   
-                         and 
-                       ( pycor > max-pycor - (world-height * .33) 
+                        )
+                         and
+                       ( pycor > max-pycor - (world-height * .33)
                          or pycor < min-pycor + (world-height * .33)
                        )
                       ]
      [ set pcolor obstacle-color ]
-     border 
+     border
    ]
-   
-   
+
+
    ;;
    ;; Create the search bot with the start and target previously selected
    ;;
-   
-   
+
+
    create-bot setup-start setup-target extract-heuristic
-   
+
    set-default-shape indicators "indicator"
    ask setup-start
    [ sprout-indicators 1
-     [ set color orange 
-       set size 4 
+     [ set color orange
+       set size 4
        set heading 180
      ]
    ]
    ask setup-target
    [ sprout-indicators 1
-     [ set color orange 
-       set size 4 
+     [ set color orange
+       set size 4
        set heading 0
      ]
    ]
- 
+
    reset-ticks
 end
 
 to go
    ask bots
-   [ go-bot 
+   [ go-bot
      ifelse is-turtle? path-end
      [ show-path-nodes get-path yellow
      ]
@@ -224,7 +224,7 @@ to go-bot
    ;;
    ;; when done? is true, that means that no more locations
    ;; need to be searched.
-   ;; 
+   ;;
    ;; if path-end is nobody when done? is true, that means there is
    ;; NO path from the start to the target.
    ;;
@@ -234,11 +234,11 @@ to go-bot
        ;; (if netlogo had mutable lists, or mutable agentsets, this could be made faster!)
        ;;
        let my-nodes  a*nodes with [ owner = myself ]
-       ;; 
+       ;;
        ;; are any of the nodes open?
        ;;
        ifelse any? my-nodes with [ closed? = 0 ]
-       [ ;; 
+       [ ;;
          ;; yes. do the path search
          ;;
          set current a*build-path
@@ -246,7 +246,7 @@ to go-bot
          ;; having done that, was the target found?
          ;;
          if [location] of current = target
-         [ set path-end current 
+         [ set path-end current
            set done? true
          ]
        ]
@@ -261,7 +261,7 @@ end
 
 to fill-patches [ #color ]
    ask patches [ set pcolor #color ]
-end  
+end
 
 to maze-border
    ask patches with [ pxcor = min-pxcor or pxcor = max-pxcor or pycor = min-pycor or pycor = max-pycor ]
@@ -273,13 +273,13 @@ to maze-field
    [ set pcolor [ maze-wall-color ] of myself ]
 end
 
-to border   
+to border
    ;;
    ;; colors the edge of the world to prevent searches and maze-making from leaking
    ;;
    ask patches with [ pxcor = min-pxcor or pxcor = max-pxcor or pycor = min-pycor or pycor = max-pycor ]
    [ set pcolor border-color ]
-end   
+end
 
 to border-2
    ;;
@@ -289,20 +289,20 @@ to border-2
                       or ( pycor = ( min-pycor + 1 ) or pycor = ( max-pycor - 1 ) )]
    [ set pcolor space-color
    ]
-end   
+end
 
 to border-3
    ;;
    ;; creates a border of randomly "elevated" terrain just inside the border
-   ;; 
+   ;;
    ask patches with [     ( pxcor = ( min-pxcor + 1 ) or pxcor = ( max-pxcor - 1 ) )
                       or ( pycor = ( min-pycor + 1 ) or pycor = ( max-pycor - 1 ) )]
    [ set pcolor 5 + random-float 5
    ]
-end 
+end
 
 to do-terrain
- ;; 
+ ;;
  ;; puts elevation data in the world
  ;; black = minimum elevation
  ;; white = max-mum elevation
@@ -313,11 +313,11 @@ to do-terrain
          [ ask patches [ set pcolor 140 - ((distancexy-nowrap 0 0 ) / (.75 * world-width) * 140) ]
            repeat 3 [ diffuse pcolor .5 ]
            ask patches [ set pcolor scale-color gray pcolor 0 140 ]
-           
-         ]
-end  
 
-      
+         ]
+end
+
+
 to clear-around [ agent ]
    ;;;
    ;;; clears obstacles from under and around the given agent
@@ -334,16 +334,16 @@ to senario-maze-looped [ #density #maze ]
      ;; capture color info from maze
      let #wall [maze-wall-color] of #maze
      let #path [maze-path-color] of #maze
-     
+
      ;; make a standard maze using the maze object
      senario-maze #maze
-     
+
      ;; punch holes in the maze walls at random to create loops
      ;; depends on the maze starting on an even patch,
      ;; so can assume that any patch with both coords odd
      ;; is definitely a wall (obstacle) patch
      ask n-of (2 * #density) (patches with [ pcolor = #wall and pxcor mod 2 != pycor mod 2 ])
-     [ set pcolor #path ]  
+     [ set pcolor #path ]
 end
 
 
@@ -360,12 +360,12 @@ to-report maze-new [ #start #wall #crumb #path #border #curve #timeout ]
    ] ]
    report me
 end
-  
+
 to maze [ #maze ]
    ;; given a maze turtle, create a single path maze in the field,
    ;;
    ask #maze
-   [ 
+   [
      maze-border
      maze-field
      let #timeout timer + maze-timeout
@@ -392,39 +392,39 @@ to-report maze-drawing
    let path nobody
    ;; candidates for the next step are previously unexplored paths (ie, still colored as obstacles
    let candidates (patches at-points [ [ -2 0][0 -2 ] [ 2 0 ][ 0 2] ]) with [ pcolor = [maze-wall-color] of myself ]
-   if-else any? candidates 
+   if-else any? candidates
    [ ;;if there are any unexplored paths, select one of them
-     
+
      ;; which path is the straight-ahead path?
      let straight-patch patch-ahead 2 ; -at (dx * 2) (dy * 2)
-     
+
      ;; either co straight (if curve test fails or straight is only choice)
      ;; or turn left or right (if possible)
      ifelse member? straight-patch  candidates and (count candidates = 1 or random 100 < maze-curviness )
-     [ set path straight-patch] 
+     [ set path straight-patch]
      [ set path one-of candidates with [ self != straight-patch ] ]
      ;; point to it
      face-nowrap path
      ;; jump to it, in two steps, two draw a path from here to that patch
      ;; (note that jump is first, then color, leaving starting patch color that it was!
      repeat 2 [ jump 1 set pcolor maze-breadcrumb-color ]
-     
+
      ;; report that the maze-drawing still has some exploring to do!
      report true
    ]
    [ ;; if we are here, then there are no unexplored paths in the vicinity.
      ;; so, candidates are previously carved (open) paths, that we have likely backed up to
      ;; or have just finished tracing (i.e. colored with the bread-crumb color
-   
-     set candidates (patches at-points [ [ -1 0][0 -1 ] [ 1 0 ][ 0 1] ]) 
+
+     set candidates (patches at-points [ [ -1 0][0 -1 ] [ 1 0 ][ 0 1] ])
                         with [ pcolor = [maze-breadcrumb-color] of myself ]
-     
+
      ifelse any? candidates
      [ ;; there is a breadcrumb to retrace. trace it.
        set path one-of candidates
        face-nowrap path
        repeat 2 [ set pcolor maze-path-color jump 1 ]
-       
+
        report true
      ]
      [ ;; we are finally back at the beginning
@@ -435,15 +435,15 @@ to-report maze-drawing
    ]
    ;; avoid coordinate creep
    ;; center maza in the patch
-   ;; setxy pxcor pycor 
+   ;; setxy pxcor pycor
 end
- 
+
 to-report same-patch [ a b ]
    ;;
    ;; reports true if both agent a and b, whether turtles or patches, are on the same patch
    ;;
    report ([pxcor] of a = [pxcor] of b and [pycor] of a = [pycor] of b )
-end   
+end
 
 to highlight-path [ path-color ]
    ;;
@@ -467,41 +467,41 @@ to-report get-path
    [ set n current ]
    if not is-turtle? n
    [ stop ]
-   
+
    let p (list n )
    while [ [location] of n != start ]
    [ set n [parent] of n
      set p fput n p
    ]
    report p
-end      
+end
 
 to show-path-nodes [ p hue ]
    ask (turtle-set p)
-   [ set color hue 
+   [ set color hue
      if color = yellow [ ifelse heading mod 90 = 0 [set shape "path" ] [ set shape "path-long" ] ]
-   ]  
+   ]
    ; ask a*nodes with [ member? self p ] [ set color hue ]
    display
    ;;   foreach p
-   ;;   [ set color hue 
+   ;;   [ set color hue
    ;;     if color = yellow [ ifelse heading mod 90 = 0 [set shape "path" ] [ set shape "path-long" ] ]
    ;;   ]
 end
-   
-   
+
+
 to color-path-patches [ p ]
    ;;
    ;; non-recursive routine that,
    ;; given the path-end, increments the pcolor of the patches covered by the path,
    ;; tracing back to the start
    ;;
-   foreach p 
+   foreach p
    [ if pcolor = 0 [ set pcolor 2 ]
      if pcolor < 9.5 [ set pcolor pcolor + .5 ]
    ]
-end   
-   
+end
+
 
 to create-bot [ starting-patch target-patch #heuristic ]
    ;;
@@ -513,7 +513,7 @@ to create-bot [ starting-patch target-patch #heuristic ]
    ;; that is, its parent is always "nobody"
    ;; this is how a trace-back routine can know that it has reached
    ;; the begining of a path: when there is no more parents to trace-back to...
-   ;;  
+   ;;
    create-bots 1
    [ set color gray
      set start starting-patch
@@ -525,19 +525,19 @@ to create-bot [ starting-patch target-patch #heuristic ]
      set shape "bot"
      set done? false
      set current nobody
-     set o-current self  
+     set o-current self
      set child nobody
      set heuristic #heuristic
      expand-into self start
      ask child [ set closed? 0 set shape "node" set parent nobody set on-path? true ]
    ]
-end  
+end
 
 to expand-into [ parent-agent location-agent ]
    ;;
-   ;; causes the given parent agent to 
+   ;; causes the given parent agent to
    ;; expand into the given location (patch)
-   ;; 
+   ;;
    ;; this means that nodes are created in the given patch, and the parent
    ;; of these nodes is the given parent agent.
    ;;
@@ -557,13 +557,13 @@ to expand-into [ parent-agent location-agent ]
          set owner [owner] of parent-agent
          ask parent-agent [set child myself]
          set child nobody
-          
-       
-       
+
+
+
          face parent
-       
+
          ;; target is inherited
-         set g-score calculate-g parent-agent 
+         set g-score calculate-g parent-agent
          set h-score calculate-h
          set f-score calculate-f
          set closed? -1 ;; new... neither open or closed
@@ -572,19 +572,19 @@ to expand-into [ parent-agent location-agent ]
        [ die ]
      ]
    ]
-end   
-    
-to-report calculate-f 
+end
+
+to-report calculate-f
   ;;
   ;; calculates the f score for this s*node
   ;;
-  
+
   ifelse location = [ target ] of owner
   [ report -999999 ]
   [ report g-score + h-score  ]
 end
 
-to-report calculate-g [ candidate ] 
+to-report calculate-g [ candidate ]
   ;;
   ;; calculates the g score relative to the candidate for this s*node
   ;;
@@ -595,10 +595,10 @@ to-report calculate-g [ candidate ]
 end
 
 to-report calculate-h
-   let result 0 
+   let result 0
    if [ heuristic ] of owner = 0  ;; euclidian distance to target
    [ set result distance-nowrap [ target ] of owner ]
-   
+
    if [ heuristic ] of owner = 1 ;; manhattan distance
    [ let xdiff abs(pxcor - [pxcor] of [ target ] of owner)
      let ydiff abs(pycor - [pycor] of [ target ] of owner)
@@ -606,8 +606,8 @@ to-report calculate-h
    ]
 
   if [ heuristic ] of owner = 2 ;; diagonal distance
-   [ 
-   
+   [
+
      let D  1
      let D2 1.414214
      let xdiff abs(pxcor - [pxcor] of [ target ] of owner)
@@ -616,10 +616,10 @@ to-report calculate-h
      let h_straight xdiff + ydiff
      set result D2 * h_diagonal + D * ( h_straight - 2 * h_diagonal )
    ]
-   
+
    if [ heuristic ] of owner = 3 ;; diagonal distance + tie-breaker
-   [ 
-   
+   [
+
      let D  1
      let D2 1.414214
      let xdiff abs(pxcor - [ [pxcor] of target ] of owner)
@@ -632,7 +632,7 @@ to-report calculate-h
      set result result * h-scale
    ]
    if [ heuristic ] of owner = 4  ;; euclidian distance to target with tie-breaker
-   [ set result distance-nowrap [ target ] of owner 
+   [ set result distance-nowrap [ target ] of owner
      let h-scale (1 + (16 / directions / world-width + world-height))
      set result result * h-scale
    ]
@@ -648,17 +648,17 @@ to-report a*build-path
    [ ask cc
      [ set closed? 1
        set color magenta
-       
+
        if not same-patch location [ target ] of owner
        [ let me owner
          let paths nobody
          ifelse directions = 8
          [ set paths neighbors with [ shade-of? pcolor space-color ] ]
          [ set paths neighbors4 with [ shade-of? pcolor space-color ] ]
-         
+
          let new-paths (paths with [ not any? a*nodes-here with [ owner = me ] ] )
          if any? new-paths [ ask  new-paths [ expand-into cc self ] ]
-         
+
          set new-paths  (a*nodes-on paths ) with [ owner = me and closed? < 1 ]
          ; if any? new-paths [ set new-paths min-one-of new-paths [ f-score ] ]
          ask  new-paths
@@ -669,17 +669,17 @@ to-report a*build-path
              if new-g < g-score
              [ ;; if it is, then change path to go from this point
                ;; set parent of this node to current
-               set parent cc 
+               set parent cc
                set shape "node"
                face parent
                ask parent [ set child myself ]
-               set g-score new-g 
+               set g-score new-g
                set f-score calculate-f
              ]
            ]
            [ ;; must be new (not yet open, not previously closed.
              set closed? 0 ;; open it
-               set parent cc 
+               set parent cc
            ]
          ]
        ]
@@ -687,11 +687,11 @@ to-report a*build-path
    ]
    report current
 end
-       
+
 to-report extract-heuristic
    report first choose-heuristic
 end
-       
+
 to reset-bots
    ask a*nodes [ die ]
    ask bots [ die ]
@@ -701,16 +701,16 @@ to reset-bots
 end
 
 to-report center-patch
-   report patch (int (min-pxcor + world-width * .5)) (int (min-pycor + world-height * .5))    
-end        
+   report patch (int (min-pxcor + world-width * .5)) (int (min-pycor + world-height * .5))
+end
    ;;  1) Add the starting square (or node) to the open list.
    ;;  2) Repeat the following:
    ;;     a) Look for the lowest F cost square on the open list. We refer to this as the current square.
    ;;     b) Switch it to the closed list.
    ;;     c) For each of the 8 squares adjacent to this current square �
-   ;;  
-   ;;        * If it is not walkable or if it is on the closed list, ignore it. 
-   ;;          Otherwise do the following.           
+   ;;
+   ;;        * If it is not walkable or if it is on the closed list, ignore it.
+   ;;          Otherwise do the following.
    ;;      * If it is on the open list already...
    ;;          Check to see if this path to that square is better,
    ;;          using G cost as the measure.
@@ -722,17 +722,17 @@ end
    ;;        * If it isn�t on the open list...
    ;;            Add it to the open list.
    ;;            Make the current square the parent of this square.
-   ;;            Record the F, G, and H costs of the square. 
-  ;;  
+   ;;            Record the F, G, and H costs of the square.
+  ;;
    ;;  d) Stop when you:
-   ;;  
+   ;;
    ;;      * Add the target square to the closed list, in which case the path has been found (see note below), or
-   ;;      * Fail to find the target square, and the open list is empty. In this case, there is no path.   
-   ;;  
-   ;;  3) Save the path. Working backwards from the target square, go from each square to its parent square until you reach the starting square. That is your path. 
+   ;;      * Fail to find the target square, and the open list is empty. In this case, there is no path.
+   ;;
+   ;;  3) Save the path. Working backwards from the target square, go from each square to its parent square until you reach the starting square. That is your path.
 
- 
-   
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 255
@@ -1000,9 +1000,9 @@ Last, the score of the connection is the distance bewteen the patches.
 
 Thanks to Amit J. Patel at http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html for great expanations and insight into the A* algorithm, and the role of the heuristic cost function.
 
-<modelinfo>  
-<summary>;; A framework for using the famous path-finding algorithm</summary>  
-<copy>Copyright � 2009 James P. Steiner</copy>  
+<modelinfo>
+<summary>;; A framework for using the famous path-finding algorithm</summary>
+<copy>Copyright � 2009 James P. Steiner</copy>
 </modelinfo>
 @#$#@#$#@
 default
@@ -1042,7 +1042,7 @@ Rectangle -16777216 true false 75 -195 225 225
 Polygon -13840069 true true 75 0 75 -195 225 -195 225 -60 150 -165 75 -60 105 -60 150 -120 195 -60 225 -60 225 60 150 -45 75 60 105 60 150 0 195 60 225 60 225 195 150 90 75 195 105 195 150 135 195 195 225 195 225 225 75 225
 
 @#$#@#$#@
-NetLogo 5.0.1
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

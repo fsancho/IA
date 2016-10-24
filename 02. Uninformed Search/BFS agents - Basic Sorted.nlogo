@@ -1,3 +1,11 @@
+;----------------- Include Algorithms Library --------------------------------
+
+__includes [ "LayoutSpace.nls"]
+
+;-----------------------------------------------------------------------------
+
+;---------------------- Preamble for models using AI Library -----------------
+
 ; In this solution we represent the states of the problem by means of agents
 breed [states state]
 states-own
@@ -5,13 +13,14 @@ states-own
   content   ; Stores the content (value) of the state
   explored? ; Tells if the state has been explored or not
   path      ; Stores the path to reach this state from the initial state
+  depth     ; Only needed if using LayoutSpace.nls
 ]
 
-; Transitions will be represented by means of links
+; Transitions will be representes by means of links
 directed-link-breed [transitions transition]
 transitions-own
 [
-  rule   ; Stores the printable version of the applied rule
+  rule   ; Stores the printable version of the transition
 ]
 
 ;--------------- Customizable Reports -------------------
@@ -56,6 +65,8 @@ end
 to-report final-state? [params]
   report ( content = params)
 end
+
+;-------------------- BFS version with timing -----------------------------
 
 ;-------------------- BFS Algorithm and related procedures ----------------
 ; Essentially, the algorithm computes the children states for not explored states
@@ -114,7 +125,7 @@ to BFS [#initial-state #final-state]
             ]
           ]
           ; Update the layout
-          if layout? [layout]
+          if layout? [layout-space "o"]
           if run-mode = "By state" [wait .5]
         ]
         ; When all its children have been computed, we mark the current stat as explored
@@ -146,6 +157,9 @@ to BFS [#initial-state #final-state]
   ]
 end
 
+
+;-------- Customs visualization procedures -------------------------------------------
+
 ; Highlight report is used as a reduce parameters. Given two connected nodes (states),
 ; it will highlight the link and returns the second state.
 
@@ -164,12 +178,6 @@ to clean
   repeat 10000 [
     layout-spring states transitions 1 5 1
   ]
-end
-
-; Radial Layout for the tree of generated states
-
-to layout
-  layout-radial states transitions state 0
 end
 
 ; Shows some information about the problem to be solved.
@@ -213,10 +221,10 @@ ticks
 BUTTON
 125
 430
-191
+187
 463
-NIL
-layout\n
+layout
+layout-space \"o\"\n
 T
 1
 T
@@ -665,7 +673,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

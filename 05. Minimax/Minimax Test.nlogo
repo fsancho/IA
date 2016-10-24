@@ -1,162 +1,100 @@
-; Los estados serán agentes
-breed [estados estado]
-estados-own
-[
-  contenido  ; Almecena el contenido del estado (el valor)
-  explorado? ; Indica si ha sido explorado o no
-  camino     ; Almacena el camino para llegar a él
+;----------------- Include Algorithms Library --------------------------------
+
+__includes [ "Minimax.nls" "LayoutSpace.nls"]
+
+;-----------------------------------------------------------------------------
+
+;---------------------- Preamble for models using AI Library -----------------
+
+; Type of agent to represent states of the game
+breed [states state]
+
+states-own [
+  fitness    ; Store the evaluation of the final states (the other will be computed
+             ; with the minimax procedure
+  player     ; Who is the player to move on this state (to know if we play min or max)
+  leaf?      ; Says if this state is a leaf one or not (it has no successors)
+  depth      ; Depth level of the state in the tree (distance from root)
 ]
 
-; Las transiciones se representarán como links
-directed-link-breed [transiciones transicion]
-transiciones-own
-[
-  regla   ; Almacena la versión "representable" de la regla aplicada
-]
+directed-link-breed [transitions transition]
 
-;--------------- Funciones personalizables -------------------
+;---------------------------------------------------------------------------
+; Setup procedure to build a test tree
+;---------------------------------------------------------------------------
 
-; Las reglas se representan por medio de pares [ "representación" f ]
-; de forma que f permite pasar entre estados (es la función de transición)
-; y "representación" es una cadena de texto que permite identificar qué
-; regla se ha aplicado
-
-to-report transiciones-aplicables
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-to-report igual? [ob]
-  report ( contenido = ob)
-end
-
-;-------------------- Algoritmo BFS y auxiliares ----------------
-; Esencialmente, el algoritmo va calculando los estados hijos de cada estado
-; no explorado y los enlaza por medio de la transición que lo ha generado, hasta
-; alcanzar el estado objetivo.
-
-to BFS [estado-inicial estado-final]
+to setup
   ca
-  salida
-  ; Creamos el agente asociado al estado inicial
-  create-estados 1
-  [
-    set shape "circle"
+  set-default-shape states "triangle 2"
+  ask patches [set pcolor white]
+  create-states 1 [
     set color green
-    set contenido estado-inicial
-    set label contenido
-    set camino (list self)
-    set explorado? false
+    set player "me"
+    set leaf? true
+    set depth 0
   ]
-  ; Mientras haya estados no explorados (la verificación de haber encontrado
-  ; el objetivo se hace dentro)
-  while [any? estados with [not explorado?]]
-  [
-    ask estados with [not explorado?]
-    [
-      ; Calculamos los estados sucesores aplicando cada regla al estado actual
-      foreach transiciones-aplicables
-      [
-        let estado-aplicado (run-result (last ?) contenido)
-        ; Solo consideramos los estados nuevos
-        if not any? estados with [contenido = estado-aplicado]
-        [
-          ; Creamos un nuevo agente para cada estado nuevo
-          hatch-estados 1
-          [
-            set contenido estado-aplicado
-            set label contenido
-            set explorado? false
-            ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ? set label first ?]
-            set color blue
-            ; Formamos el camino desde el inicio hasta él
-            set camino lput self camino
-          ]
-        ]
-        ; Podríamos calcular también los diversos caminos para llegar a todos los nodos,
-        ; pero en BFS eso complica el grafo de búsqueda construido y la reconstrucción
-        ; del camino cuando se halla el objetivo
-        ;
-        ; create-transicion-to one-of estados with [contenido = estado-aplicado]
-        ; [
-        ;  set regla ?
-        ;  set label first ?
-        ; ]
-
-        ; Actualizamos la representación
-        if layout? [layout]
-      ]
-      ; Cuando hemos calculado todos sus sucesores, marcamos el estado como explorado
-      set explorado? true
+  repeat 2 [
+    ask states with [leaf?] [
+      hatch-states random Branching [
+        set color red
+        set player "op"
+        set depth depth + 1
+        create-transition-from myself]
+      set leaf? false
     ]
-    ; Comprobamos si hemos alcanzado el estado objetivo
-    if any? estados with [igual? estado-final]
-     [
-       ; Y si es así, lo destacamos en rojo y destacamos el camino que ha llevado
-       ; hasta él (por medio de un reduce con una funciónn adecuada)
-       ask one-of estados with [igual? estado-final]
-       [
-         set color red
-         let a reduce resalta camino
-       ]
-       output-print (word "Estados explorados: " count turtles)
-       stop
-     ]
+    ask states with [leaf?] [
+      hatch-states random Branching [
+        set color green
+        set player "me"
+        set depth depth + 1
+        create-transition-from myself]
+      set leaf? false
+    ]
   ]
-end
+  layout-tree (state 0) layout
+  ask states [
+    set leaf? false
+    set heading ifelse-value (player = "op") [180][0]
+    set label-color black
+    set size .5 + 6 / (1 + depth)
 
-; La función resalta se usa dentro de un reduce, lo que hace es que dados
-; dos nodos, destaca el link que los une y devuelve el segundo
-to-report resalta [x y]
-  ask transicion [who] of x [who] of y [set color red set thickness .3]
-  report y
-end
-
-; El procedimiento limpia aprovecha que hemos construido un árbol (no vale para
-; grafos) para eliminar de forma recursiva todos los nodos que no están en el
-; camino que une estado-inicial y estado-final
-to limpia [o1 o2]
-  while [any? estados with [grado = 1 and contenido != o2 and contenido != o1]]
-  [
-    ask estados with [grado = 1 and contenido != o2 and contenido != o1][die]
   ]
-end
-
-; Devuelve el grado de un nodo
-to-report grado
-  report (count my-in-links + count my-out-links)
-end
-
-; Representación del grafo de forma más adecuada
-to layout
-  layout-radial estados transiciones estado 0
-  ;layout-spring estados transiciones .7 4 .8
-end
-
-; Salida Output
-to salida
-  output-print (word "Ir desde " Estado_Inicial " hasta " Estado_final)
-  output-print (word "usando las operaciones:")
-  foreach transiciones-aplicables
-  [
-    output-print (first ?)
+  ask states with [not any? out-link-neighbors] [
+    set leaf? true
+    set fitness random 10
+    set label fitness
+  ]
+  ; Labels
+  create-states 1 [
+    set color green
+    set size 2
+    set heading 0
+    setxy min-pxcor + 1 max-pycor - 1
+    ask patch-at 7 0 [
+      set plabel-color black
+      set plabel "MAX player"]
+  ]
+  create-states 1 [
+    set color red
+    set size 2
+    set heading 180
+    setxy min-pxcor + 1 (max-pycor - 3)
+    ask patch-at 7 0 [
+      set plabel-color black
+      set plabel "MIN player"]
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+195
 10
-649
+894
 470
-16
+26
 16
 13.0
 1
-10
+15
 1
 1
 1
@@ -164,8 +102,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
+-26
+26
 -16
 16
 0
@@ -174,63 +112,28 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
-BUTTON
-125
-430
-191
-463
-NIL
-layout\n
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
+SLIDER
 15
-420
-120
-465
-Estados Explorados
-count turtles
-17
-1
-11
-
-INPUTBOX
-9
 10
-179
-70
-Estado_Inicial
+187
+43
+Branching
+Branching
+2
+10
 5
 1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Estado_final
-159
 1
-0
-String
+NIL
+HORIZONTAL
 
 BUTTON
-15
-135
-115
-168
-Lanza Búsqueda
-BFS (read-from-string Estado_Inicial) (read-from-string Estado_final)
+110
+45
+185
+90
+NIL
+setup
 NIL
 1
 T
@@ -243,11 +146,11 @@ NIL
 
 BUTTON
 15
-170
-115
-203
-Limpia Solución
-limpia (read-from-string Estado_Inicial) (read-from-string Estado_Final)
+95
+185
+128
+Launch Minimax
+show minimax (state 0) True
 NIL
 1
 T
@@ -258,23 +161,15 @@ NIL
 NIL
 1
 
-OUTPUT
+CHOOSER
 15
-210
-210
-405
-12
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
+45
+107
+90
+layout
+layout
+"↓" "→"
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -557,15 +452,15 @@ Circle -7500403 true true 45 90 120
 Circle -7500403 true true 104 74 152
 
 triangle
-false
+true
 0
 Polygon -7500403 true true 150 30 15 255 285 255
 
 triangle 2
-false
+true
 0
 Polygon -7500403 true true 150 30 15 255 285 255
-Polygon -16777216 true false 151 99 225 223 75 224
+Polygon -1 true false 150 60 255 240 120 240
 
 truck
 false
@@ -619,22 +514,22 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
 link direction
 true
 0
-Line -7500403 true 150 150 90 180
-Line -7500403 true 150 150 210 180
+Line -7500403 true 150 75 90 180
+Line -7500403 true 150 75 210 180
 
 @#$#@#$#@
 1

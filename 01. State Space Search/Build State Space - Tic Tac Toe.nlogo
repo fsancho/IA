@@ -1,57 +1,51 @@
+;-------------- Include Files for commond processes -------------------------
+
+__includes [ "BSS.nls" "LayoutSpace.nls"]
+
+;----------------------------------------------------------------------------
+
+;------------------------- Preamble definitions -----------------------------
+
 ; In this solution we represent the states of the problem by means of agents
 breed [states state]
 states-own
 [
   content   ; Stores the content (value) of the state
   explored? ; Tells if the state has been explored or not
-  path      ; Stores the path to reach this state from the initial state
+  depth
 ]
 
 ; Transitions will be representes by means of links
 directed-link-breed [transitions transition]
 transitions-own
 [
-  rule   ; Stores the printable version of the applied rule
+  rule   ; Stores the printable version of the transition
 ]
 
 ;--------------- Customizable Reports -------------------
 
 ; These reports must be customized in order to solve different problems using the
-; same BFS function.
+; same BSS function.
 
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use tasks in
-; order to store the transition functions.
+; The representation of the states is:
+; [ [ [ 0 1 2 ] [ 0 0 0 ] [ 0 0 0 ]] player ]
+; where player = 1 2
 
-to-report applicable-transitions
-  report (list
-           (list "Empty(1)" (task [(list 0 (last ?))]))
-           (list "Empty(2)" (task [(list (first ?) 0)]))
-           (list "Pour 1 to 2" (task [pour1-2 (first ?) (last ?)]))
-           (list "Pour 2 to 1" (task [pour2-1 (first ?) (last ?)]))
-           (list "Fill(1)" (task [(list 3 (last ?))]))
-           (list "Fill(2)" (task [(list (first ?) 4)]))
-  )
+; Rules are simple, whereve there is a 0 in the board, the player can put a piece.
+
+to-report free-slots [board]
+  report map [free-slots-row ? ] board
 end
 
-to-report pour1-2 [x1 x2]
-  let dif 4 - x2
-  ifelse dif <= x1
-  [report (list (x1 - dif) 4)]
-  [report (list 0 (x2 + x1))]
+to-report free-slots-row [row]
+  report filter [item ? row = " "] [0 1 2]
 end
 
-to-report pour2-1 [x1 x2]
-  let dif 3 - x1
-  ifelse dif <= x2
-  [report (list 3 (x2 - dif))]
-  [report (list (x2 + x1) 0)]
-end
-
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report ((first x <= 3) and (last x <= 4))
+; Put the piece p in the position (i,j) of the board
+to-report put-piece [piece i j board]
+  let row item i board
+  let new-row replace-item j row piece
+  report replace-item i board new-row
 end
 
 ; children-states is an agent report that returns the children for the current state.
@@ -61,154 +55,79 @@ end
 ; states that are valid.
 
 to-report children-states
-  report filter [valid? (first ?)]
-                (map [(list (run-result (last ?) content) ?)]
-                     applicable-transitions)
+  let c content
+  let board first c
+  if (final-state?  true) [ report []]
+  let free free-slots board
+  let player last c
+  let new-player ifelse-value ("X" = player) ["O"]["X"]
+  let resp []
+  foreach [0 1 2] [
+    let i ?
+    foreach (item i free) [
+      let j ?
+      set resp fput (list (list (put-piece player i j board)
+                                new-player)
+                          [""])
+                    resp
+    ]
+  ]
+  report resp
 end
 
-; final-state? is an agent report that identifies the final states for the problem.
-; It usually will be a property on the content of the state (for example, if it is
-; equal to the Final State).
+; estado-final? ofrece un report de agente que identifica los estados finales
 
 to-report final-state? [params]
-  report ( last content = 2)
+  let board first content
+  let res sentence (map [take-row ? board] [0 1 2]) (map [take-column ? board] [0 1 2])
+  set res fput (take-diagonal1 board) res
+  set res fput (take-diagonal2 board) res
+  report reduce or map three-eq? res
 end
 
-;-------------------- BFS Algorithm and related procedures ----------------
-; Essentially, the algorithm computes the children states for not explored states
-; and link them by using the applied transition. It iterates until the goal is
-; reached (using final-state? report).
-; It needs two reports:
-;   a) children-states : reports the children states of the current state.
-;   b) final-state?    : reports if the current state is a final one.
+to-report three-eq? [ row ]
+  if member? " " row [report false]
+  report (item 0 row) = (item 1 row) and (item 0 row) = (item 2 row)
+end
 
-to BFS [#initial-state #final-state]
-  ca
-  show-output
-  ; Create the agent associated to the initial state
-  create-states 1
-  [
-    set shape "circle"
-    set color green
-    set content #initial-state
-    set label content
-    set path (list self)
-    set explored? false
-  ]
-  ; While there are not explored states (the verification about the goal is made
-  ; inside the loop)
-  while [any? states with [not explored?]]
-  [
-    ask states with [not explored?]
-    [
-      ; Compute the children states by applying every rule to the current state
-      foreach children-states
-      [
-        ; We separate the contents and transitions from each children
-        let new-state first ?
-        let applied-rule last ?
-        ; We consider only new states (states that have not been visited previously)
-        if not any? states with [content = new-state]
-        [
-          ; Clone one new agent for each new state
-          hatch-states 1
-          [
-            set content new-state
-            set label content
-            set explored? false
-            ; and link it with its father using a transition link
-            create-transition-from myself [
-              set rule applied-rule
-              set label first applied-rule
-            ]
-            set color blue
-            ; Update the path for the new state (remember that the clone is a
-            ; copy of the father, so we only need to add the new state to the
-            ; father's path)
-            set path lput self path
-          ]
-        ]
-        ; Update the layout
-        if layout? [layout]
+to-report take-row [i board]
+  report item i board
+end
+
+to-report take-column [i board]
+  report map [item i ?] board
+end
+
+to-report take-diagonal1 [board]
+  report map [item ? (item ? board)] [0 1 2]
+end
+
+to-report take-diagonal2 [board]
+  report map [item (2 - ?) (item ? board)] [0 1 2]
+end
+
+; Cutomized State Explorer Print procedure
+
+to state-explorer
+  if mouse-down? [
+    clear-output
+    let selected-state min-one-of states [distancexy mouse-xcor mouse-ycor]
+    ask selected-state [
+      foreach [0 1 2] [
+        output-print item ? (first content)
       ]
-      ; When all its children have been computed, we mark the current stat as explored
-      set explored? true
+      output-print (word "Now moves player " (last content))
     ]
-    ; After a new level is totally generated, we check if the goal has been reached
-    if any? states with [final-state? #final-state]
-     [
-       ; If it is the case, we highlight the goal and the path from the initial state
-       ; (we use reduce with an appropriate function).
-       ; It could be that we find severalfinal states in the same level, so we choose
-       ; only one of them.
-       output-print ""
-       output-print "The Solution is:"
-       output-print "----------------"
-       output-print (word "From " initial_state)
-       ask one-of states with [final-state? #final-state]
-       [
-         set color red
-         let a reduce highlight path
-       ]
-       ; Print the number of explored states, and stop de procedure
-       output-print ""
-       output-print (word count turtles " explored states" )
-       stop
-     ]
+    wait .1
   ]
-end
-
-; Highlight report is used as a reduce parameters. Given two connected nodes (states),
-; it will highlight the link and returns the second state.
-
-to-report highlight [x y]
-  ask transition [who] of x [who] of y [
-    set color red
-    set thickness .3
-    output-print (word (first rule) " -> " [content] of y)]
-  report y
-end
-
-; Clean function erases all the nodos not in the solution path (in red).
-
-to clean
-  ask states with [not any? my-links with [color = red]] [die]
-  repeat 10000 [
-    layout-spring states transitions 1 5 1
-  ]
-end
-
-; Radial Layout for the tree of generated states
-
-to layout
-  ;layout-radial states transitions state 0
-  layout-spring states transitions .6 5 .3
-end
-
-; Shows some information about the problem to be solved.
-
-to show-output
-  output-print (word "Go from " Initial_State " to " Final_State)
-  output-print (word "using the transitions:")
-  foreach applicable-transitions
-  [
-    output-print (first ?)
-  ]
-end
-
-
-to style
-  ask patches [ set pcolor white]
-  ask turtles [ set label-color black set label (word label "  ")set color blue + 2]
-  ask links [set label-color green set label (word label "  ")]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+180
 10
-649
+879
 470
-16
+26
 16
 13.0
 1
@@ -220,8 +139,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
+-26
+26
 -16
 16
 0
@@ -231,13 +150,13 @@ ticks
 30.0
 
 BUTTON
-125
-430
-191
-463
+105
+175
+180
+220
+Layout
+layout-space layout\n
 NIL
-layout\n
-T
 1
 T
 OBSERVER
@@ -248,11 +167,11 @@ NIL
 1
 
 MONITOR
-15
-420
-120
-465
-Explored States
+105
+130
+180
+175
+# States
 count turtles
 17
 1
@@ -262,75 +181,78 @@ INPUTBOX
 10
 10
 180
-70
+95
 Initial_State
-[0 0]
+[[[\"X\" \"O\" \" \"][\" \" \"O\" \" \"] [\" \" \" \" \" \"] ] \"X\"]
 1
 0
 String
 
-INPUTBOX
+BUTTON
 10
-70
-180
 130
-Final_State
-[1 1]
+105
+175
+Build
+BSSR (read-from-string Initial_State) Depth-Level False\nstyle
+NIL
 1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+10
+95
+180
+128
+Depth-level
+Depth-level
 0
-String
-
-BUTTON
-15
-135
-110
-168
-Run Search
-BFS (read-from-string Initial_State) (read-from-string Final_State)\nstyle
-NIL
+10
+3
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
-
-BUTTON
-15
-170
-110
-203
-Clean Solution
-clean
 NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+HORIZONTAL
 
 OUTPUT
-15
-210
-210
-405
 10
+220
+180
+395
+11
 
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-0
+BUTTON
+10
+395
+180
+428
+Explore
+state-explorer
+T
 1
--1000
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+10
+175
+105
+220
+layout
+layout
+"→" "↓" "o"
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -675,14 +597,14 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0

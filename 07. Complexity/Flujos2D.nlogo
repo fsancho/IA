@@ -1,202 +1,107 @@
-; In this solution we represent the states of the problem by means of agents
-breed [states state]
-states-own
-[
-  content   ; Stores the content (value) of the state
-  explored? ; Tells if the state has been explored or not
-  path      ; Stores the path to reach this state from the initial state
-]
+; Cambia estas dos funciones para definir el Sistema Dinámico 2D:
+;  fx = dx / dt
+;  fy = dy / dt
 
-; Transitions will be representes by means of links
-directed-link-breed [transitions transition]
-transitions-own
-[
-  rule   ; Stores the printable version of the transition
-]
-
-;--------------- Customizable Reports -------------------
-
-; These reports must be customized in order to solve different problems using the
-; same BFS function.
-
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use tasks in
-; order to store the transition functions.
-
-to-report applicable-transitions
-  report (list
-           (list "*3" (task [? * 3]))
-           (list "+7" (task [? + 7]))
-           (list "-2" (task [? - 2])))
+to-report fx [x y]
+  report y      ; f1
+  ;report x      ; f2: Punto fijo
+  ;report -1 * y ; f3: Oscilante
+  ;report -1 * x  ; f4: Punto de Silla
 end
 
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report (x > 0)
+
+to-report fy [x y]
+  report -1 * (x ^ 2 - 1) * y - x ; f1
+  ;report y                        ; f2
+  ;report x                        ; f3
+  ;report y                         ; f4
 end
 
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
+;----------------------------
+;
 
-to-report children-states
-  report filter [valid? (first ?)]
-                (map [(list (run-result (last ?) content) ?)]
-                     applicable-transitions)
-end
-
-; final-state? is an agent report that identifies the final states for the problem.
-; It usually will be a property on the content of the state (for example, if it is
-; equal to the Final State). It allows the use of parameters because maybe the
-; verification of reaching the goal depends on some extra information from the problem.
-
-to-report final-state? [params]
-  report ( content = params)
-end
-
-;-------------------- BFS Algorithm and related procedures ----------------
-; Essentially, the algorithm computes the children states for not explored states
-; and link them by using the applied transition. It iterates until the goal is
-; reached (using final-state? report).
-; It needs two reports:
-;   a) children-states : reports the children states of the current state.
-;   b) final-state?    : reports if the current state is a final one.
-
-to BFS [#initial-state #final-state]
+to setup
   ca
-  show-output
-  ; Create the agent associated to the initial state
-  create-states 1
-  [
-    set shape "circle"
-    set color green
-    set content #initial-state
-    set label content
-    set path (list self)
-    set explored? false
+  ; Creamos la tortuga trazador
+  crt 1 [
+    ht
   ]
-  ; While there are not explored states (the verification about the goal is made
-  ; inside the loop)
-  while [any? states with [not explored?]]
-  [
-    ask states with [not explored?]
-    [
-      ; Compute the children states by applying every rule to the current state
-      foreach children-states
-      [
-        ; We separate the contents and transitions from each children
-        let new-state first ?
-        let applied-rule last ?
-        ; We consider only new states (states that have not been visited previously)
-        if not any? states with [content = new-state]
-        [
-          ; Clone one new agent for each new state
-          hatch-states 1
-          [
-            set content new-state
-            set label content
-            set explored? false
-            ; and link it with its father using a transition link
-            create-transition-from myself [
-              set rule applied-rule
-              set label first applied-rule
-            ]
-            set color blue
-            ; Update the path for the new state (remember that the clone is a
-            ; copy of the father, so we only need to add the new state to the
-            ; father's path)
-            set path lput self path
-          ]
-        ]
-        ; Update the layout
-        if layout? [layout]
-      ]
-      ; When all its children have been computed, we mark the current state as explored
-      set explored? true
+  ; Dibujamos ejes
+  ejes
+end
+
+; Dibujo de los ejes
+to ejes
+  crt 1 [
+    set color grey
+    pu
+    setxy 0 max-pycor
+    pd
+    setxy 0 min-pycor
+    pu
+    setxy min-pxcor 0
+    pd
+    setxy max-pxcor 0
+    pu
+    die
+  ]
+end
+
+; Funcion de traza de órbitas
+to go
+  ; rep: número de pasos que va a dar la trazadora en cada órbita
+  let rep 10 * amplitud / dt
+  ; La trazadora
+  ask turtles [
+    set color (lput 20 (extract-rgb col))
+    ; sitúa la trazadora en un punto inicial
+    set-ini
+    ; dibujamos la órbita
+    repeat rep [
+      ; Transformamos las coordenadas patch en coordenadas reales
+      let x xcor / max-pxcor * amplitud
+      let y ycor / max-pycor * amplitud
+      ; Calculamos las derivadas parciales
+      let f_x fx x y
+      let f_y fy x y
+      ; orientamos la trazadora en el ángulo dado por el gradiente y trazamos el segmento
+      ifelse f_x = 0
+        [ set-ini ]
+        [ set heading atan f_x f_y
+          fd dt]
+      ; Si la trazadora se sale de la zona de dibujo, la resituamos
+      if xcor > max-pxcor or ycor > max-pycor or xcor < min-pxcor or ycor < min-pycor [set-ini]
     ]
-    ; After a new level is totally generated, we check if the goal has been reached
-    if any? states with [final-state? #final-state]
-     [
-       ; If it is the case, we highlight the goal and the path from the initial state
-       ; (we use reduce with an appropriate function).
-       ; It could be that we find severalfinal states in the same level, so we choose
-       ; only one of them.
-       output-print ""
-       output-print "The Solution is:"
-       output-print "----------------"
-       output-print (word "From " initial_state)
-       ask one-of states with [final-state? #final-state]
-       [
-         set color red
-         let a reduce highlight path
-       ]
-       ; Print the number of explored states, and stop de procedure
-       output-print ""
-       output-print (word count turtles " explored states" )
-       stop
-     ]
   ]
+  ; Dibujamos los ejes, para que no se oculten con las órbitas
+  ejes
 end
 
-; Highlight report is used as a reduce parameters. Given two connected (that are
-; connected directly trough a link/transition), it will highlight the link and
-; returns the second state. As a secondary effect, it will print in text the sequence
-; of transitions to be applied.
-
-to-report highlight [x y]
-  ask transition [who] of x [who] of y [
-    set color red
-    set thickness .3
-    output-print (word (first rule) " -> " [content] of y)]
-  report y
-end
-
-; Clean function erases all the states not in the solution path (in red). Use it after
-; highlight.
-
-to clean
-  ask states with [not any? my-links with [color = red]] [die]
-  repeat 10000 [
-    layout-spring states transitions 1 5 1
-  ]
-end
-
-; Radial Layout for the tree of generated states
-
-to layout
-  layout-radial states transitions (state 0)
-end
-
-; Shows some information about the problem to be solved.
-
-to show-output
-  output-print (word "Go from " Initial_State " to " Final_State)
-  output-print (word "using the transitions:")
-  foreach applicable-transitions
-  [
-    output-print (first ?)
-  ]
-end
-
-to style
-  ask patches [ set pcolor white]
-  ask turtles [ set label-color black set label (word label "  ")set color blue + 2]
-  ask links [set label-color green]
+; Función de colocación inicial de la trazadora (inicio de la órbita parcial)
+to set-ini
+  pu
+  ; Con igual probabilidad generamos 7 zonas: los 2 ejes, los 4 bordes, o el interior
+  let ini random 7
+  if ini = 0 [ setxy random-xcor min-pycor ]   ; Borde inferior
+  if ini = 1 [ setxy random-xcor max-pycor ]   ; Borde superior
+  if ini = 2 [ setxy random-xcor 0 ]           ; Eje X
+  if ini = 3 [ setxy min-pxcor random-ycor ]   ; Borde izquierdo
+  if ini = 4 [ setxy max-pxcor random-ycor ]   ; Borde derecho
+  if ini = 5 [ setxy 0 random-ycor ]           ; Eje Y
+  if ini = 6 [ setxy random-xcor random-ycor ] ; Interior
+  pd
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+185
 10
-649
+624
 470
 16
 16
 13.0
 1
-12
+10
 1
 1
 1
@@ -215,106 +120,79 @@ ticks
 30.0
 
 BUTTON
-125
-430
-191
-463
-NIL
-layout\n
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-MONITOR
-15
-420
-120
-465
-Explored States
-count turtles
-17
-1
-11
-
-INPUTBOX
-10
-10
-180
-70
-Initial_State
 5
+145
+68
+178
+limpia
+setup
+NIL
 1
-0
-String
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+115
+145
+178
+178
+NIL
+Go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 INPUTBOX
+5
 10
-70
 180
-130
-Final_State
-23
+70
+col
+15
 1
 0
-String
+Color
 
-BUTTON
-15
-135
-110
-168
-Run Search
-BFS (read-from-string Initial_State) (read-from-string Final_State)\nstyle
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-110
-203
-Clean Solution
-clean
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-15
-210
-210
-405
+SLIDER
+5
+75
+177
+108
+amplitud
+amplitud
+0
 10
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-0
+4
 1
--1000
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+110
+177
+143
+dt
+dt
+0.01
+1
+0.1
+.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -659,14 +537,14 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0

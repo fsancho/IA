@@ -1,240 +1,218 @@
-; Type of agent to represent states of the game
-breed [states state]
+;;;;------------------------------------------------------------------------
+;;;; Global variables
 
-states-own [
-  fittness   ; Store the evaluation of the final states (the other will be computed
-             ; with the minimax procedure
-  player     ; Who is the player to move on this state (to know if we play min or max)
-  gameover?  ; Says if this state is a final one or not
-  depth      ; Depth level of the state in the tree (distance from root)
+globals
+[
+  root ; root of the generated tree
+  cont ; Counter to enumerate the nodes in a sequencial way
+  acont; Counter to enumerate the depth of links
 ]
 
-;---------------------------------------------------------------------------
-; Setup procedure to build a test tree
-;---------------------------------------------------------------------------
+;;;; Agents Families
 
-to setup
+breed [nodes node]   ; Nodes of Tree/Graphs
+
+nodes-own
+[
+  visited?         ; Tells if the node has been visited previously
+                   ;       (in use in DFS and BFS)
+  in-development?  ; Tells if the node has been developed/expanded
+                   ;        in the seacrh (in use in BFS)
+  index            ; The index of the node in the exploration
+
+  height
+]
+
+;;;;------------------------------------------------------------------------
+;;;; Generation of Trees/Graphs
+
+; Generate a tree with constant branching (#width) with #depth levels
+
+to generate-tree [#depth #width]
+  ; The main procedure generates one only node (the root) and launch a
+  ;   recursive procedure for the creation of children
+  create-nodes 1
+  [
+    setxy random-xcor random-ycor
+    set shape "square"
+    set color blue
+    set label-color white
+    set size 1
+    set root self
+    set visited? true
+    set in-development? false
+    set index -1
+    ; Call to auxiliary recursive procedure. See bellow
+    generate-tree-aux (#depth - 1) #width self
+  ]
+  ; After the completion of generation, we provide a radial layout
+  layout-radial nodes links root
+end
+
+; Recursive procedure from a father node
+to generate-tree-aux [#depth #width father]
+  ; It is executed only if depth > 0
+  if #depth > 0
+  [
+    ; Ask the father to generate its children and connect them to it
+    ask father
+    [
+      hatch-nodes #width
+      [
+        set visited? false
+        set in-development? false
+        create-link-with father
+        ; For every child, we repeat the process
+        generate-tree-aux (#depth - 1) #width self
+      ]
+    ]
+  ]
+end
+
+; Procedure to generate a random graph.
+
+to generate-graph
   ca
-  set-default-shape states "triangle 2"
-  ask patches [set pcolor white]
-  create-states 1 [
-    set color green
-    set player "me"
-    set gameover? true
-    set depth 0
+  ; Primero, generamos todos los nodes
+  create-nodes Num-nodes
+  [
+    setxy random-xcor random-ycor
+    set shape "square"
+    set color blue
+    set label-color white
+    set size 1
+    set visited? true
+    set in-development? false
+    set index -1
   ]
-  repeat 2 [
-    ask states with [gameover?] [
-      hatch-states random Branching [
-        set color red
-        set player "op"
-        set depth depth + 1
-        create-link-from myself]
-      set gameover? false
-    ]
-    ask states with [gameover?] [
-      hatch-states random Branching [
-        set color green
-        set player "me"
-        set depth depth + 1
-        create-link-from myself]
-      set gameover? false
-    ]
+  ; We take initially one of the nodes as root
+  set root node 0
+  ; Generate links randomly
+  while [count links < Num-Links]
+  [
+    ask one-of nodes
+    [ create-link-with one-of other nodes ]
   ]
-  layout-tree (state 0) layout
-  ask states [
-    set gameover? false
-    set heading ifelse-value (player = "op") [180][0]
-    set label-color black
-    set size .5 + 6 / (1 + depth)
-
-  ]
-  ask states with [not any? out-link-neighbors] [
-    set gameover? true
-    set fittness random 10
-    set label fittness
-  ]
-  ; Labels
-  create-states 1 [
-    set color green
-    set size 2
-    set heading 0
-    setxy min-pxcor + 1 max-pycor - 1
-    ask patch-at 7 0 [
-      set plabel-color black
-      set plabel "MAX player"]
-  ]
-  create-states 1 [
-    set color red
-    set size 2
-    set heading 180
-    setxy min-pxcor + 1 (max-pycor - 3)
-    ask patch-at 7 0 [
-      set plabel-color black
-      set plabel "MIN player"]
-  ]
-
+  ; We provide an adequated layout
+  repeat 500 [ layout-spring nodes links 0.2 (sqrt Num-nodes) / Num-nodes 1 ]
 end
 
-;---------------------------------------------------------------------------
-; MINIMAX procedures
-;---------------------------------------------------------------------------
-
-; Minimax is only to eval the current state
-to minimax
-  ask state 0 [
-    set label last eval  ]
+; Procedure to reset the values in nodes
+to reset
+  set cont 0
+  set acont 1
+  ask nodes
+  [
+    set visited? false
+    set in-development? false
+    set label ""
+  ]
 end
 
-; Eval function is the core of MINIMAX.
-; We compute for every state a pair (fittness successor) that reports the evaluation
-; of the state (min or max of fiteness of successors) and one of the successors where
-; this extreme is reached
-to-report eval
-  ; If it is a final state, we report the fitness stored in the state
-  ifelse gameover?
-  [ set label fittness
-    report (list self fittness)
+; Procedure to make a radial layout from start node
+to re-layout
+  layout-radial nodes links (one-of nodes with [index = 0])
+end
+
+;;;;------------------------------------------------------------------------
+;;;; Exploration Algorithms
+
+; Breadth Exploration: From a starting node.
+; Every step, ir enumerates every ring in a sorted way (first, children of nodes
+;   with lower enumeration)
+; Visited but not expanded nodes are "in-development"
+to explore-BFS [#start]
+  ; We start mrking  the starting node
+  ask #start
+  [
+    set in-development? true
+    set visited? true
+    set label cont
+    set index cont
+    set cont cont + 1
   ]
-  ; If not, we compute maximum or minimum (it depends if the player will play or the opponent)
-  ; of the evaluation of successors
-  [ let selected nobody
-    ifelse player = "me"
-    [ set selected max-one-of legal-successors [last eval] ]
-    [ set selected min-one-of legal-successors [last eval] ]
-    ask legal-move-to selected [
-      set color blue
-      set thickness .2
+  ; "in-development?" mark allows us to know if there are nodes to be expanded
+  while [any? nodes with [in-development?]]
+  [
+    ; We take to be developed nodes sorted by index
+    let successors sort-by [[index] of ?1 <= [index] of ?2] nodes with [in-development?];
+    ; And each of them is expanded enumerating their children
+    foreach successors
+    [
+      ask ?
+      [
+        ; After that, they are visited but not in development
+        set in-development? false
+        ask link-neighbors with [not visited?]
+        [
+          set in-development? true
+          set visited? true
+          set label cont
+          set index cont
+          set cont cont + 1
+          wait (1 - speed)
+        ]
       ]
-    set label [last eval] of selected
-    report (list selected [last eval] of selected)
-  ]
-end
-
-; Report for getting the legal successors of this state (it depends on the problem we are solving,
-; in this simple case it is only the successors in the graph)
-to-report legal-successors
-  report out-link-neighbors
-end
-
-; Report for getting the legal move to reach state s' from the current one (it depends on the
-; problem we are solving, in this simple case it is only the link connecting them)
-to-report legal-move-to [a]
-  report out-link-to a
-end
-
-;---------------------------------------------------------------------------
-; TREE LAYOUT procedures
-;---------------------------------------------------------------------------
-
-; Representation of a tree from a root node.
-; dir can be "↓" (vertical) o "→" (horizontal), represents the primary direction
-to layout-tree [root dir]
-  let PrimaryDir ifelse-value (dir = "→") [world-width] [world-height]
-  let SecondaryDir ifelse-value (dir = "↓" ) [world-width] [world-height]
-  ; MaxN : MAximum Depth of the tree
-  let MaxN max [depth] of states
-  ; incx: distance between levels in the Primary direction
-  let incP PrimaryDir / (1 + MaxN)
-  ; iniP: Initial position of levels in primary direction
-  let iniP ifelse-value (dir = "→") [min-pxcor + incP / 2][max-pycor - incP / 2]
-  ; dep: current depth
-  let dep 0
-  ; StatesLevel: states in the current depth
-  let StatesLevel (list root)
-  ; We will go through levels representing the states uniformly distributed in the column
-  foreach (n-values (1 + MaxN) [?]) [
-    ; SizeLevel: Number of states in current depth
-    let SizeLevel length StatesLevel
-    ; incS: distance between states in this level
-    let incS SecondaryDir / (1 + SizeLevel)
-    ; iniS: Initial position of states of current level in secondary direction
-    let iniS ifelse-value (dir = "→") [min-pycor + incS] [max-pxcor - incS]
-    ; Now, put the states in the column
-    foreach StatesLevel [
-      ask ? [
-        ifelse dir = "→"
-        [ setxy iniP iniS ]
-        [ setxy iniS iniP ]
-      ]
-      ; Increment the Secondary position for the next state
-      set iniS ifelse-value (dir = "→") [iniS + incS][iniS - incS]
-    ]
-    ; Increment the Primary position for the next level
-    set iniP ifelse-value (dir = "→") [iniP + incP][iniP - incP]
-    ; Increment the depth
-    set dep dep + 1
-    ; Compute states for the next level. It is an ordered list of states:
-    ;   They are the successors of the current level
-    ;   Inorder to avoir crossing links, the block of successors of every state will be
-    ;     added in the same order of their parents (using a map)
-    ;   In every block of successors, we apply a order that considers the weight of the
-    ;     subtree under the parent state (the weight is the number of leaf nodes)
-    ;   Then, we alternate (balance) high values with low values in this weights
-    set StatesLevel reduce sentence ; Flat the list
-                          map ; take successors of current states in the same order
-                            ; Balance the new states according the weights of their subtrees
-                            [ balance sort-by
-                              [[weight-subtree] of ?1 > [weight-subtree] of ?2]
-                              ([out-link-neighbors] of ?)]
-                            StatesLevel
-
-  ]
-end
-
-; Reports the weight (number of final states) of a subtree (the current state is the root)
-to-report weight-subtree
-  ifelse gameover?
-  [ report ifelse-value (depth = max[depth] of states) [1][0] ]
-  [ report sum [weight-subtree] of out-link-neighbors ]
-end
-
-; balance a values list (the list must be decreasing ordered),
-; it puts maximums in the extremes, and intercalates the other:
-;    balance [10 9 8]               -> [10 8 9]
-;    balance [10 9 8 7]             -> [10 7 8 9]
-;    balance [10 9 8 7 6]           -> [10 7 8 6 9]
-;    balance [10 9 8 7 6 5]         -> [10 5 7 8 6 9]
-;    balance [10 9 8 7 6 5 4]       -> [10 5 7 4 8 6 9]
-;    balance [10 9 8 7 6 5 4 3]     -> [10 5 7 4 8 3 6 9]
-;    balance [10 9 8 7 6 5 4 3 2]   -> [10 5 7 4 8 3 6 2 9]
-;    balance [10 9 8 7 6 5 4 3 2 1] -> [10 1 5 7 4 8 3 6 2 9]
-
-to-report balance [s]
-  let res s
-  ; If it has only 2, or less, elements, it does nothing
-  if length s > 2 [
-    ; Start with the first 2 elements (the highest)
-    ;  and the rest (that will be intercalated)
-    set res sublist s 0 2
-    set s sublist s 2 length s
-    while [not empty? s] [
-      ; Select elements to intercalate in this step
-      let j min (list (length s) (-1 + length res))
-      set res intercalate res (sublist s 0 j)
-      set s sublist s j length s
     ]
   ]
-  report res
 end
 
-; Given 2 lists (with the adequated lengths) intercalates the elements of the second one into the first one
-;   intercalate [1 3 5 7] [2 4 6] -> [1 2 3 4 5 6 7]
-to-report intercalate [r s]
-  if empty? s [report r]
-  report (sentence (first r) (first s) intercalate (bf r) (bf s))
+; Depth Exploration: From a starting node.
+; Every step, it goes down until the end of the branch, til the leaves, and
+;   enumerates them sequently.
+; It uses backtracking to come back up. We model it ina recursive way.
+
+to explore-DFS [#start]
+  ; Every input node is marked as visited, enumerated and we cross it to their
+  ;    children.
+  ask #start
+  [
+    set visited? true
+    set label cont
+    set index cont
+    set cont cont + 1
+    wait (1 - speed)
+    ; For every not visited child, we repeat the procedure
+    ask link-neighbors with [not visited?]
+    [
+      if not visited? [ explore-DFS self ] ; We must control again because it could be
+                                           ;  vsited in the same level
+    ]
+  ]
+end
+
+; Random Exploration: From a starting node.
+; Once marked the staring node, we mark the other nodes randomly with no repetition.
+
+to explore-randomly [#start]
+  ask #start
+  [
+    set visited? true
+    set label cont
+    set index cont
+    set cont cont + 1
+    wait (1 - speed)
+  ]
+  ask nodes with [not visited?]
+  [
+    set visited? true
+    set label cont
+    set index cont
+    set cont cont + 1
+    wait (1 - speed)
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-195
+210
 10
-894
-470
-26
+781
+602
 16
-13.0
+16
+17.0
 1
-15
+12
 1
 1
 1
@@ -242,8 +220,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--26
-26
+-16
+16
 -16
 16
 0
@@ -253,13 +231,13 @@ ticks
 30.0
 
 SLIDER
-15
+7
 10
-187
+110
 43
-Branching
-Branching
-2
+Depth
+Depth
+1
 10
 5
 1
@@ -267,13 +245,28 @@ Branching
 NIL
 HORIZONTAL
 
+SLIDER
+7
+42
+110
+75
+Width
+Width
+1
+5
+3
+1
+1
+NIL
+HORIZONTAL
+
 BUTTON
 110
-45
-185
-90
-NIL
-setup
+10
+200
+75
+Generate Tree
+ca\ngenerate-tree Depth Width
 NIL
 1
 T
@@ -285,12 +278,29 @@ NIL
 1
 
 BUTTON
-15
-95
+75
+195
 185
-128
+228
+Explore in Depth
+reset\nrun (word \"explore-DFS \" Start)
 NIL
-minimax
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+10
+195
+75
+228
+NIL
+reset
 NIL
 1
 T
@@ -302,14 +312,127 @@ NIL
 1
 
 CHOOSER
-15
-45
-107
-90
-layout
-layout
-"↓" "→"
+10
+150
+185
+195
+Start
+Start
+"root" "(one-of nodes)"
+1
+
+BUTTON
+75
+230
+185
+263
+Explore in Breadth
+reset\nrun (word \"explore-BFS \" Start)
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+10
+230
+75
+263
+Re-Layout
+re-layout
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+7
+76
+110
+109
+Num-nodes
+Num-nodes
 0
+200
+52
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+109
+110
+142
+Num-Links
+Num-Links
+0
+10 * Num-nodes
+60
+1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+110
+76
+200
+142
+Generate Graph
+generate-graph
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+10
+300
+185
+333
+speed
+speed
+0
+1
+1
+.1
+1
+NIL
+HORIZONTAL
+
+BUTTON
+10
+265
+185
+298
+Explore Randomly
+reset\nrun (word \"explore-randomly \" Start)
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -542,19 +665,12 @@ Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
 sheep
 false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
+0
+Rectangle -7500403 true true 151 225 180 285
+Rectangle -7500403 true true 47 225 75 285
+Rectangle -7500403 true true 15 75 210 225
+Circle -7500403 true true 135 75 150
+Circle -16777216 true false 165 76 116
 
 square
 false
@@ -592,15 +708,15 @@ Circle -7500403 true true 45 90 120
 Circle -7500403 true true 104 74 152
 
 triangle
-true
+false
 0
 Polygon -7500403 true true 150 30 15 255 285 255
 
 triangle 2
-true
+false
 0
 Polygon -7500403 true true 150 30 15 255 285 255
-Polygon -1 true false 150 60 255 240 120 240
+Polygon -16777216 true false 151 99 225 223 75 224
 
 truck
 false
@@ -643,9 +759,11 @@ Line -7500403 true 84 40 221 269
 wolf
 false
 0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
+Polygon -7500403 true true 135 285 195 285 270 90 30 90 105 285
+Polygon -7500403 true true 270 90 225 15 180 90
+Polygon -7500403 true true 30 90 75 15 120 90
+Circle -1 true false 183 138 24
+Circle -1 true false 93 138 24
 
 x
 false
@@ -668,8 +786,8 @@ default
 link direction
 true
 0
-Line -7500403 true 150 75 90 180
-Line -7500403 true 150 75 210 180
+Line -7500403 true 150 150 90 180
+Line -7500403 true 150 150 210 180
 
 @#$#@#$#@
 1

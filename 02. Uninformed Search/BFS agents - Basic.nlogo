@@ -1,3 +1,11 @@
+;----------------- Include Algorithms Library --------------------------------
+
+__includes [ "BFS.nls" "LayoutSpace.nls"]
+
+;-----------------------------------------------------------------------------
+
+;---------------------- Preamble for models using AI Library -----------------
+
 ; In this solution we represent the states of the problem by means of agents
 breed [states state]
 states-own
@@ -5,13 +13,14 @@ states-own
   content   ; Stores the content (value) of the state
   explored? ; Tells if the state has been explored or not
   path      ; Stores the path to reach this state from the initial state
+  depth     ; Only needed if using LayoutSpace.nls
 ]
 
 ; Transitions will be representes by means of links
 directed-link-breed [transitions transition]
 transitions-own
 [
-  rule   ; Stores the printable version of the applied rule
+  rule   ; Stores the printable version of the transition
 ]
 
 ;--------------- Customizable Reports -------------------
@@ -19,55 +28,21 @@ transitions-own
 ; These reports must be customized in order to solve different problems using the
 ; same BFS function.
 
-; The representation of the states is:
-; Discs 1 < 2 < 3 < ... < N
-; State = [ [Tower1] [Tower2] [Tower3] ... [TowerM] ]
-; Tower_i= [i_1 < i_2 < i_3], [i_1 < i_2], [i_1], [ ]
-
 ; Rules are represented by using pairs [ "representation" f ]
 ; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use pairs of the
-; form f=[i j] telling that we move top disc from tower i to top of tower j.
+; and "representation" is a string to identify the rule. We will use tasks in
+; order to store the transition functions.
 
-; This agent report returns the applicable transitions for the content (it depends
-; on the current state)
-
-to-report applicable-transitions [c]
-  let t-a []
-  let lista (n-values (length c) [?])
-  foreach lista [
-    let i ?
-    foreach lista [
-      let j ?
-      let t (list (word i "->" j) (list i j))
-      if valid-transition? t c [set t-a lput t t-a]
-    ]
-  ]
-  report t-a
+to-report applicable-transitions
+  report (list
+           (list "*3" (task [? * 3]))
+           (list "+7" (task [? + 7]))
+           (list "-2" (task [? - 2])))
 end
 
-; valid-transition? reports if a transition t is applicable to a state s
-
-to-report valid-transition? [t s]
-  let i first last t
-  let j last last t
-  if empty? (item i s) [report false]
-  if empty? (item j s) [report true]
-  let top-disc-i first (item i s)
-  let top-disc-j first (item j s)
-  report top-disc-i < top-disc-j
-end
-
-; apply-transition returns the result of applying a transition t to a state s.
-; It is used directly by the map application of children-states.
-
-to-report apply-transition [t s]
-  let i first last t
-  let j last last t
-  let disco first (item i s)
-  set s replace-item i s (bf (item i s))
-  set s replace-item j s (fput disco (item j s))
-  report (list s t)
+; valid? is a boolean report to say which states are valid
+to-report valid? [x]
+  report (x > 0)
 end
 
 ; children-states is an agent report that returns the children for the current state.
@@ -77,113 +52,27 @@ end
 ; states that are valid.
 
 to-report children-states
-  report (map [apply-transition ? content] (applicable-transitions content))
+  report filter [valid? (first ?)]
+                (map [(list (run-result (last ?) content) ?)]
+                     applicable-transitions)
 end
 
-; estado-final? ofrece un report de agente que identifica los estados finales
+; final-state? is an agent report that identifies the final states for the problem.
+; It usually will be a property on the content of the state (for example, if it is
+; equal to the Final State). It allows the use of parameters because maybe the
+; verification of reaching the goal depends on some extra information from the problem.
 
 to-report final-state? [params]
   report ( content = params)
 end
 
-; Shows some information about the problem to be solved.
-; We have customized this procedure in order to avoid the
-; print of the different transitions
 
-to show-output
-  output-print (word "Go from " Initial_State)
-  output-print (word "     to " Final_State)
-  output-print (word "using the transitions:")
-  output-print " Move the top discs"
-  output-print " between towers"
-end
+;-------- Customs visualization procedures -------------------------------------------
 
-;-------------------- BFS Algorithm and related procedures ----------------
-; Essentially, the algorithm computes the children states for not explored states
-; and link them by using the applied transition. It iterates until the goal is
-; reached (using final-state? report).
-; It needs two reports:
-;   a) children-states : reports the children states of the current state.
-;   b) final-state?    : reports if the current state is a final one.
-
-to BFS [#initial-state #final-state]
-  ca
-  show-output
-  ; Create the agent associated to the initial state
-  create-states 1
-  [
-    set shape "circle"
-    set color green
-    set content #initial-state
-    set label content
-    set path (list self)
-    set explored? false
-  ]
-  ; While there are not explored states (the verification about the goal is made
-  ; inside the loop)
-  while [any? states with [not explored?]]
-  [
-    ask states with [not explored?]
-    [
-      ; Compute the children states by applying every rule to the current state
-      foreach children-states
-      [
-        ; We separate the contents and transitions from each children
-        let new-state first ?
-        let applied-rule last ?
-        ; We consider only new states (states that have not been visited previously)
-        if not any? states with [content = new-state]
-        [
-          ; Clone one new agent for each new state
-          hatch-states 1
-          [
-            set content new-state
-            set label content
-            set explored? false
-            ; and link it with its father using a transition link
-            create-transition-from myself [
-              set rule applied-rule
-              set label first applied-rule
-            ]
-            set color blue
-            ; Update the path for the new state (remember that the clone is a
-            ; copy of the father, so we only need to add the new state to the
-            ; father's path)
-            set path lput self path
-          ]
-        ]
-        ; Update the layout
-        if layout? [layout]
-      ]
-      ; When all its children have been computed, we mark the current stat as explored
-      set explored? true
-    ]
-    ; After a new level is totally generated, we check if the goal has been reached
-    if any? states with [final-state? #final-state]
-     [
-       ; If it is the case, we highlight the goal and the path from the initial state
-       ; (we use reduce with an appropriate function).
-       ; It could be that we find severalfinal states in the same level, so we choose
-       ; only one of them.
-       output-print ""
-       output-print "The Solution is:"
-       output-print "----------------"
-       output-print (word "From " initial_state)
-       ask one-of states with [final-state? #final-state]
-       [
-         set color red
-         let a reduce highlight path
-       ]
-       ; Print the number of explored states, and stop de procedure
-       output-print ""
-       output-print (word count turtles " explored states" )
-       stop
-     ]
-  ]
-end
-
-; Highlight report is used as a reduce parameters. Given two connected nodes (states),
-; it will highlight the link and returns the second state.
+; Highlight report is used as a reduce parameters. Given two connected (that are
+; connected directly trough a link/transition), it will highlight the link and
+; returns the second state. As a secondary effect, it will print in text the sequence
+; of transitions to be applied.
 
 to-report highlight [x y]
   ask transition [who] of x [who] of y [
@@ -193,7 +82,8 @@ to-report highlight [x y]
   report y
 end
 
-; Clean function erases all the nodos not in the solution path (in red).
+; Clean function erases all the states not in the solution path (in red). Use it after
+; highlight.
 
 to clean
   ask states with [not any? my-links with [color = red]] [die]
@@ -202,18 +92,15 @@ to clean
   ]
 end
 
-; Radial Layout for the tree of generated states
+; Shows some information about the problem to be solved.
 
-to layout
-  ;layout-radial states transitions state 0
-  layout-spring states transitions 1 5 1
-end
-
-
-to style
-  ask patches [ set pcolor white]
-  ask turtles [ set label-color black set label (word label "  ")set color blue + 2]
-  ask links [set label-color green]
+to show-output
+  output-print (word "Go from " Initial_State " to " Final_State)
+  output-print (word "using the transitions:")
+  foreach applicable-transitions
+  [
+    output-print (first ?)
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -246,10 +133,10 @@ ticks
 BUTTON
 125
 430
-191
+192
 463
-NIL
-layout\n
+Layout
+layout-space \"o\"\n
 T
 1
 T
@@ -277,7 +164,7 @@ INPUTBOX
 180
 70
 Initial_State
-[[1 2 3] [] []]
+5
 1
 0
 String
@@ -288,7 +175,7 @@ INPUTBOX
 180
 130
 Final_State
-[[] [] [1 2 3]]
+23
 1
 0
 String
@@ -299,7 +186,7 @@ BUTTON
 110
 168
 Run Search
-BFS (read-from-string Initial_State) (read-from-string Final_State)\nstyle\n
+BFS (read-from-string Initial_State) (read-from-string Final_State)\nstyle
 NIL
 1
 T
@@ -331,7 +218,7 @@ OUTPUT
 15
 210
 210
-415
+405
 10
 
 SWITCH
@@ -688,7 +575,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
