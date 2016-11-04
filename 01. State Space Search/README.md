@@ -11,7 +11,7 @@ Conjunto de ficheros asociados a esta carpeta:
 + `Build State Space - Towers of Hanoi.nlogo`: Definiciones para el problema de las *Torres de Hanoi*.
 + `Build State Space Repetitions - Nim.nlogo`: Definiciones para el juego del *Nim* (repitiendo nodos).
 
-## Funcionamiento de BSS:
+## Instrucciones de uso de BSS:
 
 Los **estados** se representan por medio de la familia de tortugas _AI:states_, que deben contener (al menos) las siguientes propiedades:
 
@@ -44,7 +44,7 @@ Para el correcto funcionamiento de esta librería en el modelo principal se debe
   
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
-## Funcionamiento de LayoutSpace
+## Instrucciones de uso de LayoutSpace
 
 Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax). El objetivo de esta librería de representación no es proporcionar un producto final, sino dar las herramientas básicas para poder centrarse en la generación de los espacios de estados, y no en su representación, por lo que podría ser necesario adaptarla a contextos con necesidades más específicas.
 
