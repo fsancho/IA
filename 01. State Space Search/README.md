@@ -44,3 +44,16 @@ Para el correcto funcionamiento de esta librería en el modelo principal se debe
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
 ## Funcionamiento de LayoutSpace
+
+Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax).
+
+Proporciona un procedimiento principal, `layout-space`, que recibe como dato de entrada el tipo de representación y representa el espacio de estados según el tipo seleccionado:
+
++ `*` : Representación **orgánica** por algoritmo de fuerzas.
++ `o` : Representación **radial** a partir del estado inicial (que supone que es `AI:state 0`).
++ `↓` : Representación como árbol vertical.
++ `→` : Representación como árbol horizontal.
+
+En el caso de los árboles, el algoritmo intenta ordenar adecuadamente los sucesores con el fin de conseguir que el árbol sea equilibrado.
+
+Además, la librería proporciona un procedimiento, `style`, que da un aspecto uniforme al grafo de espacios de estados: fondo blanco, estados circulares azules con etiquetas negras, transiciones con etiquetas verdes.
