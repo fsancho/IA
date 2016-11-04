@@ -7,8 +7,8 @@ __includes [ "LayoutSpace.nls"]
 ;---------------------- Preamble for models using AI Library -----------------
 
 ; In this solution we represent the states of the problem by means of agents
-breed [states state]
-states-own
+breed [AI:states AI:state]
+AI:states-own
 [
   content   ; Stores the content (value) of the state
   explored? ; Tells if the state has been explored or not
@@ -17,8 +17,8 @@ states-own
 ]
 
 ; Transitions will be representes by means of links
-directed-link-breed [transitions transition]
-transitions-own
+directed-link-breed [AI:transitions AI:transition]
+AI:transitions-own
 [
   rule   ; Stores the printable version of the transition
 ]
@@ -80,7 +80,7 @@ to BFS [#initial-state #final-state]
   ca
   show-output
   ; Create the agent associated to the initial state
-  create-states 1
+  create-AI:states 1
   [
     set shape "circle"
     set color green
@@ -91,9 +91,9 @@ to BFS [#initial-state #final-state]
   ]
   ; While there are not explored states (the verification about the goal is made
   ; inside the loop)
-  while [any? states with [not explored?]]
+  while [any? AI:states with [not explored?]]
   [
-    foreach sort (states with [not explored?])
+    foreach sort (AI:states with [not explored?])
     [
       ask ?
       [
@@ -104,16 +104,16 @@ to BFS [#initial-state #final-state]
           let new-state first ?
           let applied-rule last ?
           ; We consider only new states (states that have not been visited previously)
-          if not any? states with [content = new-state]
+          if not any? AI:states with [content = new-state]
           [
             ; Clone one new agent for each new state
-            hatch-states 1
+            hatch-AI:states 1
             [
               set content new-state
               set label content
               set explored? false
               ; and link it with its father using a transition link
-              create-transition-from myself [
+              create-AI:transition-from myself [
                 set rule applied-rule
                 set label first applied-rule
               ]
@@ -132,7 +132,7 @@ to BFS [#initial-state #final-state]
         set explored? true
       ]
       ; After a new level is totally generated, we check if the goal has been reached
-      if any? states with [final-state? #final-state]
+      if any? AI:states with [final-state? #final-state]
       [
         ; If it is the case, we highlight the goal and the path from the initial state
         ; (we use reduce with an appropriate function).
@@ -142,7 +142,7 @@ to BFS [#initial-state #final-state]
         output-print "The Solution is:"
         output-print "----------------"
         output-print (word "From " initial_state)
-        ask one-of states with [final-state? #final-state]
+        ask one-of AI:states with [final-state? #final-state]
         [
           set color red
           let a reduce highlight path
@@ -164,7 +164,7 @@ end
 ; it will highlight the link and returns the second state.
 
 to-report highlight [x y]
-  ask transition [who] of x [who] of y [
+  ask AI:transition [who] of x [who] of y [
     set color red
     set thickness .3
     output-print (word (first rule) " -> " [content] of y)]
@@ -174,9 +174,9 @@ end
 ; Clean function erases all the nodos not in the solution path (in red).
 
 to clean
-  ask states with [not any? my-links with [color = red]] [die]
+  ask AI:states with [not any? my-links with [color = red]] [die]
   repeat 10000 [
-    layout-spring states transitions 1 5 1
+    layout-spring AI:states AI:transitions 1 5 1
   ]
 end
 

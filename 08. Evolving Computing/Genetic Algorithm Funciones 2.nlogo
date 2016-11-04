@@ -1,137 +1,166 @@
-;----------------- Include Algorithms Library --------------------------------
+; ------------------- Include Genetic Algorithm Module --------------------
 
-__includes [ "BFS.nls" "LayoutSpace.nls"]
+__includes ["GeneticAlgorithm.nls"]
 
+; --------------------------- Main procedures calling ---------------------
 
-;--------------- Customizable Reports -------------------
+globals [
+  a
+  b
+  I
+]
 
-; These reports must be customized in order to solve different problems using the
-; same BFS function.
-
-; The representation of the states is:
-; Discs 1 < 2 < 3 < ... < N
-; State = [ [Tower1] [Tower2] [Tower3] ... [TowerM] ]
-; Tower_i= [i_1 < i_2 < i_3], [i_1 < i_2], [i_1], [ ]
-
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use pairs of the
-; form f=[i j] telling that we move top disc from tower i to top of tower j.
-
-; This agent report returns the applicable transitions for the content (it depends
-; on the current state)
-
-to-report applicable-transitions [c]
-  let t-a []
-  let lista (n-values (length c) [?])
-  foreach lista [
-    let i ?
-    foreach lista [
-      let j ?
-      let t (list (word i "->" j) (list i j))
-      if valid-transition? t c [set t-a lput t t-a]
-    ]
-  ]
-  report t-a
+to-report ftest [x]
+  report sin (180 * e ^ x)
 end
 
-; valid-transition? reports if a transition t is applicable to a state s
 
-to-report valid-transition? [t s]
-  let i first last t
-  let j last last t
-  if empty? (item i s) [report false]
-  if empty? (item j s) [report true]
-  let top-disc-i first (item i s)
-  let top-disc-j first (item j s)
-  report top-disc-i < top-disc-j
-end
-
-; apply-transition returns the result of applying a transition t to a state s.
-; It is used directly by the map application of children-states.
-
-to-report apply-transition [t s]
-  let i first last t
-  let j last last t
-  let disco first (item i s)
-  set s replace-item i s (bf (item i s))
-  set s replace-item j s (fput disco (item j s))
-  report (list s t)
-end
-
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
-
-to-report AI:children-states
-  report (map [apply-transition ? content] (applicable-transitions content))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-
-to-report AI:final-state? [params]
-  report ( content = params)
-end
-
-; Shows some information about the problem to be solved.
-; We have customized this procedure in order to avoid the
-; print of the different transitions
-
-to show-output
-  output-print (word "Go from " Initial_State)
-  output-print (word "     to " Final_State)
-  output-print (word "using the transitions:")
-  output-print " Move the top discs"
-  output-print " between towers"
-end
-
-;-------- Customs visualization procedures -------------------------------------------
-
-to test
+to Setup
   ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
-    ask p [
-      set color red
-      foreach extract-transitions-from-path
-      [
-        ask ? [
-          set color red
-          set thickness .3
-        ]
-      ]
-      output-print "The solution is: "
-      foreach (map [[first rule] of ?] extract-transitions-from-path)[
-        output-print ?
-      ]
-    ]
-    style
+  set a -1
+  set b 1
+  set I (intervalo a b 100)
+  AI:Initial-Population population
+  AI:ExternalUpdate
+  plots
+end
+
+to Launch
+  let best AI:GeneticAlgorithm 200 Population crossover-ratio mutation-ratio
+  plots
+  show [content] of best
+end
+
+to plots
+  let lista-fitness [fitness] of AI:individuals
+  let mejor-fitness max lista-fitness
+  let media-fitness mean lista-fitness
+  let peor-fitness min lista-fitness
+  set-current-plot "Fitness"
+;  set-current-plot-pen "mean"
+;  plot media-fitness
+  set-current-plot-pen "best"
+  plot mejor-fitness
+;  set-current-plot-pen "worst"
+;  plot peor-fitness
+  if plot-diversity?
+  [
+    set-current-plot "Diversity"
+    set-current-plot-pen "diversity"
+    plot AI:diversity
   ]
+end
+
+;------------------ Customizable Procedures ---------------------------------
+
+; Create Initial Population.
+; It depends on the problem to be solved as it uses a concrete representation
+to AI:Initial-Population [#population]
+  create-AI:individuals #population [
+    set content map [una-f] (n-values 10 [?])
+    ;show map first content
+    AI:Compute-fitness
+    hide-turtle
+  ]
+end
+
+; Individual report to compute its fitness
+to AI:Compute-fitness
+  set fitness -1 * sum map dif I
+end
+
+
+
+; Crossover procedure
+; It takes content from two parents and returns a list with two contents.
+; When content is a list (as in DNA case) it uses a random cut-point to
+; cut both contents and mix them:
+; a1|a2, b1|b2, where long(ai)=long(bi)
+; and report: a1|b2, b1|a2
+to-report AI:Crossover [c1 c2]
+  let cut-point 1 + random (length c1 - 1)
+  report list (sentence (sublist c1 0 cut-point)
+                        (sublist c2 cut-point length c2))
+              (sentence (sublist c2 0 cut-point)
+                        (sublist c1 cut-point length c1))
+end
+
+; Mutation procedure
+; Random mutation of units of the content.
+; Individual procedure
+to AI:mutate [#mutation-ratio]
+  set content map [ifelse-value (random-float 100.0 < #mutation-ratio) [una-f] [?]] content
+end
+
+to-report una-f
+  let new (list ((random-float 10) - 5) random 10)
+  report new
+end
+
+; Auxiliary procedure to be executed in every iteration of the main loop.
+; Usually to show or update some information.
+to AI:ExternalUpdate
+  ask AI:individuals [
+    if random 2 = 0 [set content reverse content]
+  ]
+  ; take the best individual and its content
+  let best max-one-of AI:individuals [fitness]
+  ;let c [content] of best
+  ; remove previous queens from board
+  ;show c
+  ;show map first c
+  ; Update plots
+  let f [content] of best
+  set-current-plot "f(x)"
+  clear-plot
+  set-plot-x-range a b
+  foreach I [
+    set-current-plot-pen "approx"
+    let res apply f ?
+    plotxy ? res
+    set-current-plot-pen "f(x)"
+    plotxy ? (ftest ?)
+  ]
+  plots
+  ; show changes
+  display
+end
+
+to-report dif [x]
+  let res (apply content x)
+  report ((ftest x) - res) ^ 2
+end
+
+
+to-report apply [f x]
+  report sum map [(first ?) * x ^ (last ?)] f
+end
+
+to-report  intervalo [a1 b1 ptos]
+  report (n-values (1 + ptos) [a1 + ? * (b1 - a1) / ptos])
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
+145
 10
-624
-470
-16
-16
-13.0
+390
+241
+-1
+-1
+20.0
 1
-12
+10
 1
 1
 1
 0
-0
-0
 1
--16
-16
--16
-16
+1
+1
+0
+9
+0
+9
 0
 0
 1
@@ -139,13 +168,13 @@ ticks
 30.0
 
 BUTTON
-120
-395
-182
-428
-layout
-layout-space \"o\"\n
-T
+75
+10
+140
+43
+NIL
+Launch
+NIL
 1
 T
 OBSERVER
@@ -154,47 +183,14 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-10
-385
-115
-430
-Explored States
-count turtles
-17
-1
-11
-
-INPUTBOX
-10
-10
-180
-70
-Initial_State
-[[1 2 3] [] []]
-1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Final_State
-[[] [] [1 2 3]]
-1
-0
-String
 
 BUTTON
-15
-135
-110
-168
-Run Search
-test\n\n
+10
+10
+70
+43
+NIL
+setup
 NIL
 1
 T
@@ -205,49 +201,120 @@ NIL
 NIL
 1
 
-OUTPUT
+SLIDER
 10
-175
-180
-380
+45
+140
+78
+Population
+Population
+5
+200
+200
+5
+1
+NIL
+HORIZONTAL
+
+PLOT
+365
 10
+645
+130
+Fitness
+gen #
+fitness
+0.0
+20.0
+-1.0
+0.0
+true
+false
+"" ""
+PENS
+"best" 1.0 0 -2674135 true "" ""
+"mean" 1.0 0 -10899396 true "" ""
+"worst" 1.0 0 -13345367 true "" ""
+
+SLIDER
+10
+115
+140
+148
+mutation-ratio
+mutation-ratio
+0
+50
+1.3
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+365
+130
+645
+250
+Diversity
+gen #
+diversidad
+0.0
+20.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"diversity" 1.0 0 -8630108 true "" ""
+
+SWITCH
+10
+150
+140
+183
+plot-diversity?
+plot-diversity?
+1
+1
+-1000
+
+SLIDER
+10
+80
+140
+113
+crossover-ratio
+crossover-ratio
+0
+100
+70
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+655
+10
+855
+160
+f(x)
+NIL
+NIL
+0.0
+1.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"approx" 1.0 0 -16777216 true "" ""
+"f(x)" 1.0 0 -2674135 true "" ""
 
 @#$#@#$#@
-## WHAT IS IT?
-
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -304,6 +371,30 @@ Circle -16777216 true false 30 180 90
 Polygon -16777216 true false 162 80 132 78 134 135 209 135 194 105 189 96 180 89
 Circle -7500403 true true 47 195 58
 Circle -7500403 true true 195 195 58
+
+chess queen
+false
+0
+Circle -7500403 true true 140 11 20
+Circle -16777216 false false 139 11 20
+Circle -7500403 true true 120 22 60
+Circle -16777216 false false 119 20 60
+Rectangle -7500403 true true 90 255 210 300
+Line -16777216 false 75 255 225 255
+Rectangle -16777216 false false 90 255 210 300
+Polygon -7500403 true true 105 255 120 90 180 90 195 255
+Polygon -16777216 false false 105 255 120 90 180 90 195 255
+Rectangle -7500403 true true 105 105 195 75
+Rectangle -16777216 false false 105 75 195 105
+Polygon -7500403 true true 120 75 105 45 195 45 180 75
+Polygon -16777216 false false 120 75 105 45 195 45 180 75
+Circle -7500403 true true 180 35 20
+Circle -16777216 false false 180 35 20
+Circle -7500403 true true 140 35 20
+Circle -16777216 false false 140 35 20
+Circle -7500403 true true 100 35 20
+Circle -16777216 false false 99 35 20
+Line -16777216 false 105 90 195 90
 
 circle
 false
@@ -441,22 +532,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -541,13 +616,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -557,12 +625,13 @@ Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
 NetLogo 5.3.1
 @#$#@#$#@
+need-to-manually-make-preview-for-this-model
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0

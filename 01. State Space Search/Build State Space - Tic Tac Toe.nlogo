@@ -2,25 +2,8 @@
 
 __includes [ "BSS.nls" "LayoutSpace.nls"]
 
-;----------------------------------------------------------------------------
-
-;------------------------- Preamble definitions -----------------------------
-
-; In this solution we represent the states of the problem by means of agents
-breed [states state]
-states-own
-[
-  content   ; Stores the content (value) of the state
-  explored? ; Tells if the state has been explored or not
-  depth
-]
-
-; Transitions will be representes by means of links
-directed-link-breed [transitions transition]
-transitions-own
-[
-  rule   ; Stores the printable version of the transition
-]
+; See included files in order to know the requierements they need:
+;   breeds, properties, etc.
 
 ;--------------- Customizable Reports -------------------
 
@@ -54,7 +37,7 @@ end
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
-to-report children-states
+to-report AI:children-states
   let c content
   let board first c
   if (final-state?  true) [ report []]
@@ -111,7 +94,7 @@ end
 to state-explorer
   if mouse-down? [
     clear-output
-    let selected-state min-one-of states [distancexy mouse-xcor mouse-ycor]
+    let selected-state min-one-of AI:states [distancexy mouse-xcor mouse-ycor]
     ask selected-state [
       foreach [0 1 2] [
         output-print item ? (first content)
@@ -151,9 +134,9 @@ ticks
 
 BUTTON
 105
-175
-180
 220
+180
+265
 Layout
 layout-space layout\n
 NIL
@@ -168,9 +151,9 @@ NIL
 
 MONITOR
 105
-130
-180
 175
+180
+220
 # States
 count turtles
 17
@@ -190,11 +173,11 @@ String
 
 BUTTON
 10
-130
-105
 175
+105
+220
 Build
-BSSR (read-from-string Initial_State) Depth-Level False\nstyle
+BSS (read-from-string Initial_State) (first Type-Space) Depth-Level False True\nstyle
 NIL
 1
 T
@@ -222,16 +205,16 @@ HORIZONTAL
 
 OUTPUT
 10
-220
+265
 180
-395
+425
 11
 
 BUTTON
 10
-395
+425
 180
-428
+458
 Explore
 state-explorer
 T
@@ -246,13 +229,23 @@ NIL
 
 CHOOSER
 10
-175
-105
 220
+105
+265
 layout
 layout
-"→" "↓" "o"
-1
+"→" "↓" "o" "*"
+3
+
+CHOOSER
+10
+130
+180
+175
+Type-Space
+Type-Space
+[0 "Simple Tree"] [1 "Tree with repetitions"] [2 "Graph"]
+2
 
 @#$#@#$#@
 ## WHAT IS IT?

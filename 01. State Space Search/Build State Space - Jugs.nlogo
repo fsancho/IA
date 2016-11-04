@@ -2,25 +2,8 @@
 
 __includes [ "BSS.nls" "LayoutSpace.nls"]
 
-;----------------------------------------------------------------------------
-
-;------------------------- Preamble definitions -----------------------------
-
-; In this solution we represent the states of the problem by means of agents
-breed [states state]
-states-own
-[
-  content   ; Stores the content (value) of the state
-  explored? ; Tells if the state has been explored or not
-  depth
-]
-
-; Transitions will be representes by means of links
-directed-link-breed [transitions transition]
-transitions-own
-[
-  rule   ; Stores the printable version of the transition
-]
+; See included files in order to know the requierements they need:
+;   breeds, properties, etc.
 
 ;--------------- Customizable Reports -------------------
 
@@ -68,7 +51,7 @@ end
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
-to-report children-states
+to-report AI:children-states
   report filter [valid? (first ?)]
                 (map [(list (run-result (last ?) content) ?)]
                      applicable-transitions)
@@ -79,7 +62,7 @@ end
 to state-explorer
   if mouse-down? [
     clear-output
-    let selected-state min-one-of states [distancexy mouse-xcor mouse-ycor]
+    let selected-state min-one-of AI:states [distancexy mouse-xcor mouse-ycor]
     ask selected-state [
       output-print (word "Jug 1: " item 0 content)
       output-print (word "Jug 2: " item 1 content)
@@ -117,9 +100,9 @@ ticks
 
 BUTTON
 105
-150
-180
 195
+180
+240
 Layout
 layout-space layout\n
 NIL
@@ -134,9 +117,9 @@ NIL
 
 MONITOR
 105
-105
-180
 150
+180
+195
 # States
 count turtles
 17
@@ -156,11 +139,11 @@ String
 
 BUTTON
 10
-105
-105
 150
+105
+195
 Build
-BSS (read-from-string Initial_State) Depth-Level True\nstyle
+BSS (read-from-string Initial_State) (first Type-Space) Depth-Level True True\nstyle
 NIL
 1
 T
@@ -180,7 +163,7 @@ Depth-level
 Depth-level
 0
 10
-6
+4
 1
 1
 NIL
@@ -188,16 +171,16 @@ HORIZONTAL
 
 OUTPUT
 10
-195
+240
 180
-370
+415
 11
 
 BUTTON
 10
-370
+415
 180
-403
+448
 Explore
 state-explorer
 T
@@ -212,13 +195,23 @@ NIL
 
 CHOOSER
 10
-150
-105
 195
+105
+240
 layout
 layout
-"→" "↓" "o"
-1
+"→" "↓" "o" "*"
+2
+
+CHOOSER
+10
+105
+180
+150
+Type-Space
+Type-Space
+[0 "Simple Tree"] [1 "Tree with repetitions"] [2 "Graph"]
+2
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -2,25 +2,8 @@
 
 __includes [ "BSS.nls" "LayoutSpace.nls"]
 
-;----------------------------------------------------------------------------
-
-;------------------------- Preamble definitions -----------------------------
-
-; In this solution we represent the states of the problem by means of agents
-breed [states state]
-states-own
-[
-  content   ; Stores the content (value) of the state
-  explored? ; Tells if the state has been explored or not
-  depth
-]
-
-; Transitions will be representes by means of links
-directed-link-breed [transitions transition]
-transitions-own
-[
-  rule   ; Stores the printable version of the transition
-]
+; See included files in order to know the requierements they need:
+;   breeds, properties, etc.
 
 ;--------------- Customizable Reports -------------------
 
@@ -133,7 +116,7 @@ end
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
-to-report children-states
+to-report AI:children-states
   report valid-states-from content
 end
 
@@ -141,7 +124,7 @@ end
 to state-explorer
   if mouse-down? [
     clear-output
-    let selected-state min-one-of states [distancexy mouse-xcor mouse-ycor]
+    let selected-state min-one-of AI:states [distancexy mouse-xcor mouse-ycor]
     ask selected-state [
       output-print (word "Left side: " (reduce word (item 0 content)))
       output-print (word "Rightt side: " (reduce word (item 1 content)))
@@ -223,7 +206,7 @@ BUTTON
 105
 150
 Build
-BSS (read-from-string Initial_State) Depth-Level True\nstyle
+BSS (read-from-string Initial_State) 0 Depth-Level True True\nstyle
 NIL
 1
 T

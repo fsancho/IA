@@ -2,28 +2,6 @@
 
 __includes [ "BFS.nls" "LayoutSpace.nls"]
 
-;-----------------------------------------------------------------------------
-
-;---------------------- Preamble for models using AI Library -----------------
-
-; In this solution we represent the states of the problem by means of agents
-breed [states state]
-states-own
-[
-  content   ; Stores the content (value) of the state
-  explored? ; Tells if the state has been explored or not
-  path      ; Stores the path to reach this state from the initial state
-  depth     ; Only needed if using LayoutSpace.nls
-
-]
-
-; Transitions will be representes by means of links
-directed-link-breed [transitions transition]
-transitions-own
-[
-  rule   ; Stores the printable version of the transition
-]
-
 ;--------------- Customizable Reports -------------------
 
 ; These reports must be customized in order to solve different problems using the
@@ -135,7 +113,7 @@ end
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
-to-report children-states
+to-report AI:children-states
   report valid-states-from content
 end
 
@@ -144,46 +122,39 @@ end
 ; equal to the Final State). It allows the use of parameters because maybe the
 ; verification of reaching the goal depends on some extra information from the problem.
 
-to-report final-state? [params]
+to-report AI:final-state? [params]
   report ( content = params)
 end
 
 
 ;-------- Customs visualization procedures -------------------------------------------
 
-; Highlight report is used as a reduce parameters. Given two connected (that are
-; connected directly trough a link/transition), it will highlight the link and
-; returns the second state. As a secondary effect, it will print in text the sequence
-; of transitions to be applied.
-
-to-report highlight [x y]
-  ask transition [who] of x [who] of y [
-    set color red
-    set thickness .3
-    output-print (word (first rule) " -> " [content] of y)]
-  report y
-end
-
-; Clean function erases all the states not in the solution path (in red). Use it after
-; highlight.
-
-to clean
-  ask states with [not any? my-links with [color = red]] [die]
-  repeat 10000 [
-    layout-spring states transitions 1 5 1
+to test
+  ca
+  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
+  if p != false [
+    ask p [
+      set color red
+      foreach extract-transitions-from-path
+      [
+        ask ? [
+          set color red
+          set thickness .3
+        ]
+      ]
+      output-print "The solution is: "
+      foreach (map [[first rule] of ?] extract-transitions-from-path) [
+        output-print ?
+      ]
+    ]
+    style
   ]
-end
-
-; Shows some information about the problem to be solved.
-
-to show-output
-  output-print (word "Go from " Initial_State " to " Final_State)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+185
 10
-649
+624
 470
 16
 16
@@ -208,10 +179,10 @@ ticks
 30.0
 
 BUTTON
-125
-430
-187
-463
+120
+390
+182
+423
 layout
 layout-space \"o\"\n
 T
@@ -225,10 +196,10 @@ NIL
 1
 
 MONITOR
-15
-420
-120
-465
+10
+380
+115
+425
 Explored States
 count turtles
 17
@@ -263,24 +234,7 @@ BUTTON
 110
 168
 Run Search
-BFS (read-from-string Initial_State) (read-from-string Final_State)\nstyle
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-15
-170
-110
-203
-Clean Solution
-clean
+test
 NIL
 1
 T
@@ -292,22 +246,11 @@ NIL
 1
 
 OUTPUT
-15
-210
-210
-405
 10
-
-SWITCH
-115
-135
-205
-168
-layout?
-layout?
-1
-1
--1000
+170
+180
+365
+10
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -2,9 +2,6 @@
 
 __includes [ "A-star.nls" "LayoutSpace.nls"]
 
-;-----------------------------------------------------------------------------
-
-
 ;--------------- Customizable Reports -------------------
 
 ; These reports must be customized in order to solve different problems using the
@@ -15,30 +12,39 @@ __includes [ "A-star.nls" "LayoutSpace.nls"]
 ; - cost is the cost of applying the transition on a state,
 ; - and "representation" is a string to identify the rule.
 
-; We represent a state as a shuffle of
-; [ 0 1 2 ]
-; [ 3 4 5 ]
-; [ 6 7 8 ]
-; where 0 is the hole. And we will use lists [0 1 2 3 4 5 6 7 8]
+; Un estado es una lista descendente de números (lo que nos permite comparar
+; estados y evitar probar operaciones, como restas o divisiones)
 
-; For a given position, h, (movements h) reports the list of possible swaps with
-; the position h. For example:
-; 0 can swap with 1 (right) and 3 (down)
-; 1 can swap with 0 (left), 2 (right) and 4 (down)
-; ... and so on
-to-report movements [h]
-  let resp  [[1 3] [0 2 4] [1 5] [0 4 6] [1 3 5 7] [2 4 8] [3 7] [6 4 8] [5 7]]
-  report item h resp
+to-report opera [x y L]
+  let peso 1
+  let ax item x L
+  let ay item y L
+  let L' remove ax (remove ay L)
+  let res []
+  set res lput (list (ax * ay) (list (word ax "*" ay) peso)) res
+  set res lput (list (ax + ay) (list (word ax "+" ay) peso)) res
+  if ax > ay [set res lput (list (ax - ay) (list (word ax "-" ay) peso)) res]
+  ;if ay > ay [set res lput (list (ay - ax) (list (word ay "-" ax) peso)) res]
+  if ax mod ay = 0 [set res lput (list (ax / ay) (list (word ax "/" ay) peso)) res]
+  ;if ay mod ax = 0 [set res lput (list (ay / ax) (list (word ay "/" ax) peso)) res]
+  report map [(list (reverse sort lput (first ?) L') (last ?))] res
 end
 
-; For a given state s, (swap i j s) returns a new state where tiles in
-; positions i and j have been swapped
-to-report swap [i j s]
-  let old-i item i s
-  let old-j item j s
-  let s1 replace-item i s old-j
-  let s2 replace-item j s1 old-i
-  report s2
+to-report states-from [L]
+  let res []
+  foreach (range 0 (length L - 2)) [
+    let ix1 ?
+    let ixs (range (ix1 + 1) (length L - 1))
+    foreach ixs [
+      let ix2 ?
+      set res sentence res (opera ix1 ix2 L)
+    ]
+  ]
+  report res
+end
+
+to-report range [x y]
+  report n-values (1 + y - x) [? + x]
 end
 
 ; children-states is a state report that returns the children for the current state.
@@ -48,9 +54,7 @@ end
 ; states that are valid.
 
 to-report AI:children-states
-  let i (position 0 content)
-  let indexes (movements i)
-  report (map [(list (swap i ? content) (list (word "T-" ?1) 1 "regla"))] indexes)
+  report states-from content
 end
 
 ; final-state? is a state report that identifies the final states for the problem.
@@ -58,51 +62,41 @@ end
 ; equal to the Final State). It allows the use of parameters because maybe the
 ; verification of reaching the goal depends on some extra information from the problem.
 to-report AI:final-state? [params]
-  report ( content = params)
+  report member? params content
 end
 
 
-; Searcher report to compute the heuristic for this searcher.
-; We use the sum of manhattan distances between the current 2D positions of every
-; tile and the goal position of the same tile.
+; Searcher report to compute the heuristic for this searcher
 to-report AI:heuristic [#Goal]
-  let pos [[0 0] [0 1] [0 2] [1 0] [1 1] [1 2] [2 0] [2 1] [2 2]]
   let c [content] of current-state
-;  One other option is to count the misplaced tiles
-;  report length filter [ ? = False] (map [?1 = ?2] c #Goal)
-  report sum (map [manhattan-distance (item (position ?  c   ) pos)
-                                      (item (position ? #Goal) pos)]
-                  (n-values 9 [?]))
-end
-
-to-report manhattan-distance [x y]
-  report abs ((first x) - (first y)) + abs ((last x) - (last y))
+  report min map [abs (#Goal - ?) ] c
 end
 
 ;--------------------------------------------------------------------------------
 
-; Auxiliary procedure to test the A* algorithm
+; Auxiliary procedure to test the A* algorithm for sorting lists
 to test
   ca
-  ; From a final position, we randomly move the hole some times
-  let In (n-values 9 [?])
-  type 0
-  repeat 12 [
-    let i position 0 In
-    let j one-of movements i
-    type (word "->" j)
-    set In swap i j In
-  ]
-  print ""
-  print (word "Initial State: " In)
+  let I reverse [2 6 14 25];(n-values 4 [1 + random 25])
+  print (word "Initial State: " I)
+
+  let Goal random 1000
   no-display
   ; We compute the path with A*
-  let path (A* In (n-values 9 [?]) True True)
+  let path (A* I Goal False True)
   layout-radial AI:states AI:transitions AI:state 0
   style
   display
+
+  print (word "Goal: " Goal)
   ; if any, we highlight it
-  if path != false [
+  ifelse path = false
+  [
+    print "Goal not reached"
+    let m min-one-of AI:states [min map [abs (Goal - ?)] content]
+    print (word "Best: " [content] of m)
+  ]
+  [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
     print (word "Actions to sort it: " (map [first [rule] of ?] path))
@@ -165,17 +159,6 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-90
-475
-152
-520
-# States
-count AI:states
-17
-1
-11
 
 @#$#@#$#@
 @#$#@#$#@

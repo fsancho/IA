@@ -1,0 +1,146 @@
+;---------------------------------- PSO Library ------------------------------------------
+;--------------------------- Global and Agents Definition --------------------------------
+
+globals [
+  global-best-pos
+  global-best-value
+]
+
+breed [AI:particles AI:particle]
+
+AI:particles-own [
+  velocity
+  pos
+  personal-best-value
+  personal-best-pos
+]
+
+;------------------------------------------------------------------------------------------
+;------------------------- Customizable Procedures ----------------------------------------
+
+; AI:evaluation reports the evaluation of the current particle. Must be individualize to
+; fit the necesities of the problem
+
+;to-report AI:evaluation
+
+; AI:PSOExternalUpdate contains the set of auxiliary actions to be performed in every
+; iteration of the main loop
+
+;to AI:PSOExternalUpdate
+
+;------------------------------------------------------------------------------------------
+; Creation of the AI:particles:
+;    population: number of particles to be created
+;    dimesion: dimension of the space search
+;
+; Position of the particles will be in [0,1]^n
+; Initial Velocities follow a Normal Distribution
+
+to AI:Create-particles [#population #dimension]
+  create-AI:particles #population [
+    set pos n-values #dimension [random-float 1]
+        ; proporcionar a las partículas velocidades iniciales (vx y vy) con una distribución normal
+    set velocity n-values #dimension  [(random-normal 0 1)]
+    ; el punto de partida es la mejor localización actual de la partícula
+    set personal-best-value val
+    set personal-best-pos pos
+  ]
+end
+
+; Main Procedure report. It gives iter repetitions of step function, and returns the 
+; position and value of the (possibly local) maximum found.
+
+to-report AI:PSO [#iters #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles]
+  repeat #iters [
+    AI:PSO-step #inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles
+    AI:PSOExternalUpdate
+  ]
+  report (list global-best-value global-best-pos)
+end
+
+
+; Step procedure where the PSO lgorithm is executing
+
+to AI:PSO-step [#inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles]
+  ; First, check if the best values mus be updated (personals and global)
+  ask AI:particles [
+    let eval AI:evaluation
+    if eval > personal-best-value
+    [
+      set personal-best-value eval
+      set personal-best-pos pos
+    ]
+    if global-best-value < personal-best-value
+    [
+      set global-best-value personal-best-value
+      set global-best-pos personal-best-pos
+    ]
+  ]
+  ; Then, update velocities and positions of every particle
+  ask AI:particles
+  [
+    ; Consider the inertia
+    set velocity *v #inertia-particle velocity
+    
+    ; Attraction to personal best
+    let to-personal-best-pos -v personal-best-pos pos
+    set velocity +v velocity (*v ((1 - #inertia-particle) * #atraction-best-personal * (random-float 1.0)) to-personal-best-pos)
+    
+    ; Attraction to global best
+    let to-global-best -v global-best-pos pos
+    set velocity  +v velocity (*v ((1 - #inertia-particle) * #atraction-best-global * (random-float 1.0)) to-global-best)
+
+    ; Bound the velocity
+    let n norm velocity
+    if n > #lim-vel-particles [set velocity (*v ( #lim-vel-particles / n) velocity)]
+    
+    ; Update the position of the particle
+    set pos map cut01 (+v pos velocity)
+  ]
+end
+
+; ----------------------- Auxiliary reports and procedures ------------------------
+
+; Returns a random point in a interval [a b]
+to-report random-in-interval [I]
+  let a first I
+  let b last I
+  report a + random-float (b - a)
+end
+
+; Product of an scalar and a vector
+to-report *v [lambda v1]
+  report map [lambda * ?] v1
+end
+
+; Sum of vectors
+to-report +v [v1 v2]
+  report (map [?1 + ?2] v1 v2)
+end
+
+; Difference of vectors
+to-report -v [v1 v2]
+  report (map [?1 - ?2] v1 v2)
+end
+
+; Sign function
+to-report sg [x]
+  report ifelse-value (x >= 0) [1][-1]
+end
+
+; Norm of a vector
+to-report norm [v1]
+  report sqrt sum map [? * ?] v1
+end
+
+; Bijection from [0,1] to [a,b]
+to-report convert [x a b]
+  report a + x * (b - a)
+end
+
+; Bound function to [0,1]
+to-report cut01 [x]
+  if x > 1 [report 1]
+  if x < 0 [report 0]
+  report x
+end

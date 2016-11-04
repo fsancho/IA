@@ -1,42 +1,6 @@
 ;----------------- Include Algorithms Library --------------------------------
 
-__includes [ "A-star.nls"]
-
-;-----------------------------------------------------------------------------
-
-;---------------------- Preamble for models using AI Library -----------------
-
-; In this case, we will work with turtles, not patches.
-; Specifically with two types of turtles
-breed[states state]       ; to represent the states of the problem
-breed[searchers searcher] ; to represent the agents that will make the search
-
-; We need one extra property in the states to store its content
-states-own [
-  content
-]
-
-; All the information about the search will be stored in the searchers,
-; and to know if a state has been explored it is enough to see of there
-; is a searcher on it.
-
-; Searchers will have some additional properties for their functioning.
-searchers-own [
-  memory               ; Stores the path from the start state to here
-  cost                 ; Stores the real cost from the start
-  total-expected-cost  ; Stores the total exepcted cost from Start to
-                       ;   the Goal that is being computed
-  current-state         ; The state where the searcher is
-  active?              ; is the seacrher active? That is, we have reached
-                       ;   the state, but we must consider it because its
-                       ;   neighbors have not been explored
-]
-
-; In the links of the graph the searching is building we store the rule
-links-own [
-  cost-link
-  rule
-]
+__includes [ "A-star.nls" "LayoutSpace.nls"]
 
 ;--------------- Customizable Reports -------------------
 
@@ -68,7 +32,7 @@ end
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
-to-report children-states
+to-report AI:children-states
   report filter [valid? (first ?)]
                 (map [(list (run-result (last ?) content) ?)]
                      applicable-transitions)
@@ -78,12 +42,12 @@ end
 ; It usually will be a property on the content of the state (for example, if it is
 ; equal to the Final State). It allows the use of parameters because maybe the
 ; verification of reaching the goal depends on some extra information from the problem.
-to-report final-state? [params]
+to-report AI:final-state? [params]
   report ( content = params)
 end
 
 ; Searcher report to compute the heuristic for this searcher
-to-report heuristic [#Goal]
+to-report AI:heuristic [#Goal]
   let d abs (([content] of current-state) - #Goal)
   report ifelse-value (d > 1) [log d 3][d]
 end
@@ -95,7 +59,7 @@ end
 to highlight-path [path]
   foreach path [
     ask ? [
-      set color yellow set thickness .4
+      set color red set thickness .4
     ]
   ]
 end
@@ -104,13 +68,19 @@ end
 to test
   ca
   ; We compute the path with A*
-  let path (A* Initial Final)
+  no-display
+  let path (A* Initial Final True True)
+  layout-radial AI:states AI:transitions AI:state 0
+  style
+  display
   ; if any, we highlight it
   if path != false [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
     show map [first [rule] of ?] path]
-  show max [who] of turtles - count states
+  print (word (max [who] of turtles - count AI:states) " searchers used")
+  print (word (count AI:states) " states created")
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

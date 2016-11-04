@@ -1,137 +1,67 @@
-;----------------- Include Algorithms Library --------------------------------
+;------------------- Loanding the Simulated Annealing Library -------------------
 
-__includes [ "BFS.nls" "LayoutSpace.nls"]
+__includes ["SimulatedAnnealing.nls"]
 
+;------------------ Model Specific Procedures -----------------------------------
 
-;--------------- Customizable Reports -------------------
+; In this case, the states are lists, so we don't need any procedure or report
+; specifically for this.
 
-; These reports must be customized in order to solve different problems using the
-; same BFS function.
-
-; The representation of the states is:
-; Discs 1 < 2 < 3 < ... < N
-; State = [ [Tower1] [Tower2] [Tower3] ... [TowerM] ]
-; Tower_i= [i_1 < i_2 < i_3], [i_1 < i_2], [i_1], [ ]
-
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use pairs of the
-; form f=[i j] telling that we move top disc from tower i to top of tower j.
-
-; This agent report returns the applicable transitions for the content (it depends
-; on the current state)
-
-to-report applicable-transitions [c]
-  let t-a []
-  let lista (n-values (length c) [?])
-  foreach lista [
-    let i ?
-    foreach lista [
-      let j ?
-      let t (list (word i "->" j) (list i j))
-      if valid-transition? t c [set t-a lput t t-a]
-    ]
-  ]
-  report t-a
+to setup
+  clear-all
 end
 
-; valid-transition? reports if a transition t is applicable to a state s
+;------------------------ Customzable procedures --------------------------------
 
-to-report valid-transition? [t s]
-  let i first last t
-  let j last last t
-  if empty? (item i s) [report false]
-  if empty? (item j s) [report true]
-  let top-disc-i first (item i s)
-  let top-disc-j first (item j s)
-  report top-disc-i < top-disc-j
+; These three procedures (AI:...) must be customized for solving general
+; problems
+
+to-report AI:get-new-state [#state]
+  let i random (length #state - 1)
+  let ai item i #state
+  report replace-item (i + 1) (replace-item i #state (item (i + 1) #state)) ai
 end
 
-; apply-transition returns the result of applying a transition t to a state s.
-; It is used directly by the map application of children-states.
-
-to-report apply-transition [t s]
-  let i first last t
-  let j last last t
-  let disco first (item i s)
-  set s replace-item i s (bf (item i s))
-  set s replace-item j s (fput disco (item j s))
-  report (list s t)
+; The energy of a state is the sum of energies of its members
+to-report AI:EnergyState [#state]
+  report sum map [local-energy ? #state] (n-values (length #state) [?])
 end
 
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
-
-to-report AI:children-states
-  report (map [apply-transition ? content] (applicable-transitions content))
+; Local energy that a position will apport to the full state
+to-report local-energy [i #state]
+  let el item i #state
+  let sb sublist #state (i + 1) (length #state)
+  report length filter [? < el] sb
 end
 
-; estado-final? ofrece un report de agente que identifica los estados finales
-
-to-report AI:final-state? [params]
-  report ( content = params)
+to AI:SimAnnExternalUpdates [params]
+  show params
+  plot AI:SimAnnGlobalEnergy
+  display
 end
 
-; Shows some information about the problem to be solved.
-; We have customized this procedure in order to avoid the
-; print of the different transitions
-
-to show-output
-  output-print (word "Go from " Initial_State)
-  output-print (word "     to " Final_State)
-  output-print (word "using the transitions:")
-  output-print " Move the top discs"
-  output-print " between towers"
-end
-
-;-------- Customs visualization procedures -------------------------------------------
-
-to test
-  ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
-    ask p [
-      set color red
-      foreach extract-transitions-from-path
-      [
-        ask ? [
-          set color red
-          set thickness .3
-        ]
-      ]
-      output-print "The solution is: "
-      foreach (map [[first rule] of ?] extract-transitions-from-path)[
-        output-print ?
-      ]
-    ]
-    style
-  ]
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
+205
 10
-624
-470
-16
-16
-13.0
+635
+461
+-1
+-1
+14.0
 1
-12
+10
 1
 1
 1
 0
-0
-0
 1
--16
-16
--16
-16
+1
+1
+0
+29
+0
+29
 0
 0
 1
@@ -139,13 +69,13 @@ ticks
 30.0
 
 BUTTON
-120
-395
-182
-428
-layout
-layout-space \"o\"\n
-T
+15
+10
+105
+43
+NIL
+setup
+NIL
 1
 T
 OBSERVER
@@ -155,99 +85,183 @@ NIL
 NIL
 1
 
-MONITOR
-10
-385
+BUTTON
 115
-430
-Explored States
-count turtles
-17
+10
+195
+43
+Launch
+show AI:SimAnn (shuffle (n-values 10 [?]))\n          tries-by-cycle \n          (10 ^ -6) \n          cooling-rate\n          accept-equal-changes?
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+15
+80
+195
+113
+cooling-rate
+cooling-rate
+0
+50
+3.9
+0.1
+1
+%
+HORIZONTAL
+
+SWITCH
+15
+115
+195
+148
+accept-equal-changes?
+accept-equal-changes?
+1
+1
+-1000
+
+PLOT
+15
+150
+195
+300
+global energy
+time
+energy
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2674135 true "" ""
+
+SLIDER
+15
+45
+195
+78
+tries-by-cycle
+tries-by-cycle
+0
+1000
+10
+10
+1
+NIL
+HORIZONTAL
+
+MONITOR
+15
+305
+90
+350
+Temp
+AI:SimAnnTemperature
+7
 1
 11
 
-INPUTBOX
-10
-10
-180
-70
-Initial_State
-[[1 2 3] [] []]
+MONITOR
+120
+305
+195
+350
+Energy
+AI:SimAnnGlobalEnergy
+4
 1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Final_State
-[[] [] [1 2 3]]
-1
-0
-String
-
-BUTTON
-15
-135
-110
-168
-Run Search
-test\n\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-10
-175
-180
-380
-10
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+Simulated annealing is an optimization technique inspired by the natural annealing process used in metallurgy, whereby a material is carefully heated or cooled to create larger and more uniform crystalline structures.  In simulated annealing, a minimum value of some global "energy" function is sought.  This model attempts to find a minimal energy state of a simple function on a black and white image.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+In this model, the energy function takes a black and white image as an input.  The energy is defined locally for each pixel (square patch) of a the image, and the "global energy" function is the sum of the energy from all of the individual pixels.  Energy is minimized by having each pixel be the same as the pixels above and below it, but different from pixels to the left and right of it.  The initial image has exactly 50% black and 50% white pixels, assigned randomly.  An optimal (lowest energy) configuration is a series of alternating vertical black and white lines.
+
+The optimization works as follows.  The system has a "temperature", which controls how much change is allowed to happen.  Small changes (swapping adjacent pixel values) in the image are considered, and either accepted or rejected.  Changes that result in a lower energy level are always accepted (changes that result in no change of energy level will also always be accepted if the ACCEPT-EQUAL-CHANGES? switch is turned on). Changes that result in a higher energy level are only accepted with some probability, which is proportional to the "temperature" of the system.  The temperature of the system decreases over time, according to some cooling schedule, which means that initially changes that increase global energy will often be accepted, but as time goes on they will be accepted less and less frequently.  This is similar to cooling a material slowly in natural annealing, to allow the molecules to settle into nice crystalline patterns.  Eventually the temperature approaches zero, at which point the simulated annealing method is equivalent to a random mutation hill-climber search, where only beneficial changes are accepted.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Press SETUP to initialize the model.  The image will be half black and half white pixels, and the system temperature is set at 1.00.
+
+Press GO to run simulated annealing on the image.
+
+Adjust the COOLING-RATE slider to change how quickly the temperature drops.
+The current temperature is shown in the TEMPERATURE monitor.
+
+The SWAP-RADIUS slider controls how far apart a pixel can be from another pixel to consider a swap with it.
+
+If the ACCEPT-EQUAL-CHANGES? switch is ON, then the system will always accept a pixel swap that yields no change in global energy.  If it is OFF, then equal-energy swaps are treated the same as swaps that increase the global energy, and only accepted probabilistically based on the system temperature.
+
+The GLOBAL ENERGY monitor and plot show how the energy of the system decreases over time, through the simulated annealing process.
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+With the default settings (SWAP-RADIUS = 1, ACCEPT-EQUAL-CHANGES? = OFF), slower cooling rates lead to more optimal low-energy image configurations (on average).
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+If you turn ACCEPT-EQUAL-CHANGES? to ON, does slow cooling still work better than fast cooling?
+
+Try varying the SWAP-RADIUS.  Does this help the system to reach more optimal configurations?
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+Currently, the probability of accepting a change that decreases the total system energy is always 1, and the probability of accepting a change that increases the total system energy is based purely on the "temperature" of the system.  In neither case does the amount by which the energy has changed (for better or worse) figure into the probability.  Try extending the model to make more "sophisticated" acceptance decision criteria.
+
+Simulated annealing can be used on a wide variety of optimization problems.  Experiment with using this technique on different "energy/cost" function, or even entirely different problems.
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+This model uses the `patch-set` primitive to define a small set of patches that are affected by a pixel swap.  This is useful for efficiently computing the change in energy resulting from the swap (as opposed to computing the energy for all of the patches).
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+Particle Swarm Optimization, Simple Genetic Algorithm, Crystallization Basic, Ising
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Original papers describing a simulated annealing
+S. Kirkpatrick and C. D. Gelatt and M. P. Vecchi, Optimization by Simulated Annealing, Science, Vol 220, Number 4598, pages 671-680, 1983.
+V. Cerny, A thermodynamical approach to the traveling salesman problem: an efficient simulation algorithm. Journal of Optimization Theory and Applications, 45:41-51, 1985
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Stonedahl, F. and Wilensky, U. (2009).  NetLogo Simulated Annealing model.  http://ccl.northwestern.edu/netlogo/models/SimulatedAnnealing.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 2009 Uri Wilensky.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+<!-- 2009 Cite: Stonedahl, F. -->
 @#$#@#$#@
 default
 true
@@ -441,22 +455,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -541,13 +539,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -562,7 +553,7 @@ NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0

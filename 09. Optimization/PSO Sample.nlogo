@@ -1,126 +1,98 @@
-;----------------- Include Algorithms Library --------------------------------
+;--------------------------------- Load PSO Module ---------------------------------------------
 
-__includes [ "BFS.nls" "LayoutSpace.nls"]
+__includes ["PSO.nls"]
 
+;-----------------------------------------------------------------------------------------------
 
-;--------------- Customizable Reports -------------------
+;--------------------------------- Specific Definitions ----------------------------------------
+patches-own
+[
+  val  ; Cada patch tiene un valor de "fitness" asociado
+       ; El objetivo del PS es encontrar el patch con el mejor valor de fitness
+]
 
-; These reports must be customized in order to solve different problems using the
-; same BFS function.
+;-----------------------------------------------------------------------------------------------
 
-; The representation of the states is:
-; Discs 1 < 2 < 3 < ... < N
-; State = [ [Tower1] [Tower2] [Tower3] ... [TowerM] ]
-; Tower_i= [i_1 < i_2 < i_3], [i_1 < i_2], [i_1], [ ]
+;----------------------------------- Model Procedures ------------------------------------------
 
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use pairs of the
-; form f=[i j] telling that we move top disc from tower i to top of tower j.
+to setup-search-space
+  ;; Prepara un espacio de búsqueda con colinas y valles
+  ifelse num-max-locales = 0
+  [ ask patches [ set val random-float 1.0 ]]
+  [ ask n-of num-max-locales patches [ set val random-float 10.0 ]]
+  ;; suaviza ligeramente el espacio
+  repeat Suavizar-espacio [ diffuse val 1 ]
+  let min-val min [val] of patches
+  let max-val max [val] of patches
+  ; normaliza los valores para estar entre 0 y 0.99999
+  ask patches [ set val 0.99999 * (val - min-val) / (max-val - min-val)  ]
 
-; This agent report returns the applicable transitions for the content (it depends
-; on the current state)
-
-to-report applicable-transitions [c]
-  let t-a []
-  let lista (n-values (length c) [?])
-  foreach lista [
-    let i ?
-    foreach lista [
-      let j ?
-      let t (list (word i "->" j) (list i j))
-      if valid-transition? t c [set t-a lput t t-a]
-    ]
+  ; y hacemos que solo exista un máximo global, con valor 1.0
+  ask max-one-of patches [val]
+  [
+    set val 1.0
   ]
-  report t-a
+
+  ask patches [ set pcolor scale-color gray val 0.0 1.0]
 end
 
-; valid-transition? reports if a transition t is applicable to a state s
-
-to-report valid-transition? [t s]
-  let i first last t
-  let j last last t
-  if empty? (item i s) [report false]
-  if empty? (item j s) [report true]
-  let top-disc-i first (item i s)
-  let top-disc-j first (item j s)
-  report top-disc-i < top-disc-j
-end
-
-; apply-transition returns the result of applying a transition t to a state s.
-; It is used directly by the map application of children-states.
-
-to-report apply-transition [t s]
-  let i first last t
-  let j last last t
-  let disco first (item i s)
-  set s replace-item i s (bf (item i s))
-  set s replace-item j s (fput disco (item j s))
-  report (list s t)
-end
-
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
-
-to-report AI:children-states
-  report (map [apply-transition ? content] (applicable-transitions content))
-end
-
-; estado-final? ofrece un report de agente que identifica los estados finales
-
-to-report AI:final-state? [params]
-  report ( content = params)
-end
-
-; Shows some information about the problem to be solved.
-; We have customized this procedure in order to avoid the
-; print of the different transitions
-
-to show-output
-  output-print (word "Go from " Initial_State)
-  output-print (word "     to " Final_State)
-  output-print (word "using the transitions:")
-  output-print " Move the top discs"
-  output-print " between towers"
-end
-
-;-------- Customs visualization procedures -------------------------------------------
-
-to test
-  ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
-    ask p [
-      set color red
-      foreach extract-transitions-from-path
-      [
-        ask ? [
-          set color red
-          set thickness .3
-        ]
-      ]
-      output-print "The solution is: "
-      foreach (map [[first rule] of ?] extract-transitions-from-path)[
-        output-print ?
-      ]
-    ]
-    style
+to setup
+  clear-all
+  setup-search-space
+  AI:create-particles poblacion 2
+  ; crear partículas y situarlas aleatoriamente en el mundo
+  ask AI:particles [
+    setxy (convert (first pos) min-pxcor max-pxcor) (convert (last pos) min-pycor max-pycor)
+    pd
+    set size 4
   ]
+  reset-ticks
+end
+
+to Launch
+  let best AI:PSO 50
+                  inercia-particula
+                  atraccion-mejor-personal
+                  atraccion-mejor-global
+                  lim-vel-particulas
+  let p last best
+  ask patch (convert (first p) min-pxcor max-pxcor) (convert (last p) min-pycor max-pycor)
+  [
+    ask patches in-radius 3 [ set pcolor red ]
+  ]
+end
+;-----------------------------------------------------------------------------------------------
+
+
+;---------------------------------- Customizable Procedures ----------------------------------
+; AI:evaluation reports the evaluation of the current particle. Must be individualize to
+; fit the necesities of the problem
+
+to-report AI:evaluation
+  report val
+end
+
+; AI:PSOExternalUpdate contains the set of auxiliary actions to be performed in every
+; iteration of the main loop
+
+to AI:PSOExternalUpdate
+  ask AI:particles [
+    setxy (convert (first pos) min-pxcor max-pxcor) (convert (last pos) min-pycor max-pycor)
+    ;set label (precision AI:evaluation 2)
+  ]
+  tick
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
+230
 10
-624
-470
-16
-16
-13.0
+642
+443
+100
+100
+2.0
 1
-12
+10
 1
 1
 1
@@ -128,24 +100,24 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
-0
-0
+-100
+100
+-100
+100
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-120
-395
-182
-428
-layout
-layout-space \"o\"\n
-T
+165
+80
+225
+113
+NIL
+setup
+NIL
 1
 T
 OBSERVER
@@ -155,99 +127,169 @@ NIL
 NIL
 1
 
-MONITOR
+BUTTON
+165
+150
+225
+183
+NIL
+Launch
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
 10
-385
+45
+225
+78
+poblacion
+poblacion
+1
+100
+10
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
+185
+225
+218
+atraccion-mejor-personal
+atraccion-mejor-personal
+0
+2
+0.4
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
+220
+225
+253
+atraccion-mejor-global
+atraccion-mejor-global
+0
+2
+0.8
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
 115
-430
-Explored States
-count turtles
-17
+160
+148
+inercia-particula
+inercia-particula
+0
+1.0
+0.4
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
+150
+160
+183
+lim-vel-particulas
+lim-vel-particulas
+0
+1
+0.1
+.01
+1
+NIL
+HORIZONTAL
+
+MONITOR
+725
+160
+850
+205
+Mejor valor encontrado
+global-best-value
+4
 1
 11
 
-INPUTBOX
+SLIDER
 10
 10
-180
-70
-Initial_State
-[[1 2 3] [] []]
-1
+225
+43
+Suavizar-espacio
+Suavizar-espacio
 0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Final_State
-[[] [] [1 2 3]]
+100
+43
 1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
+80
+160
+113
+num-max-locales
+num-max-locales
 0
-String
-
-BUTTON
-15
-135
-110
-168
-Run Search
-test\n\n
-NIL
+500
+0
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
 1
+NIL
+HORIZONTAL
 
-OUTPUT
+PLOT
+650
 10
-175
-180
-380
-10
+850
+160
+Evolución Mejor Global
+NIL
+NIL
+0.0
+1.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot global-best-value"
+
+MONITOR
+650
+160
+707
+205
+Media:
+mean [val] of patches
+4
+1
+11
 
 @#$#@#$#@
-## WHAT IS IT?
-
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -441,22 +483,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -541,13 +567,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -562,7 +581,7 @@ NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0

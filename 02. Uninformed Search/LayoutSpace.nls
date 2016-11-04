@@ -5,19 +5,31 @@
 ; Radial Layout for the graph of generated states
 
 to layout-space  [layout-type]
-  ifelse layout-type = "o"
+  ifelse layout-type = "*"
   [
-    layout-radial states transitions (state 0)
+    let len .25 * (world-width / sqrt (count AI:states))
+    repeat 500 [layout-spring AI:states AI:transitions 0.2 len 1]
   ]
   [
-    layout-tree (state 0) layout-type
+    ifelse layout-type = "o"
+    [
+      layout-radial AI:states AI:transitions (AI:state 0)
+    ]
+    [
+      layout-tree (AI:state 0) layout-type
+    ]
   ]
 end
 
 
 to style
   ask patches [ set pcolor white]
-  ask turtles [ set label-color black set label (word label "  ")set color blue + 2]
+  ask turtles [ 
+    set shape "circle"    
+    set label-color black 
+    set label (word label "  ")
+    set color blue + 2
+  ]
   ask links [set label-color green]
 end
 
@@ -25,10 +37,10 @@ end
 ; Representation of a tree from a root node.
 ; dir can be "↓" (vertical) o "→" (horizontal), represents the primary direction
 to layout-tree [root dir]
-  let PrimaryDir ifelse-value (dir = "→") [world-width] [world-height]
-  let SecondaryDir ifelse-value (dir = "↓" ) [world-width] [world-height]
+  let PrimaryDir ifelse-value (dir = "→") [world-width - 1] [world-height - 1]
+  let SecondaryDir ifelse-value (dir = "↓" ) [world-width - 1] [world-height - 1]
   ; MaxN : MAximum Depth of the tree
-  let MaxN max [depth] of states
+  let MaxN max [depth] of AI:states
   ; incx: distance between levels in the Primary direction
   let incP PrimaryDir / (1 + MaxN)
   ; iniP: Initial position of levels in primary direction
@@ -80,8 +92,8 @@ end
 ; Reports the weight (number of final states) of a subtree (the current state is the root)
 to-report weight-subtree
   let d depth
-  ifelse depth = max[depth] of states
-  [ report ifelse-value (depth = max[depth] of states) [1][0] ]
+  ifelse depth = max[depth] of AI:states
+  [ report ifelse-value (depth = max[depth] of AI:states) [1][0] ]
   [ report sum [weight-subtree] of out-link-neighbors with [depth > d ]]
 end
 
