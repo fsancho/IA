@@ -20,15 +20,15 @@ Conjunto de ficheros asociados a esta carpeta:
 
 Los **estados** se representan por medio de la familia de tortugas _AI:states_, que deben contener (al menos) las siguientes propiedades:
 
-  `content`   : Almacena el contenido (valor) del estado
+  +`content`   : Almacena el contenido (valor) del estado
   
-  `explored?` : Indica si el estado ha sido explorado/creado o no
+  +`explored?` : Indica si el estado ha sido explorado/creado o no
 
-  `depth`     : Indica la profundidad del estado dentro respecto del estado inicial (de uso en algunas de las funcionalidades de LayoutSpace para la representación).
+  +`depth`     : Indica la profundidad del estado dentro respecto del estado inicial (de uso en algunas de las funcionalidades de LayoutSpace para la representación).
 
 Las **transiciones**, que permiten convertir estados entre sí, vienen representados por medio de la familia de links  _AI:transitions_, que deben contener (el menos) las siguientes propiedades:
 
-  `rule`   : Almacena información varia acerca de la transición. Debe tener una estructura
+  +`rule`   : Almacena información varia acerca de la transición. Debe tener una estructura
 
 En esta solución necesitamos que las listas usen una forma de lista que debe tener en su primers componente una representación imprimible de la regla, ya que esta componente será usada para dar una versión comprensible por el humano de las transiciones usadas en los procesos. En los modelos de ejemplo se pueden ver usos válidos de las reglas.
 
@@ -36,20 +36,20 @@ La función principal de la librería BSS es el procedimiento BSS, que construye
 
 Los datos de entrada que espera que espera este procedimiento son:
 
- `#initial-state` : Contenido del estado inicial que dará comienzo a la construcción
- `#type`          : Tipo de grafo/estructura que tendrá el espacio construido:
+ +`#initial-state` : Contenido del estado inicial que dará comienzo a la construcción
+ +`#type`          : Tipo de grafo/estructura que tendrá el espacio construido:
                     `0` - Árbol, sin estados repetidos (si un estado se repite, se ignora)
                     `1` - Árbol, con estados repetidos (si un estado se repite, se crea una copia)
                     `2` - Grafo (si un estado se va a repetir, se crea un link con el ya existente)
- `#max-depth`     : Máxima profundidad permitida. Número máximo de transiciones aplicadas para calcular los 
+ +`#max-depth`     : Máxima profundidad permitida. Número máximo de transiciones aplicadas para calcular los 
 				  nuevos estados.
- `#debug?`        : `True / False` - Indica si se mostrará el contenido en los estados, y las reglas en las
+ +`#debug?`        : `True / False` - Indica si se mostrará el contenido en los estados, y las reglas en las
 				  transiciones
- `#visible?`     : Muestra/Oculta estados y transiciones en el interfaz
+ +`#visible?`     : Muestra/Oculta estados y transiciones en el interfaz
 
 Para el correcto funcionamiento de esta librería en el modelo principal se debe definir un report:
    
-   `children-states` : Lo pueden ejecutar los estados, y devuelve una lista con información sobre los posibles sucesores del estado que lo ejecuta. En este sentido, cada estado devuelto deber ser un par `[s r]`, donde `s` es el contenido del nuevo estado, y `r` es una regla con la estructura vista anteriormente (`["rep" ...]`).
+   +`children-states` : Lo pueden ejecutar los estados, y devuelve una lista con información sobre los posibles sucesores del estado que lo ejecuta. En este sentido, cada estado devuelto deber ser un par `[s r]`, donde `s` es el contenido del nuevo estado, y `r` es una regla con la estructura vista anteriormente (`["rep" ...]`).
   
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
