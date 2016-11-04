@@ -2,13 +2,13 @@
 
 Conjunto de ficheros asociados a esta carpeta:
 
-+ `BSS.nls`: Fichero Fuente de NetLogo (NetLogo Source) que contiene la librería para construir el espacio de estados asociado a un problema (Build Search Space) a partir de un estado inicial y un constructor básico.
-+ `LayoutSpace.nls`: Fichero Fuente de NetLogo que contiene la librería para visualizar espacios de estados calculados a partir de la librería BSS (y otras librerías que hacen uso de estructuras similares).
-+ `Build State Space - Basic.nlogo`: Definiciones para el problema del puzle numérico.
-+ `Build State Space - Jugs.nlogo`: Definiciones para el problema de las jarras.
-+ `Build State Space - Tic Tac Toe.nlogo`: Definiciones para el problema del 3 en raya.
-+ `Build State Space - Towers of Hanoi.nlogo`: Definiciones para el problema de las Torres de Hanoi.
-+ `Build State Space Repetitions - Nim.nlogo`: Definiciones para el juego del Nim (repitiendo nodos).
++ `BSS.nls`: **Fichero Fuente de NetLogo** (**NetLogo Source**) que contiene la librería para construir el espacio de estados asociado a un problema (Build Search Space) a partir de un estado inicial y un constructor básico.
++ `LayoutSpace.nls`: **Fichero Fuente de NetLogo** que contiene la librería para visualizar espacios de estados calculados a partir de la librería BSS (y otras librerías que hacen uso de estructuras similares).
++ `Build State Space - Basic.nlogo`: Definiciones para el problema del *puzle numérico*.
++ `Build State Space - Jugs.nlogo`: Definiciones para el *problema de las jarras*.
++ `Build State Space - Tic Tac Toe.nlogo`: Definiciones para el problema del *3 en raya*.
++ `Build State Space - Towers of Hanoi.nlogo`: Definiciones para el problema de las *Torres de Hanoi*.
++ `Build State Space Repetitions - Nim.nlogo`: Definiciones para el juego del *Nim* (repitiendo nodos).
 
 ## Funcionamiento de BSS:
 
@@ -22,22 +22,22 @@ Las **transiciones**, que permiten convertir estados entre sí, vienen represent
 
 + `rule`   : Almacena información varia acerca de la transición. Debe tener una estructura
 
-En esta solución necesitamos que las listas usen una forma de lista que debe tener en su primers componente una representación imprimible de la regla, ya que esta componente será usada para dar una versión comprensible por el humano de las transiciones usadas en los procesos. En los modelos de ejemplo se pueden ver usos válidos de las reglas.
+En esta solución necesitamos que las reglas usen una forma de lista que debe tener en su primera componente una representación imprimible de la regla, ya que esta componente será usada para dar una versión comprensible por el humano de las transiciones usadas en los procesos. En los modelos de ejemplo anteriores se pueden ver usos válidos de las reglas.
 
-La función principal de la librería BSS es el procedimiento BSS, que construye el grafo de estados que se obtiene a partir de un estado inicial dado (siguiendo los constructores definidos por el usuario). Esencialmente, el algoritmo calcula recursivamente los estados sucesores de los estados actuales (_AI:states_) y los conecta por medio de links (_AI:transitions_). Este proceso se repite un número máximo de veces.
+La función principal de la librería **BSS** es el procedimiento `BSS`, que construye el grafo de estados que se obtiene a partir de un estado inicial dado (siguiendo los constructores definidos por el usuario). Esencialmente, el algoritmo calcula recursivamente los estados sucesores de los estados actuales (_AI:states_) y los conecta por medio de links (_AI:transitions_). Este proceso se repite un número máximo de veces.
 
-Los datos de entrada que espera que espera este procedimiento son:
+Los datos de entrada que espera este procedimiento son:
 
-+ `#initial-state` : Contenido del estado inicial que dará comienzo a la construcción.
-+ `#type`          : Tipo de grafo/estructura que tendrá el espacio construido:
-  + `0` - Árbol, sin estados repetidos (si un estado se repite, se ignora).
-  + `1` - Árbol, con estados repetidos (si un estado se repite, se crea una copia).
-  + `2` - Grafo (si un estado se va a repetir, se crea un link con el ya existente).
-+ `#max-depth`     : Máxima profundidad permitida. Número máximo de transiciones aplicadas para calcular los nuevos estados.
++ `#initial-state` : Contenido del **estado inicial** que dará comienzo a la construcción.
++ `#type`          : Tipo de **grafo/estructura** que tendrá el espacio construido:
+  + `0` - **Árbol, sin estados repetidos** (si un estado se repite, se ignora).
+  + `1` - **Árbol, con estados repetidos** (si un estado se repite, se crea una copia).
+  + `2` - **Grafo** (si un estado se va a repetir, se crea un link con el ya existente).
++ `#max-depth`     : **Máxima profundidad** permitida. Número máximo de transiciones aplicadas para calcular los nuevos estados.
 + `#debug?`        : `True / False` - Indica si se mostrará el contenido en los estados, y las reglas en las transiciones.
 + `#visible?`     : Muestra/Oculta estados y transiciones en el interfaz.
 
-Para el correcto funcionamiento de esta librería en el modelo principal se debe definir un report:
+Para el correcto funcionamiento de esta librería en el modelo principal se debe definir un _report_:
    
 + `children-states` : Lo pueden ejecutar los estados, y devuelve una lista con información sobre los posibles sucesores del estado que lo ejecuta. En este sentido, cada estado devuelto deber ser un par `[s r]`, donde `s` es el contenido del nuevo estado, y `r` es una regla con la estructura vista anteriormente (`["rep" ...]`).
   
