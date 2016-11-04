@@ -21,7 +21,7 @@ Los **estados** se representan por medio de la familia de tortugas _AI:states_, 
 
 Las **transiciones**, que permiten convertir estados entre sí, vienen representados por medio de la familia de links  _AI:transitions_, que deben contener (el menos) las siguientes propiedades:
 
-+ `rule`   : Almacena información varia acerca de la transición. Debe tener una estructura
++ `rule`   : Almacena información varia acerca de la transición. Debe tener una estructura determinada que explicamos a continuación.
 
 En esta solución necesitamos que las reglas usen una forma de lista que debe tener en su primera componente una representación imprimible de la regla, ya que esta componente será usada para dar una versión comprensible por el humano de las transiciones usadas en los procesos. En los modelos de ejemplo anteriores se pueden ver usos válidos de las reglas.
 
