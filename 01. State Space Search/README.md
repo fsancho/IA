@@ -45,7 +45,7 @@ En los modelos de ejemplo se pueden ver algunas definiciones válidas para disti
 
 ## Funcionamiento de LayoutSpace
 
-Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax).
+Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax). El objetivo de esta librería de representación no es proporcionar un producto final, sino dar las herramientas básicas para poder centrarse en la generación de los espacios de estados, y no en su representación, por lo que podría ser necesario adaptarla a contextos con necesidades más específicas.
 
 Proporciona un procedimiento principal, `layout-space`, que recibe como dato de entrada el tipo de representación y representa el espacio de estados según el tipo seleccionado:
 
