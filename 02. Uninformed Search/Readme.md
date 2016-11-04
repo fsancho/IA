@@ -55,3 +55,7 @@ Para el correcto funcionamiento de esta librería en el modelo principal se debe
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
 Adicionalmente, debido a que `BFS` devuelve el estado final completo, del que podemos obtener el `path` que ha permitido construirlo, la librería proporciona un report, `extract-transitions-from-path`, que al ser ejecutado por un estado devuelve, a partir de la información almacenada en el estado, la sucesión (lista) de transiciones que se han aplicado para llegar desde el estado inicial hasta él. Obsérvese que este procedimiento no necesita ningún dato de entrada, ya que lo ejecuta el propio estado y él puede acceder a toda su información de manera directa.
+
+# Instrucciones de uso de LayoutSpace
+
+Véase el [apartado equivalente en BSS](https://github.com/fsancho/IA/blob/master/01.%20State%20Space%20Search/README.md).
