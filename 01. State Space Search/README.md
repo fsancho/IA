@@ -6,6 +6,7 @@ Conjunto de ficheros asociados a esta carpeta:
 + `LayoutSpace.nls`: **Fichero Fuente de NetLogo** que contiene la librería para visualizar espacios de estados calculados a partir de la librería BSS (y otras librerías que hacen uso de estructuras similares).
 + `Build State Space - Basic.nlogo`: Definiciones para el problema del *puzle numérico*.
 + `Build State Space - Jugs.nlogo`: Definiciones para el *problema de las jarras*.
++ `Build State Space - Farmer.nlogo`: Definiciones para el *problema del granjero*.
 + `Build State Space - Tic Tac Toe.nlogo`: Definiciones para el problema del *3 en raya*.
 + `Build State Space - Towers of Hanoi.nlogo`: Definiciones para el problema de las *Torres de Hanoi*.
 + `Build State Space Repetitions - Nim.nlogo`: Definiciones para el juego del *Nim* (repitiendo nodos).
