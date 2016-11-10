@@ -112,14 +112,18 @@ to-report AI:diversity
   ask AI:individuals [
     let c1 content
     ask AI:individuals with [self > myself] [
-      set distances fput (hamming-distance content c1) distances
+      set distances fput (AI:distance content c1) distances
     ]
   ]
   report mean distances
 end
 
+to-report AI:distance [c1 c2]
+  report hamming-distance c1 c2
+end
+
 ; Hamming Distance between two lists is the proportion of positions they 
 ; differ.
 to-report hamming-distance [c1 c2]
-  report (length remove true (map [?1 = ?2] c1 c2)) / world-width
+  report (length remove true (map [?1 = ?2] c1 c2)) / (length c1)
 end
