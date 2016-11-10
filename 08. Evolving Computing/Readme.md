@@ -11,8 +11,6 @@ Contenido aproximado de los ficheros de esta carpeta:
 + `Genetic Algorithm N Queens.nlogo` : Ejemplo de de demostración de uso de la librería `GeneticAlgorithm` que resuelve el problema de las N reinas.
 + `Genetic Algorithm Funciones.nlogo` : Ejemplo de de demostración de uso de la librería `GeneticAlgorithm` para la aproximación de funciones reales en el intervalo [0,1]. Es un primer paso al área de la programación genética.
 
-Faltan por explicar los modelos relacionados con la librería general.
-
 ## Instrucciones de Uso de GeneticAlgorithm:
 
 Los **individuos** de la población son elementos de la familia de tortugas _AI:individuals_, que deben contener (al menos) las siguientes propiedades:
