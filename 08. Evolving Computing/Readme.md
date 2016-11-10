@@ -27,7 +27,7 @@ Los datos de entrada que espera este procedimiento son:
 
 Para el correcto funcionamiento de esta librería en el modelo principal se deben definir los siguientes procedimientos (que permitirán adaptarla al problema concreto que se quiera resolver con algoritmos genéticos):
    
-+ `AI:Initial-Population [#population]' : Crea la población inicial de individuos, estableciendo su contenido (código genético).
++ `AI:Initial-Population [#population]` : Crea la población inicial de individuos, estableciendo su contenido (código genético).
 
 + `AI:Compute-fitness`: Report de AI:individual que calcula el valor de fitness que tiene (en función de su contenido).
 
