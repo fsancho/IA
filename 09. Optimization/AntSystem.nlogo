@@ -6,10 +6,10 @@ breed [ hormigas hormiga ]
 
 links-own [ coste
             feromona ]
-            
+
 hormigas-own [ recorrido
                coste-recorrido ]
-        
+
 ;;;;;;;;;;;;;;;:::::;;;;;;;;
 ;;; Procedimientos Setup ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -18,7 +18,7 @@ to setup
   clear-all
   set-default-shape nodos "circle"
   ask patches [set pcolor white]
-  
+
   crea-nodos
   crea-aristas
   crea-hormigas
@@ -26,13 +26,13 @@ to setup
   set mejor-recorrido camino-aleatorio
   set coste-mejor-recorrido longitud-recorrido mejor-recorrido
   muestra-mejor-recorrido
-  
+
   reset-ticks
 end
 
 to crea-nodos
   ask n-of num-nodos patches
-  [  
+  [
     sprout-nodos 1
     [
       set color blue + 2
@@ -45,12 +45,12 @@ end
 
 to crea-aristas
   ask nodos
-  [ 
+  [
     create-links-with other nodos
     [
       hide-link
       set color red
-      set coste link-length 
+      set coste link-length
       set feromona random-float 0.1
     ]
   ]
@@ -76,11 +76,11 @@ to reset
     set feromona random-float 0.1
   ]
   crea-hormigas
-  
+
   set mejor-recorrido camino-aleatorio
   set coste-mejor-recorrido longitud-recorrido mejor-recorrido
-  muestra-mejor-recorrido  
-  
+  muestra-mejor-recorrido
+
   reset-ticks
   clear-all-plots
 end
@@ -93,7 +93,7 @@ to go
   no-display
   ask hormigas [
     set recorrido generar-recorrido
-    set coste-recorrido longitud-recorrido recorrido 
+    set coste-recorrido longitud-recorrido recorrido
 
     if coste-recorrido < coste-mejor-recorrido [
       set mejor-recorrido recorrido
@@ -122,7 +122,7 @@ to-report generar-recorrido
   let nuevo-recorrido (list origen)
   let resto-nodos [self] of nodos with [self != origen]
   let nodo-actual origen
-  
+
   while [not empty? resto-nodos] [
     let siguiente-nodo elige-siguiente-nodo nodo-actual resto-nodos
     set nuevo-recorrido lput siguiente-nodo nuevo-recorrido
@@ -130,7 +130,7 @@ to-report generar-recorrido
     set nodo-actual siguiente-nodo
   ]
   set nuevo-recorrido lput origen nuevo-recorrido
-  
+
   report nuevo-recorrido
 end
 
@@ -154,7 +154,7 @@ to-report calcula-probabilidades [nodo-actual resto-nodos]
     set ac (ac + first ?)
     set probabilidad-normalizada lput (list ac last ?) probabilidad-normalizada
   ]
-  report probabilidad-normalizada  
+  report probabilidad-normalizada
 end
 
 to actualiza-feromona
@@ -162,12 +162,12 @@ to actualiza-feromona
   ask links [
     set feromona (feromona * (1 - rho))
   ]
-  
+
   ;; A�ade feromona a los caminos encontrados por las hormigas
   ask hormigas [
     let inc-feromona (100 / coste-recorrido)
     foreach aristas-recorrido recorrido [
-      ask ? [ set feromona (feromona + inc-feromona) ]    
+      ask ? [ set feromona (feromona + inc-feromona) ]
     ]
   ]
 end
@@ -176,22 +176,36 @@ end
 ;;; Procedimientos Plot/GUI ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; Muestra el mejor recorrido obtenido, ocultando las aristas
+; que no pertenecen a él
 to muestra-mejor-recorrido
   ask links [ hide-link ]
   foreach aristas-recorrido mejor-recorrido [
-    ask ? 
-    [ 
-      show-link 
+    ask ?
+    [
+      show-link
       set label int link-length
       set label-color black
     ]
   ]
 end
 
+; Muestra la feromona de cada arista (en grosor y opacidad)
+to muestra-feromona
+  let M max [feromona] of links
+  ask links [
+    set label ""
+    show-link
+    set thickness feromona / M
+    set color lput (255 * feromona / M) [255 0 0]
+  ]
+  display
+end
+
 to dibuja-plots
   set-current-plot "Coste Mejor Recorrido"
   plot coste-mejor-recorrido
-  
+
   set-current-plot "Distribución Costes de Recorridos"
   set-plot-pen-interval 1
   set-plot-x-range 0 int (2 * coste-mejor-recorrido)
@@ -205,7 +219,7 @@ end
 to-report aristas-recorrido [nodos-recorrido]
   report map [arista (item ? nodos-recorrido) (item (? + 1) nodos-recorrido)] (n-values num-nodos [?])
 end
-  
+
 to-report arista [n1 n2]
   report (link [who] of n1 [who] of n2)
 end
@@ -331,7 +345,7 @@ alpha
 alpha
 0
 20
-0
+2
 1
 1
 NIL
@@ -376,7 +390,7 @@ num-nodos
 num-nodos
 0
 100
-49
+50
 1
 1
 NIL
@@ -391,7 +405,7 @@ num-hormigas
 num-hormigas
 0
 100
-20
+50
 1
 1
 NIL
@@ -405,6 +419,23 @@ BUTTON
 Reset
 reset
 NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+130
+400
+195
+433
+Feromona
+muestra-feromona
+T
 1
 T
 OBSERVER
@@ -741,7 +772,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.2.0
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

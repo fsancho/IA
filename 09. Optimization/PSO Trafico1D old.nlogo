@@ -1,12 +1,23 @@
-__includes ["PSO.nls"]
+; Raza de tortugas que será usada en PSO
+breed [particulas particula]
 
 ; Raza de tortugas que depende del modelo concreto que vamos a optimizar
 breed [cars car]
 
+; Propiedades de las partículas PSO
+particulas-own
+[
+  v ; vector de velocidad instantánea de la partícula
+
+  personal-mejor-val   ; mejor valor que ha encontrado
+  personal-mejor-x     ; coordenada x del mejor valor
+  personal-mejor-y     ; coordenada y del mejor valor
+]
+
 ; Propiedades de los coches del modelo que se optimiza
-cars-own [
+cars-own [ 
   speed       ; Velocidad instantánea del coche
-  speed-limit
+  speed-limit 
   speed-min ]
 
 
@@ -16,6 +27,11 @@ globals
   ; Parámetros que se pueden modificar para optimizar la velocidad media de los coches
   acceleration        ; aceleración instantánea de los coches
   deceleration        ; deceleración instantánea de los coches
+  
+  ; Variables globales usadas por el PSO:
+  global-mejor-x      ; coordenada x del mejor valor encontrado por el PS
+  global-mejor-y      ; coordenada y del mejor valor encontrado por el PS
+  global-mejor-val    ; mejor valor encontrado por el PS
 ]
 
 ; Genera los coches que serán usados en cada experimento de cada partícula.
@@ -24,7 +40,7 @@ to setup-cars
   ask cars [die]
   hatch-cars num-cars [
     set color blue
-    ;ht ; se ocultan para no interferir con la visualización de las partículas
+    ht ; se ocultan para no interferir con la visualización de las partículas
     pu
     set xcor random-xcor
     set ycor 0
@@ -81,34 +97,56 @@ to setup
   clear-all
 
   ; crear partículas
-  AI:Create-particles num-particulas 2
+  create-particulas num-particulas
+  [
+    set shape "circle"
+    set size .5
+    set color one-of base-colors
+    ; Se sitúan aleatoriamente en el mundo
+    setxy random-xcor random-ycor
+    
+    ; proporcionar a las partículas velocidades iniciales (vx y vy) con una distribución normal
+    set v (list (random-normal 0 1) (random-normal 0 1))
+    
+    ; Calculamos el valor inicial de la partícula, que vendrá dado por el modelo de coches con los 
+    ; parámetros aceleracion/deceleracion asociados a las coordenadas de la partícula.
+    ;  Observa que las coordenadas (x,y) de la partícula, que puede estar en un mundo de [-25,25]x[-25,25],
+    ;  se transforman adecuadamente en un mundo [0, 0.01]x[0, 0.1]
+    let val funcion-caja-negra  ((xcor + 25) / 5000) ((ycor + 25) / 500)
+
+    ; Los valores personales mejores son los actuales
+    set personal-mejor-val val
+    set personal-mejor-x xcor
+    set personal-mejor-y ycor
+
+    set label precision val 2
+    
+    ; se baja el lápiz para que se vea el recorrido realizado
+    pd
+  ]
   reset-ticks
 end
 
-to-report AI:evaluation
-  report funcion-caja-negra (first pos) (last pos)
-end
-
-; Función que permite usar el modelo de coches para relizar el cálculo.
+; Función que permite usar el modelo de coches para relizar el cálculo. 
 ; Esta es la función que realmente se optimiza.
 to-report funcion-caja-negra [x y]
   ; Para que vaya más rápido, se impide la actualización gráfica
   no-display
   ; Generación de los coches para este experimento
   setup-cars
-  ; Se fijan los valores de aceleración y deceleración asociados a esta partícula
+  ; Se fijan los valores de aceleración y deceleración asociados a esta partícula  
   set acceleration x
   set deceleration y
   ; Se deja correr el modelo de coches 500 pasos
-  repeat 100 [go-modelo]
+  repeat 500 [go-modelo]
   display
 
   ; Se devuelve la función que se quiere optimizar: la velocidad media de los coches
-  report abs mean [speed] of cars
+  report mean [speed] of cars
 end
 
 ; La siguiente función muestra cómo se podría usar la funcion-caja-negra
-; para repetir un experimento un número determinado de veces (n) y quedarnos con
+; para repetir un experimento un número determinado de veces (n) y quedarnos con 
 ; la media de los resultados
 to-report f-repetida [n x y]
   report mean (n-values n [funcion-caja-negra x y])
@@ -116,24 +154,97 @@ end
 
 ; Procdimiento principal del agoritmo de optimización PSO
 to go
-  let best AI:PSO 20
-                  inercia-particula
-                  atraccion-a-mejor-personal
-                  atraccion-al-global-mejor
-                  lim-vel-particulas
+  ; Calculamos el valor asociado a cada partícula
+  ask particulas [
+
+    ; Calcula el valor ejecutando el modelo de coches. Véase el uso de esta función
+    ; en el setup
+    let val funcion-caja-negra  ((xcor + 25) / 5000) ((ycor + 25) / 500)
+    
+    set label precision val 2
+
+    ; actualizar el "mejor valor personal" para cada partícula,
+    ; si han encontrado un valor mejor que el que tenían almacenado
+    if val > personal-mejor-val
+    [
+      set personal-mejor-val val
+      set personal-mejor-x xcor
+      set personal-mejor-y ycor
+    ]
+    ; Se actualiza el mejor-global si fuera necesario
+    if global-mejor-val < personal-mejor-val
+    [
+      set global-mejor-val personal-mejor-val
+      set global-mejor-x personal-mejor-x
+      set global-mejor-y personal-mejor-y
+    ]
+    ; si la partícula tiene el mejor-global, se resalta
+    if global-mejor-val = val [watch-me]
+  ]
+  
+  ; Se actualiza la posición/velocidad de cada partícula
+  ask particulas
+  [
+    set v *v inercia-particula v
+
+    ; Cambia la velocidad para ser atraído al "mejor valor personal" que la partícula ha encontrado
+    facexy personal-mejor-x personal-mejor-y
+    let dist distancexy personal-mejor-x personal-mejor-y
+    
+    set v +v v (*v ((1 - inercia-particula) * atraccion-a-mejor-personal * (random-float 1.0) * dist) (list dx dy))
+
+    ; Cambia la velocidad para ser atraído por el "mejor global" que ha sido encontrado
+    facexy global-mejor-x global-mejor-y
+    set dist distancexy global-mejor-x global-mejor-y
+    set v  +v v (*v ((1 - inercia-particula) * atraccion-al-global-mejor * (random-float 1.0) * dist) (list dx dy))
+
+    ; los límites de velocidad son necesarios porque estamos trabajando sobre un toro, lo que podría
+    ; implicar que las partículas podrían girar alrededor del mundo a velocidades excesivamente altas.
+    set v map [ifelse-value (abs ? > lim-vel-particulas) [sg ? * lim-vel-particulas][?]] v
+
+    ; Actualizamos la posición de la partícula
+    facexy (xcor + first v) (ycor + last v)
+    fd norma v
+  ]
+  
+  ; Se impide que las partículas se aproximen en exceso entre si  
+  ask particulas [
+    ask other particulas in-radius 2 [
+      face myself fd -1 / distance myself]
+    ]
+  
+  tick
 end
 
-to AI:PSOExternalUpdate
-  tick
+; Conjunto de funciones auxiliares (las vectoriales, permiten trabajar con más de 2 variables)
+
+; Producto por escalar: k * (v1,v2,...,vn) = (k*v1, k*v2, ..., k*vn)
+to-report *v [lambda v1]
+  report map [lambda * ?] v1
+end
+
+; Suma de vetores: (u1, u2, ..., un) + (v1, v2, ..., vn) = (u1+v1, u2+v2, ..., un+vn)
+to-report +v [v1 v2]
+  report (map [?1 + ?2] v1 v2)
+end
+
+; Función Signo
+to-report sg [x]
+  report ifelse-value (x >= 0) [1][-1]
+end
+
+; Norma de un vector: Sqrt (v1^2 + v2^2 +...+ vn^2)
+to-report norma [v1]
+  report sqrt sum map [? * ?] v1
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 220
 10
 631
-48
+442
 25
-0
+25
 7.863
 1
 10
@@ -146,8 +257,8 @@ GRAPHICS-WINDOW
 1
 -25
 25
-0
-0
+-25
+25
 1
 1
 1
@@ -178,7 +289,7 @@ BUTTON
 214
 NIL
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -204,7 +315,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot global-best-value"
+"default" 1.0 0 -16777216 true "" "plot global-mejor-val"
 
 MONITOR
 16
@@ -212,7 +323,7 @@ MONITOR
 118
 442
 Mejor aceleracion
-first global-best-pos
+(25 + global-mejor-x) / 5000
 3
 1
 11
@@ -223,7 +334,7 @@ MONITOR
 216
 442
 Mejor decelaracion
-last global-best-pos
+(25 + global-mejor-y) / 500
 3
 1
 11
@@ -237,7 +348,7 @@ inercia-particula
 inercia-particula
 0
 1
-0.98
+0.6
 .01
 1
 NIL
@@ -252,7 +363,7 @@ lim-vel-particulas
 lim-vel-particulas
 0
 10
-0.05
+2.1
 .01
 1
 NIL
@@ -266,8 +377,8 @@ SLIDER
 atraccion-a-mejor-personal
 atraccion-a-mejor-personal
 0
-2
 1
+0.2
 .01
 1
 NIL
@@ -281,8 +392,8 @@ SLIDER
 atraccion-al-global-mejor
 atraccion-al-global-mejor
 0
-2
-2
+1
+0.2
 .01
 1
 NIL
@@ -297,7 +408,7 @@ num-particulas
 num-particulas
 0
 100
-10
+8
 1
 1
 NIL
@@ -311,8 +422,8 @@ SLIDER
 num-cars
 num-cars
 0
-50
-25
+100
+39
 1
 1
 NIL
@@ -386,7 +497,7 @@ Tras haber unido en un solo fichero ambos modelos (el de tráfico y el de PSO) t
       no-display
       ; Generación de los coches para este experimento
       setup-cars
-      ; Se fijan los valores de aceleración y deceleración asociados a esta partícula
+      ; Se fijan los valores de aceleración y deceleración asociados a esta partícula 
       set acceleration x
       set deceleration y
       ; Se deja correr el modelo de coches 500 pasos
@@ -693,7 +804,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.3.1
+NetLogo 5.0.3
 @#$#@#$#@
 setup
 repeat 180 [ go ]

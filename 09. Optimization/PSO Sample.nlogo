@@ -153,7 +153,7 @@ poblacion
 poblacion
 1
 100
-10
+20
 1
 1
 NIL
@@ -167,8 +167,8 @@ SLIDER
 atraccion-mejor-personal
 atraccion-mejor-personal
 0
+5
 2
-0.4
 0.1
 1
 NIL
@@ -182,8 +182,8 @@ SLIDER
 atraccion-mejor-global
 atraccion-mejor-global
 0
+5
 2
-0.8
 0.1
 1
 NIL
@@ -198,7 +198,7 @@ inercia-particula
 inercia-particula
 0
 1.0
-0.4
+0.9
 0.01
 1
 NIL
@@ -213,7 +213,7 @@ lim-vel-particulas
 lim-vel-particulas
 0
 1
-0.1
+0.05
 .01
 1
 NIL

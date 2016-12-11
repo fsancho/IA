@@ -1,6 +1,4 @@
-; Every patch-node will have a variable to store the weight vector
-patches-own [
-  weight ]
+__includes ["SOM.nls"]
 
 ; TSet stores the Training Set
 globals [
@@ -11,96 +9,57 @@ globals [
 ;   It can be done randomly, or using a grey gradient
 to setup
   ca
-  ifelse (Init = "Random")
-  [
-    ask patches [
-      set weight n-values 3 [random-float 1]
-      set pcolor rgb (255 * item 0 weight) (255 * item 1 weight) (255 * item 2 weight) ]
-  ]
-  [
-    ask patches [
-      set pcolor scale-color black ((pxcor + pycor + 2 * max-pxcor) / (4 * max-pxcor)) 0 1
-      set weight map [? / 255] extract-rgb pcolor ]
-  ]
   set TSet n-values TSet-size [n-values 3 [random-float 1]]
+  create-ordered-turtles TSet-size [
+    fd 15
+    set size 7
+    set shape "circle"
+    let w (item who TSet)
+    set color rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w)
+  ]
+
+  if (Init = "Random")
+  [
+    SOM:setup-Lnodes world-width "SqGrid" "R" 3
+    ask patches [
+      let w [weight] of one-of SOM:Lnodes-here
+      set pcolor rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w) ]
+  ]
   reset-ticks
 end
 
-; Time-dependent Radius: It decreases the radius softly from
-;    covering the world to one point.
-to-report R [t]
-  let T-Cons Training-Time / (ln max-pxcor)
-  report (max-pxcor * exp (-1 * t / T-Cons))
+to go
+  SOM:SOM TSet Training-Time
 end
 
-; Euclidean Distance function (without square root)
-to-report dist [v1 v2]
-  report sum (map [(?1 - ?2) ^ 2] v1 v2)
-end
-
-; Weight Update function:
-;   It depends on the distance to BMU, the Learning Rate, and a
-;   function D to soft in the borders.
-to-report new-weight [W V t]
-  report (map [?1 + (D t) * (L t) * (?2 - ?1)] W V)
-end
-
-; Learning Rate Function:
-;   It starts with a custom value and decresase in the iterations.
-to-report L [t]
-  report Initial-Learning-Rate * exp (-1 * t / Training-Time)
-end
-
-; Soft function for the weight update function.
-to-report D [t]
-  report exp (-1 * (distance myself) / (2 * (R t)))
-end
-
-; Best Matching Unit: Closest weight-patch to V.
-to-report BMU [V]
-  report min-one-of patches [dist ([weight] of self) V]
-end
-
-; SOM Algorithm iteration:
-;   For every training vector, we take its BMU and update its neighbourhood.
-;   It will stop automatically after Training-Time steps.
-to SOM
-  foreach (shuffle TSet)
-  [
-    let V ?
-    let W BMU V
-    ask W [
-      ask patches in-radius (R ticks)
-      [
-        set weight new-weight weight V ticks
-        set pcolor rgb (255 * item 0 weight) (255 * item 1 weight) (255 * item 2 weight) ]
-    ]
-  ]
+to SOM:ExternalUpdate
+  ask patches [
+    let w [weight] of one-of SOM:Lnodes-here
+    set pcolor rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w) ]
   tick
-  if ticks > Training-Time [stop]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 182
 10
-600
-449
-25
-25
-8.0
+558
+407
+30
+30
+6.0
 1
 10
 1
 1
 1
 0
+0
+0
 1
-1
-1
--25
-25
--25
-25
+-30
+30
+-30
+30
 1
 1
 1
@@ -116,7 +75,7 @@ Training-Time
 Training-Time
 0
 1000
-200
+223
 1
 1
 NIL
@@ -128,8 +87,8 @@ BUTTON
 182
 187
 SOM!
-SOM
-T
+go
+NIL
 1
 T
 OBSERVER
@@ -162,7 +121,7 @@ MONITOR
 71
 243
 Radius
-precision (R ticks) 3
+precision (SOM:R ticks) 3
 17
 1
 11
@@ -176,7 +135,7 @@ TSet-size
 TSet-size
 0
 100
-9
+8
 1
 1
 NIL
@@ -188,7 +147,7 @@ MONITOR
 182
 243
 Learning Rate
-precision (L ticks) 5
+precision (SOM:L ticks) 5
 17
 1
 11
@@ -225,8 +184,14 @@ true
 0
 Polygon -7500403 true true 150 5 40 250 150 205 260 250
 
+circle
+false
+0
+Circle -7500403 true true 0 0 300
+Circle -16777216 false false 0 0 300
+
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -42,9 +42,12 @@ to AI:Create-particles [#population #dimension]
         ; proporcionar a las partículas velocidades iniciales (vx y vy) con una distribución normal
     set velocity n-values #dimension  [(random-normal 0 1)]
     ; el punto de partida es la mejor localización actual de la partícula
-    set personal-best-value val
+    set personal-best-value AI:evaluation
     set personal-best-pos pos
   ]
+  let best max-one-of AI:particles [AI:evaluation]
+  set global-best-value [personal-best-value] of best
+  set global-best-pos [personal-best-pos] of best
 end
 
 ; Main Procedure report. It gives iter repetitions of step function, and returns the 

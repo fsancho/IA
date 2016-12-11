@@ -1,4 +1,14 @@
-__includes ["SOM.nls"]
+; Training Nodes
+breed [ nodes node ]
+
+; Label Markers breed
+breed [ markers marker ]
+
+
+nodes-own [
+  weight     ;
+  err        ; mean distance of this wieght node to the neighbors ones
+]
 
 globals [
   TSet      ; Training set
@@ -10,41 +20,89 @@ globals [
 ; los vectores de entrenamiento
 to setup
   ca
-;  resize-world 0 (Size-World - 1) 0 (Size-World - 1)
-;  set-patch-size 400 / (Size-World - 1)
+  resize-world 0 Size-World 0 Size-World
+  set-patch-size 400 / Size-World
   read-data
-  SOM:setup-Lnodes Size-World "HxGrid" "R" (length first Tset)
-  ask SOM:Lnodes [
-    st
-    set shape "hex"
-    set size 1.345  * world-width / Size-World
-    set label-color black
-    set color scale-color white (mean weight) -0.0 1.0
-  ]
+  setup-nodes
   reset-ticks
 end
 
-to go
-  ; Run the SOM Algorithm
-  SOM:SOM Tset Training-Time
-  ask patches [set pcolor white]
-  let Mx max [xcor] of SOM:Lnodes
-  let inc .1 * max-pxcor; - Mx * .9
-  ask SOM:Lnodes [
-    setxy (inc + xcor * .9) (inc + ycor * .9)
-    set size size * .9
-  ]
-  ; Label the BMUs of TSet element with their names
-  (foreach TSet Header [
-    let V ?1
-    let W SOM:BMU V
-    ask W [set label ifelse-value (label = "") [?2][(word label "/" ?2)]]
-  ])
+to setup-nodes
+  set-default-shape nodes "hex"
+  ask patches
+    [ sprout-nodes 1
+        [ set size 1.28
+          set weight n-values (length first Tset) [random-float 1]
+          set color map [255 * ?] (sublist weight 0 3)
+          if pxcor mod 2 = 0
+            [ set ycor ycor - 0.5 ] ] ]
 end
 
-to SOM:ExternalUpdate
-  ask SOM:Lnodes [ set color scale-color white (mean weight) -0.4 1.4]
+
+; Función que devuelve el radio de influencia dependiente el tiempo.
+;   Es una función que tiende a disminuir suavemente el radio, hasta
+;   hacer que el entorno de influencia de cada punto sea unitario.
+to-report R [t]
+  let r0 Size-World / 2
+  let T-Cons Training-Time / (ln r0)
+  report r0 * exp (-1 * t / T-Cons)
+end
+
+; Función que calcula la distancia euclídea de 2 vectores.
+;   Por motivos de eficiencia, se quita la raiz cuadrada.
+to-report dist [v1 v2]
+  report sum (map [(?1 - ?2) ^ 2] v1 v2)
+end
+
+; Función que devuelve el nuevo peso de cada punto.
+;   Cuando más cercano al BMU, más se modifica. Cuanto más cercano
+;   al borde del entorno, menos. Depende de una tasa de aprendizaje (L)
+;   y de una función que suaviza el comportamiento en el entorno (D).
+to-report new-weight [W V t]
+  report (map [?1 + (D t) * (L t) * (?2 - ?1)] W V)
+end
+
+; Función que calcula la tasa de aprendizaje. Comienza con un valor
+;   que introduce el usuario, y disminuye en cada paso de ejecución.
+to-report L [t]
+  report Initial-Learning-Rate * exp (-1 * t / Training-Time)
+end
+
+; Función que suaviza el comportamiento del cálculo del peso en
+;   función de la ditancia al BMU.
+to-report D [t]
+  report exp (-1 * (distance myself) / (2 * (R t)))
+end
+
+; Devuelve el BMU de un vector, es decir, la node que más lo aproxima.
+to-report BMU [V]
+  report min-one-of nodes [dist ([weight] of self) V]
+end
+
+; Iteración del SOM: para cada vector de entrenamiento se toma su BMU,
+;   y al entorno de éste se le aplica la modificación de sus pesos para
+;   que se acerquen al vector. Está preparado para dar un número fijo de
+;   pasos, y se representan los pesos como colores del patch.
+to SOM
+  ask nodes [set label ""]
+ (foreach TSet Header [
+    let V ?1
+    let W BMU V
+    ask W [set label ifelse-value (label = "") [?2][(word label "/" ?2)]]
+    ask W [
+      ask nodes in-radius (R ticks) [
+        set weight new-weight weight V ticks
+        set color map [255 * ?] (sublist weight 0 3)
+        ]]])
   tick
+  if ticks > Training-Time [
+    ask nodes with [label != ""] [
+      hatch-markers 1 [
+        set size 0 ]
+      set label "" ]
+    compute-error 1
+    stop
+    ]
 end
 
 ; Read numeric data from a file and normalize it into TSet.
@@ -75,10 +133,10 @@ to read-data
 end
 
 to refresh [i]
-  ask SOM:Lnodes [
+  ask nodes [
     set color scale-color yellow (item i weight) -0.4 1.4
-    set label-color black
   ]
+  ask markers [set label-color black]
   display
 end
 
@@ -88,19 +146,38 @@ to-report Att-size
   report a
 end
 
-to show-error
-  SOM:error 6
-  ask SOM:lnodes [set color scale-color white err  -.2 .5]
+to compute-error [#radius]
+  ask nodes [
+    let vec other nodes in-radius #radius
+    set err sum map [dist weight ?] ([weight] of vec) / (count vec)
+    ;set color scale-color black err 0.05 0
+    ]
+  let MM max [err] of nodes
+  ask nodes [ set color map [positive (? - err / MM * 255)] color]
+  display
+end
+
+to-report positive [x]
+  report max (list x 0)
+end
+
+to original-color
+  ask nodes [
+    set color map [255 * ?] (sublist weight 0 3)
+  ]
+  ask markers [
+    set label-color white
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 187
 10
-593
-437
+606
+450
 -1
 -1
-9.66
+12.903225806451612
 1
 12
 1
@@ -111,9 +188,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-40
+31
 0
-40
+31
 1
 1
 1
@@ -129,7 +206,7 @@ Training-Time
 Training-Time
 0
 1000
-150
+140
 1
 1
 NIL
@@ -141,8 +218,8 @@ BUTTON
 181
 142
 SOM!
-go
-NIL
+SOM
+T
 1
 T
 OBSERVER
@@ -175,7 +252,7 @@ MONITOR
 70
 276
 Radius
-precision (SOM:R ticks) 3
+precision (R ticks) 3
 17
 1
 11
@@ -186,7 +263,7 @@ MONITOR
 181
 276
 Learning Rate
-precision (SOM:L ticks) 5
+precision (L ticks) 5
 17
 1
 11
@@ -215,8 +292,8 @@ Size-World
 Size-World
 1
 400
-10
-1
+31
+2
 1
 NIL
 HORIZONTAL
@@ -241,7 +318,7 @@ Attribute
 Attribute
 0
 Att-size
-2
+0
 1
 1
 NIL
@@ -266,23 +343,6 @@ BUTTON
 Show
 refresh Attribute
 T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-65
-188
-128
-221
-Error
-show-error
-NIL
 1
 T
 OBSERVER
