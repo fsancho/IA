@@ -13,7 +13,7 @@ to setup
 ;  resize-world 0 (Size-World - 1) 0 (Size-World - 1)
 ;  set-patch-size 400 / (Size-World - 1)
   read-data
-  SOM:setup-Lnodes Size-World "HxGrid" "R" (length first Tset)
+  SOM:setup-Lnodes Size-World "HxGrid" (length first Tset) "R"
   ask SOM:Lnodes [
     st
     set shape "hex"
@@ -241,7 +241,7 @@ Attribute
 Attribute
 0
 Att-size
-2
+9
 1
 1
 NIL

@@ -20,7 +20,7 @@ to setup
 
   if (Init = "Random")
   [
-    SOM:setup-Lnodes world-width "SqGrid" "R" 3
+    SOM:setup-Lnodes world-width "SqGrid" 3 "R"
     ask patches [
       let w [weight] of one-of SOM:Lnodes-here
       set pcolor rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w) ]
@@ -75,7 +75,7 @@ Training-Time
 Training-Time
 0
 1000
-223
+127
 1
 1
 NIL
@@ -161,7 +161,7 @@ Initial-Learning-Rate
 Initial-Learning-Rate
 0
 1
-0.1
+1
 .001
 1
 NIL

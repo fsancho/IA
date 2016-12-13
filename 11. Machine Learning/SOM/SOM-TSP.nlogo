@@ -16,7 +16,7 @@ markers-own [
 to setup
   ca
   ; Create the learning nodes
-  SOM:setup-Lnodes N Topology "G" 2
+  SOM:setup-Lnodes N Topology 2 "G"
   ; Create the markers
   setup-markers
   ; Create the cities (Training Set)
@@ -187,7 +187,7 @@ N
 N
 1
 600
-600
+20
 1
 1
 NIL
@@ -202,7 +202,7 @@ Num-Cities
 Num-Cities
 1
 200
-200
+105
 1
 1
 NIL
@@ -216,7 +216,7 @@ CHOOSER
 Topology
 Topology
 "Ring" "SqGrid" "HxGrid"
-0
+2
 
 @#$#@#$#@
 ## WHAT IS IT?
