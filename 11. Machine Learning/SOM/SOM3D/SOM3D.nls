@@ -1,4 +1,5 @@
 ;----------------------------------------------------------------------------
+__includes ["SOMTopology.nls"]
 
 ;------------------------- Preamble definitions -----------------------------
 ; Learining Nodes
@@ -18,81 +19,32 @@ globals [
 ;------------------------- Learning Nodes Topology -------------------------
 
 ; Create #N nodes with the selected topology and content:
-;   #T: Topology "Ring", "SqGrid", "HxGrid"
+;   #T: Topology (check SOMTopology.nls for available topologies)
 ;   #W: weigths "G" Geometrical, "R" Random
 ;   #D: Dimension of the weight space (the real world)
-; If #weights = "G" , then #Dim = 2
+; If #weights = "G" , then #Dim = 3
 ; By default, all the Lnodes are hidden
 
 to SOM:setup-Lnodes [#N #Top #D #W]
+  if #Top = "Line" [SOM:Top-Line #N]
   if #Top = "Ring"   [SOM:Top-Ring #N]
-  if #Top = "SqGrid" [SOM:Top-SqGrid #N]
-  if #Top = "HxGrid" [SOM:Top-HxGrid #N]
+  if #Top = "SqTorus" [SOM:Top-SqTorus #N]
+  if #Top = "HxTorus" [SOM:Top-HxTorus #N]
+  if #Top = "SqGrid3D" [SOM:Top-SqGrid3D #N]
+  if #Top = "HxGrid3D" [SOM:Top-HxGrid3D #N]
+  if #Top = "SphereGrid" [SOM:Top-SphereGrid 3]
+  if #Top = "Cylinder" [SOM:Top-Cylinder #N]
+  if #Top = "CylinderC" [SOM:Top-CylinderC #N]
 
   ; If Weights are geometrical, then the weights are the coordinates
   ; otherwise, they are random in [0,1]
   ifelse #W = "G" 
-    [ask SOM:Lnodes [ set weight (list xcor ycor)]]
+    [
+      ask SOM:Lnodes [
+        set weight coord
+      ]
+    ]
     [ask SOM:Lnodes [set weight (n-values #D [random-float 1])]]    
-end
-
-; Ring Tolopogy
-to SOM:Top-Ring [#N]
-  create-ordered-SOM:Lnodes #N [
-    fd 1 
-    ht
-  ]
-  ask SOM:Lnodes [
-    let c ifelse-value (who = 0) [#N - 1] [who - 1]
-    create-link-with SOM:Lnode c [hide-link]
-  ]
-  set SOM:min-dis sin (360 / #N)
-  set SOM:R0 2
-end
-
-; Square Grid Topology
-to SOM:Top-SqGrid [#N]
-  let rad (world-width) / #N
-  let vals (n-values #N [min-pxcor + ? * rad]) 
-  foreach vals [
-    let x ?
-    foreach vals [
-      let y ?
-      create-SOM:Lnodes 1 [
-        ht
-        setxy x y
-      ]
-    ]
-  ]
-  ask SOM:Lnodes [
-    create-links-with other SOM:Lnodes with [distance myself <= (rad + rad / 10)] [hide-link]
-  ]
-  set SOM:min-dis 1  
-  set SOM:R0 world-width / 2
-end
-
-; Hexagonal Grid Topology
-to SOM:Top-HxGrid [#N]
-  let rad (world-width) / #N
-  let vals n-values #N [min-pxcor + ? * rad]
-  let even 0
-  foreach vals [
-    let x ?
-    foreach vals [
-      let y ?
-      create-SOM:Lnodes 1 [
-        ht
-        set y min (list max-pycor (y + even * rad / 2))
-        setxy x y
-      ]
-    ]
-    set even abs (1 - even)
-  ]
-  ask SOM:Lnodes [
-    create-links-with other SOM:Lnodes with [distance myself <= (1.4142 * rad + rad / 100)] [hide-link]
-  ]
-  set SOM:min-dis 1
-  set SOM:R0 world-width / 4
 end
 
 ;-------------------- SOM Algorithm and related procedures ----------------
@@ -166,17 +118,20 @@ end
 
 to SOM:SOM [#Tset #Training-Time]
   repeat #Training-Time [
-    (foreach shuffle #TSet [
-      let V ?1
-      let W SOM:BMU V
-      ask W [
-        ask SOM:Lnodes in-radius (SOM:R ticks) [
-          set weight SOM:new-weight weight V ticks
-        ]]])
-    SOM:ExternalUpdate
+   SOM:SOM-Step #Tset
   ]
 end
 
+to SOM:SOM-Step [#Tset]
+  (foreach shuffle #TSet [
+    let V ?1
+    let W SOM:BMU V
+    ask W [
+      ask SOM:Lnodes in-radius (SOM:R ticks) [
+        set weight SOM:new-weight weight V ticks
+      ]]])
+  SOM:ExternalUpdate
+end
 ; Computes the error in every Lnode, as the mean distance with the neighborhood
 ; It depends on the radius of the neighborhood
 ;

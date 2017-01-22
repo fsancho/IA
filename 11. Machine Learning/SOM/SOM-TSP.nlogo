@@ -101,7 +101,7 @@ Training-Time
 Training-Time
 0
 10000
-500
+100
 100
 1
 NIL
@@ -187,7 +187,7 @@ N
 N
 1
 600
-20
+35
 1
 1
 NIL
@@ -202,7 +202,7 @@ Num-Cities
 Num-Cities
 1
 200
-105
+200
 1
 1
 NIL
@@ -216,7 +216,7 @@ CHOOSER
 Topology
 Topology
 "Ring" "SqGrid" "HxGrid"
-2
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
