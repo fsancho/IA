@@ -1,0 +1,145 @@
+;----------------------------------------------------------------------------
+__includes ["SOMTopology.nls"]
+
+;------------------------- Preamble definitions -----------------------------
+; Learining Nodes
+breed [ SOM:Lnodes SOM:Lnode ]
+
+SOM:Lnodes-own [
+  weight     ; weight vector associated to this node
+  err        ; mean distance of this wieght node to the neighbors ones
+]
+
+globals [
+  SOM:min-dis  ; Distance between Lnodes (minimal radius to reach)
+  SOM:R0       ; Initial radius
+]
+
+
+;------------------------- Learning Nodes Topology -------------------------
+
+; Create #N nodes with the selected topology and content:
+;   #T: Topology (check SOMTopology.nls for available topologies)
+;   #W: weigths "G" Geometrical, "R" Random
+;   #D: Dimension of the weight space (the real world)
+; If #weights = "G" , then #Dim = 3
+; By default, all the Lnodes are hidden
+
+to SOM:setup-Lnodes [#N #Top #D #W]
+  if #Top = "Line" [SOM:Top-Line #N]
+  if #Top = "Ring"   [SOM:Top-Ring #N]
+  if #Top = "SqTorus" [SOM:Top-SqTorus #N]
+  if #Top = "HxTorus" [SOM:Top-HxTorus #N]
+  if #Top = "SqGrid3D" [SOM:Top-SqGrid3D #N]
+  if #Top = "HxGrid3D" [SOM:Top-HxGrid3D #N]
+  if #Top = "SphereGrid" [SOM:Top-SphereGrid 3]
+  if #Top = "Cylinder" [SOM:Top-Cylinder #N]
+  if #Top = "CylinderC" [SOM:Top-CylinderC #N]
+
+  ; If Weights are geometrical, then the weights are the coordinates
+  ; otherwise, they are random in [0,1]
+  ifelse #W = "G" 
+    [
+      ask SOM:Lnodes [
+        set weight coord
+      ]
+    ]
+    [ask SOM:Lnodes [set weight (n-values #D [random-float 1])]]    
+end
+
+;-------------------- SOM Algorithm and related procedures ----------------
+
+; Function to return the time-dependent influence radius.
+;   It smoothly reduce the radius, from SOM:R0 to SOM:min-dis.
+;   In SOM:min-dis the only Lnode in the neighborhood is itself.
+;
+; t: time
+
+to-report SOM:R [t]
+  let T-Cons Training-Time / (ln (SOM:R0 / SOM:min-dis))
+  report SOM:R0 * exp (-1 * t / T-Cons)
+end
+
+; Funtion to compute the euclidean distance between two vectors (weights).
+;   We don't consider the square root to improve the speed.
+;
+; v1, v2: vectors
+
+to-report SOM:dist [v1 v2]
+  report sum (map [[x1 x2] -> (x1 - x2) ^ 2] v1 v2)
+end
+
+; Function to return the new weight of every Lnode.
+;   The chnage is bigger as closer to the BMU, and smaller in the borders
+;   of the neighborhood. It depends on Learning-rate (SOM:L)
+;   and on a smoother function (SOM:D).
+;
+; t: time
+; W: Weight
+; V: Vector to learn
+
+to-report SOM:new-weight [W V t]
+  report (map [[x1 x2] -> x1 + (SOM:D t) * (SOM:L t) * (x2 - x1)] W V)
+end
+
+; Function to return the learning-rate. It starts with a customizable
+;   value, and reduces in every iteration.
+;
+; t: time
+
+to-report SOM:L [t]
+  report Initial-Learning-Rate * exp (-1 * t / Training-Time)
+end
+
+; Smoother function
+;
+; t: time
+
+to-report SOM:D [t]
+  report exp (-1 * (distance myself) / (2 * (SOM:R t)))
+end
+
+; Returns the BMU of a vector: the closest Lnode.
+; BMU =Best Matching Unit
+;
+; V: Input vector to compute its BMU
+
+to-report SOM:BMU [V]
+  report min-one-of SOM:Lnodes [SOM:dist ([weight] of self) V]
+end
+
+; SOM Algorithm: For every training vector (from #TSet) we take its BMU,
+;   and compute the new weight for every Lnode in its neighborhood in order
+;   to close them to the vector. It iterates #Training-Time steps.
+; After every iteration we execute SOM:ExternalUpdate, that can be customized.
+;
+; #TSet: Vectors to Learn
+; #Training-Time: Number of iterations to apply SOM
+
+to SOM:SOM [#Tset #Training-Time]
+  repeat #Training-Time [
+   SOM:SOM-Step #Tset
+  ]
+end
+
+to SOM:SOM-Step [#Tset]
+  (foreach shuffle #TSet [
+    V ->
+    let W SOM:BMU V
+    ask W [
+      ask SOM:Lnodes in-radius (SOM:R ticks) [
+        set weight SOM:new-weight weight V ticks
+      ]]])
+  SOM:ExternalUpdate
+end
+; Computes the error in every Lnode, as the mean distance with the neighborhood
+; It depends on the radius of the neighborhood
+;
+; #radius: Radius of the neighborhood to compute the error
+
+to SOM:error [#radius]
+  ask SOM:Lnodes [
+    let vec other SOM:Lnodes in-radius #radius
+    set err mean map [x -> SOM:dist weight x] ([weight] of vec)
+    ]
+end

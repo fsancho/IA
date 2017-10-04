@@ -1,0 +1,298 @@
+;----------------------------------------------------------------------------
+;------------------ Functions to create SOM Surfaces ------------------------
+
+globals [
+  Faces ; In use for Sphere Grid
+]
+
+
+; Ring Tolopogy:
+;   N nodes in a 1-radius circle
+to SOM:Top-Ring [#N]
+  create-ordered-SOM:Lnodes #N [
+    fd 1
+    ht
+  ]
+  ; Create links
+  let w min [who] of SOM:Lnodes
+  ask SOM:Lnodes [
+    let c ifelse-value (who = w) [max [who] of SOM:Lnodes] [who - 1]
+    create-link-with SOM:Lnode c [hide-link]
+  ]
+  set SOM:min-dis sin (360 / #N)
+  set SOM:R0 2
+end
+
+; Line Topoloy:
+;  N nodes in a world-width / 2 line
+to SOM:Top-Line [#N]
+  set SOM:min-dis world-width / (2 * #N)
+  let w count turtles
+  create-SOM:Lnodes #N [
+    setxyz (min-pxcor + (who - w) * SOM:min-dis) 0 0  
+    ht
+  ]
+  ; Create links
+  ask SOM:Lnodes [
+    carefully
+    [ create-link-with SOM:Lnode (who - 1) [hide-link]]
+    []
+  ]
+  set SOM:R0 world-width / 2
+end
+
+; Square Torus Grid Topology
+;   NxN nodes of size world-width x world-width 
+to SOM:Top-SqTorus [#N]
+  let rad (world-width) / #N
+  let vals (n-values #N [x -> min-pxcor + x * rad]) 
+  foreach vals [
+    x ->
+    foreach vals [
+      y -> 
+      create-SOM:Lnodes 1 [
+        ht
+        setxy x y
+      ]
+    ]
+  ]
+  ; Create links
+  ask SOM:Lnodes [
+    create-links-with other SOM:Lnodes with [distance myself <= (rad + rad / 10)] [hide-link]
+  ]
+  set SOM:min-dis 1  
+  set SOM:R0 world-width / 2
+end
+
+; Square Grid Topology
+;   NxN nodes of size world-width/2 x world-width/2 
+to SOM:Top-SqGrid3D [#N]
+  let rad (world-width) / (2 * #N)
+  let vals (n-values #N [x -> min-pxcor + x * rad]) 
+  foreach vals [
+    x ->
+    foreach vals [
+      y ->
+      create-SOM:Lnodes 1 [
+        ht
+        setxyz x y min-pzcor
+      ]
+    ]
+  ]
+  ask SOM:Lnodes [
+    create-links-with other SOM:Lnodes with [distance myself <= (rad + rad / 100)] [hide-link]
+  ]
+  set SOM:min-dis .5 
+  set SOM:R0 world-width / 4
+end
+
+; Hexagonal Torus Grid Topology
+;   NxN nodes of size world-width x world-width 
+to SOM:Top-HxTorus [#N]
+  let rad (world-width) / #N
+  let vals n-values #N [x -> min-pxcor + x * rad]
+  let even 0
+  foreach vals [
+    x ->
+    foreach vals [
+      y ->
+      create-SOM:Lnodes 1 [
+        ht
+        set y min (list max-pycor (y + even * rad / 2))
+        setxy x y
+      ]
+    ]
+    set even abs (1 - even)
+  ]
+  ;Create Links
+  ask SOM:Lnodes [
+    create-links-with other SOM:Lnodes with [distance myself <= (1.4142 * rad + rad / 100)] [hide-link]
+  ]
+  set SOM:min-dis 1
+  set SOM:R0 world-width
+end
+
+; Hexagonal Grid Topology
+;   NxN nodes of size world-width/2 x world-width/2 
+to SOM:Top-HxGrid3D [#N]
+  let rad (world-width) / (2 * #N)
+  let vals n-values #N [x -> min-pxcor + x * rad]
+  let even 0
+  foreach vals [
+    x ->
+    foreach vals [
+      y ->
+      create-SOM:Lnodes 1 [
+        ht
+        set y min (list max-pycor (y + even * rad / 2))
+        setxyz x y max-pzcor
+        setxyz xcor zcor ycor
+      ]
+    ]
+    set even abs (1 - even)
+  ]
+  ; Create Links
+  ask SOM:Lnodes [
+    create-links-with other SOM:Lnodes with [distance myself <= (1.4142 * rad + rad / 10)] [hide-link]
+  ]
+  set SOM:min-dis .5
+  set SOM:R0 world-width / 2
+end
+
+; Cylynder
+;   No top and bottom, NxN nodes, radius (world-width) / 8, distance 2pi rad-cyl/N
+to SOM:Top-Cylinder [#N]
+  let rad-cyl (world-width) / 8
+  let rad 2 * pi * rad-cyl / #N
+  let vals n-values #N [x -> x]
+  foreach vals [
+    x ->
+    foreach vals [
+      y ->
+      create-SOM:Lnodes 1 [
+        ht
+        let ang 360 * x / #N
+        setxyz (rad-cyl * sin ang) (rad-cyl * cos ang) (min-pzcor + y * rad)
+      ]
+    ]
+  ]
+  ; Create Links
+  ask SOM:Lnodes [
+    create-links-with other SOM:Lnodes with [distance myself <= (rad + rad / 10)] [hide-link]
+  ]
+  set SOM:min-dis .5
+  set SOM:R0 2 * rad-cyl 
+end
+
+; Cylynder
+;   Top and bottom, NxN nodes, radius (world-width) / 8, distance 2pi rad-cyl/N
+to SOM:Top-CylinderC [#N]
+  let rad-cyl (world-width) / 8
+  let rad 2 * pi * rad-cyl / #N
+  let #k floor (rad-cyl / rad)
+  show #k
+  let vals n-values #N [x -> x]
+  foreach vals [
+    x -> 
+    foreach vals [
+      y ->
+      let px x * rad - rad-cyl
+      let py y * rad - rad-cyl
+      if (px ^ 2 + py ^ 2 < rad-cyl ^ 2) [
+        create-SOM:Lnodes 1 [
+          ht
+          setxyz px py min-pzcor
+        ]
+        create-SOM:Lnodes 1 [
+          ht
+          setxyz px py (min-pzcor + (#N - 1) * rad)
+        ]
+      ]
+    ]
+  ]
+
+  foreach vals [
+    x ->
+    foreach vals [
+      y ->
+      create-SOM:Lnodes 1 [
+        ht
+        let ang 360 * x / #N
+        setxyz (rad-cyl * sin ang) (rad-cyl * cos ang) (min-pzcor + y * rad)
+      ]
+    ]
+  ]
+  ask SOM:Lnodes [
+    create-links-with other SOM:Lnodes with [distance myself <= (rad + rad / 10)] [hide-link]
+  ]
+  set SOM:min-dis .5
+  set SOM:R0 4 * rad-cyl 
+end
+
+; Sphere Triangular Grid
+;  radius 1
+;  It is built from the iterative subdivision of the faces of a tetrahedron
+to SOM:Top-SphereGrid [it]
+  tetrahedron
+  repeat it [Sphere:Iterate]
+  set SOM:min-dis [link-length] of one-of links
+  set SOM:R0 2
+end
+
+; Initial tettrahedron
+to tetrahedron
+  Let InitialPoints [ [0 0 1] [1 0 0] [0 1 0] [-1 0 0] [0 -1 0] [0 0 -1]]
+  set Faces [ [0 1 2] [0 2 3] [0 3 4] [0 4 1] [5 1 2] [ 5 2 3] [5 3 4] [5 4 1]]
+  let PTurtles []
+  foreach InitialPoints  [
+    x ->
+    let a PCreate x
+    set PTurtles lput a PTurtles
+  ]
+  set Faces map [x -> PTurtles-Face x PTurtles] Faces
+  FCreate
+end
+
+to-report PTurtles-Face [f PTurtles]
+  report map [x -> item x PTurtles] f
+end
+
+to Sphere:Iterate
+  let NewFaces []
+  foreach Faces [
+    x ->
+    let a item 0 x
+    let b item 1 x
+    let c item 2 x
+    let ab PCreate (MedianPoint (list a b))
+    let bc PCreate (MedianPoint (list b c))
+    let ac PCreate (MedianPoint (list a c))
+    let DivisionFaces (list (list a ab ac) (list b ab bc) (list c ac bc) (list ab ac bc))
+    set NewFaces sentence NewFaces DivisionFaces
+  ]
+  set Faces NewFaces
+  ask links [die]
+  FCreate
+end
+  
+to FCreate
+  foreach Faces [
+    x ->
+    let a turtle (item 0 x)
+    let b turtle (item 1 x)
+    let c turtle (item 2 x)
+    ask a [
+      create-link-with b
+      create-link-with c
+    ]
+    ask b [
+      create-link-with c
+    ]
+  ]
+end    
+
+to-report PCreate [pos]
+  let a 0
+  create-SOM:Lnodes 1 [
+    set shape "circle"
+    set color blue
+    set size .1
+    locate pos
+    set a who
+    ht
+  ]
+  report a
+end
+
+to locate [pos]
+  setxyz (item 0 pos) (item 1 pos) (item 2 pos)
+end
+
+to-report MedianPoint [Lp]
+  let x mean map [i -> [xcor] of turtle i] Lp
+  let y mean map [i -> [ycor] of turtle i] Lp
+  let z mean map [i -> [zcor] of turtle i] Lp
+  let norm sqrt (x ^ 2 + y ^ 2 + z ^ 2)
+  report map [i -> i / norm] (list x y z)
+end
+

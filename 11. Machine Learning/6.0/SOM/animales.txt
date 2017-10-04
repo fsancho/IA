@@ -1,0 +1,14 @@
+"Atributo" "Paloma" "Gallina" "Pato" "Ganso" "Buho" "Halcón" "Águila" "Zorro" "Perro" "Lobo" "Gato" "Tigre" "León" "Caballo" "Cebra" "Vaca"
+"Pequeño" 1 1 1 1 1 1 0 0 0 0 1 0 0 0 0 0
+"Medio" 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0
+"Grande" 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1
+"2 patas" 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
+"4 patas" 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
+"Pelo" 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
+"Pezuñas" 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 
+"Melena" 0 0 0 0 0 0 0 0 0 1 0 0 1 1 1 0
+"Plumas" 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
+"Caza" 0 0 0 0 1 1 1 1 0 1 1 1 1 0 0 0
+"Corre" 0 0 0 0 0 0 0 0 1 1 0 1 1 1 1 0
+"Vuela" 1 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0
+"Nada" 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0
