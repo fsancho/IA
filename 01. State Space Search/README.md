@@ -17,9 +17,9 @@ Los **estados** se representan por medio de la familia de tortugas _AI:states_, 
 
 + `content`   : Almacena el contenido (valor) del estado
 + `explored?` : Indica si el estado ha sido explorado/creado o no
-+ `depth`     : Indica la profundidad del estado dentro respecto del estado inicial (de uso en algunas de las funcionalidades de LayoutSpace para la representación).
++ `depth`     : Indica la profundidad del estado respecto del estado inicial (de uso en algunas de las funcionalidades de LayoutSpace para la representación).
 
-Las **transiciones**, que permiten convertir estados entre sí, vienen representados por medio de la familia de links  _AI:transitions_, que deben contener (el menos) las siguientes propiedades:
+Las **transiciones**, que permiten convertir estados entre sí, vienen representados por medio de la familia de links  _AI:transitions_, que deben contener (al menos) las siguientes propiedades:
 
 + `rule`   : Almacena información varia acerca de la transición. Debe tener una estructura determinada que explicamos a continuación.
 
