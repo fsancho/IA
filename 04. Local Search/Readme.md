@@ -16,38 +16,23 @@ Lista de ficheros asociados a Búquedas Locales:
 
 # Instrucciones de uso de SimulatedAnnealing
 
-Esta librería es realmente una extensión de la librería BFS explicada en el apartado de [Uninformed Search](https://github.com/fsancho/IA/tree/master/02.%20Uninformed%20Search), en consecuencia, tanto los estados (_AI:states_) como las transiciones (_AI:transitions_) siguen un comportamiento similar y se muestran aquí únicamente las diferencias.
+Esta librería permite aplicar el algoritmo de Templado Simulado general sobre problemas representados de forma abstracta que verifiquen algunas ligeras restricciones. Para ello, la librería trabaja con las siguientes variables globales reservadas:
 
 Los estados se representan por medio de la familia de tortugas _AI:states_, que deben contener (al menos) las siguientes propiedades:
 
-+ `content` : Almacena el contenido (valor) del estado
-+ `depth` : Indica la profundidad del estado dentro respecto del estado inicial (de uso en algunas de las funcionalidades de LayoutSpace para la representación).
++ `AI:SimAnnGlobalEnergy`: Almacena la energia del estado actual.
++ `AI:SimAnnTemperature`: Almacena la temperatura actual del sistema.
++ `AI:accept-equal-changes?`: Indica si el algoritmo aceptara cambiar el estado actual en caso de igualdad de energía.
 
-Las transiciones, que permiten convertir estados entre sí, vienen representados por medio de la familia de links _AI:transitions_, que deben contener (el menos) las siguientes propiedades:
-
-+ `rule` : Almacena información varia acerca de la transición. Debe tener una estructura determinada que se explica a continuación.
-+ `cost-link` : Almacena el coste de la transición.
-
-Al igual en la librería BFS, en este caso necesitamos que las reglas usen una forma de lista `["rep" coste ..]`,  que debe tener en su primera componente una representación imprimible de la regla, ya que esta componente será usada para dar una versión comprensible por el humano de las transiciones usadas en los procesos, y en la segunda componente el coste de aplicar dicha regla. En los modelos de ejemplo anteriores se pueden ver usos válidos de las reglas.
-
-Además, el algoritmo A* almacena toda la información la búsqueda en una familia adicional de agentes denominada AI:searchers, que tienen las siguientes propiedades:
-
-+ `memory` : Almacena el camino de nodos que ha recorrido A* desde el estado inicial hasta el nodo en el que se encuentra este buscador
-+ `cost` : Almacena el coste real del camino recorrido desde el estado inicial.
-+ `total-expected-cost` : Almacena el coste total esperado desde el estado inicial hasta el objetivo.
-+ `current-state`: Almacena el estado (_AI:state_) en el que se encuentra este buscador
-+ `active?` : Establece si este buscador esta activo, es decir, si los estados vecinos al suyo han sido explorados o no.
-
-La función principal de la librería **A-star** es el procedimiento `A*`, que construye el grafo de estados que se obtiene a partir de un estado inicial dado (siguiendo la selección heurística definida por el usuario) y comprueba si el estado objetivo ha sido alcanzado o no. El grafo de estados subyacente se va construyendo de forma dinámica a medida que va siendo necesario. 
-
-Esencialmente, el algoritmo calcula recursivamente los estados sucesores del estado que la heurística dice que hay que expandir y los conecta por medio de links (_AI:transitions_). Este proceso se repite hasta alcanzar el estado objetivo y estamos seguros de que es el camino óptimo (por lo que, quizás, tras haberlo alcanzado, haya que cerrar algunos nodos más) o si se ha terminado de recorrer el espacio completo y no se ha alcanzado el objetivo. `A*` es por tanto un report, que devolverá:
-
-+ `False` si no ha habido éxito en la búsqueda.
-+ La memoria del buscador que ha alcanzado un estado final.
-
-Ha de tenerse en cuenta que la búsqueda podría dar como resultado un proceso infinito, lo que en NetLogo puede provocar problemas de estabilidad en el motor de ejecución.
+La función principal de la librería **SimulatedAnnealing** es el procedimiento `AI:SimAnn`, que realiza la búsqueda entre los estados del espacio siguiendo el algoritmo de Templado Simulado. Esencialmente, va generando estados al azar a partir del estado actual y se realiza el cambio de estado en caso favorable (que disminuya la energía del sistema, o al azar con una probabildiad igual a la tempertaura del sistema)
 
 Los datos de entrada que espera este procedimiento son:
+
++ `#Initial-state`: Estado inicial desde el que comienza la búsqueda
++ `#tries-by-cycle`: Número de estados que se construirán en cada ciclo del bucle principal (todos ellos con la misma temperatura)
++ `#mim-Temp`: Temperatura mínima a la que parará a búsqueda (si no se ha encontrado energía nula antes)
++ `#cooling-rate`: Ratio de enfriamiento de la temperatura en cada ciclo
++ `#aec`: True/False ... si aceptamos cambios con la misma energía 
 
 + `#initial-state` : Contenido del estado inicial que dará comienzo a la construcción.
 + `#final-state` : Contenido del estado final que se busca. En caso de que el estado final venga dado por una condición de parada, pero no por un estado concreto (como en el problema de las _N reinas_), esa condición de parada vendrá dada por un report que se explicará a continuación, y en este caso podemos pasarle cualquier dato como estado final, ya que no lo considerará.
