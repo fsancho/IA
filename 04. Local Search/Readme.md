@@ -1,17 +1,20 @@
 # Búsquedas Locales
 
-Lista de ficheros asociados a Búquedas no Informadas:
+Lista de ficheros asociados a Búquedas Locales:
 
-+ `A-star.nls`:	Fichero Fuente de NetLogo con los algoritmos genéricos asociados a la Búsqueda Informada con A*.
-+ `LayoutSpace.nls`:	Fichero Fuente de NetLogo que contiene la librería para visualizar espacios de estados calculados (para BFS y otras librerías que hacen uso de estructuras similares).
-+ `A-star Problem Solver - Numerical Puzzle.nlogo`:	Modelo de solución A* del problema del _puzle numérico_.
-+ `A-star Problem Solver - Sorting Lists.nlogo`:	Modelo de solución A* del problema de ordenación de listas.
-+ `A-star Problem Solver - 8 puzzle.nlogo`:	Modelo de solución A* del _problema del 8 puzle_.
-+ `A-star Turtles Geometric Network.nlogo`:	Modelo de uso del algoritmo A* en la búsqueda de caminos mínimos de grafos geométricos. No hace uso de la librería A-star.
-+ `A-star patches.nlogo`:	Modelo de uso del algoritmo A* en la búsqueda de caminos mínimos sobre patches. No hace uso de la librería A-star.
-+ `a-star_2009.nlogo`:	Modelo de uso del algoritmo A* en la búsqueda de caminos mínimos sobre patches. No hace uso de la librería A-star. Muestra distintas heurísticas de distancias para poder comparar resultados.
++ `SimulatedAnnealing.nls`:	Fichero Fuente de NetLogo3D con los algoritmos genéricos asociados al Templado Simulado.
++ `Simulated Annealing Sorting Lists.nlogo`:	Modelo de solución del problema de ordenación de listas haciendo uso de la librería general de Templado Simulado.
++ `Simulated Annealing N Queens.nlogo`:	Modelo de solución del problema de las N reinas haciendo uso de la librería general de Templado Simulado.
++ `SimulatedAnnealingNonogram.nlogo`: Modelo de solución de puzles Nonogramas haciendo uso de Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior).
++ `SimulatedAnnealingSudoku.nlogo`: Modelo de solución de puzles Sudoku haciendo uso de Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior).
++ `SimulatedAnnealingSudoku2.nlogo`: Variante de solución de puzles Sudoku haciendo uso de Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior). La diferencia con el anterior es que este modelo permite prefijar unos cuantos elementos, tal y como vienen en los periódicos.
++ `Templado Simulado.nlogo`:	Modelo de ejemplo básico del Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior). 
++ `Ascenso Colina.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores. 
++ `Ascenso Colina 3D.nlogo3d`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, versión 3D. 
++ `HilClimbingPatches.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre patches. 
++ `HillClimbingNetwork.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre grafos genéricos. 
 
-# Instrucciones de uso de A-star
+# Instrucciones de uso de SimulatedAnnealing
 
 Esta librería es realmente una extensión de la librería BFS explicada en el apartado de [Uninformed Search](https://github.com/fsancho/IA/tree/master/02.%20Uninformed%20Search), en consecuencia, tanto los estados (_AI:states_) como las transiciones (_AI:transitions_) siguen un comportamiento similar y se muestran aquí únicamente las diferencias.
 
