@@ -1,0 +1,12 @@
+general
+primitives.creation
+primitives.defuzzification
+primitives.implication
+primitives.labeling
+primitives.operators
+primitives.rules
+sets.derived
+sets.function
+sets.general
+sets.operator
+sets.points
