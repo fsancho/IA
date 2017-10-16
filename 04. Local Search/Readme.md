@@ -28,27 +28,16 @@ La función principal de la librería **SimulatedAnnealing** es el procedimiento
 
 Los datos de entrada que espera este procedimiento son:
 
-+ `#Initial-state`: Estado inicial desde el que comienza la búsqueda
-+ `#tries-by-cycle`: Número de estados que se construirán en cada ciclo del bucle principal (todos ellos con la misma temperatura)
-+ `#mim-Temp`: Temperatura mínima a la que parará a búsqueda (si no se ha encontrado energía nula antes)
-+ `#cooling-rate`: Ratio de enfriamiento de la temperatura en cada ciclo
-+ `#aec`: True/False ... si aceptamos cambios con la misma energía 
-
-+ `#initial-state` : Contenido del estado inicial que dará comienzo a la construcción.
-+ `#final-state` : Contenido del estado final que se busca. En caso de que el estado final venga dado por una condición de parada, pero no por un estado concreto (como en el problema de las _N reinas_), esa condición de parada vendrá dada por un report que se explicará a continuación, y en este caso podemos pasarle cualquier dato como estado final, ya que no lo considerará.
-+ `#debug?` : `True / False` - Indica si se mostrará el contenido en los estados, y las reglas en las transiciones.
-+ `#visible?` : Muestra/Oculta estados y transiciones en el interfaz.
++ `#Initial-state`: Estado inicial desde el que comienza la búsqueda.
++ `#tries-by-cycle`: Número de estados que se construirán en cada ciclo del bucle principal (todos ellos con la misma temperatura).
++ `#mim-Temp`: Temperatura mínima a la que parará a búsqueda (si no se ha encontrado energía nula antes).
++ `#cooling-rate`: Ratio de enfriamiento de la temperatura en cada ciclo.
++ `#aec`: True/False ... si aceptamos cambios con la misma energía .
 
 Para el correcto funcionamiento de esta librería en el modelo principal se deben definir las siguientes funciones:
 
-+ `children-states` : Lo pueden ejecutar los estados, y devuelve una lista con información sobre los posibles sucesores del estado que lo ejecuta. En este sentido, cada estado devuelto deber ser un par `[s r]`, donde `s` es el contenido del nuevo estado, y `r` es una regla con la estructura vista anteriormente (`["rep" c ...]`).
-
-+ `final-state?` : Lo pueden ejecutar los estados y devuelve si el estado actual debe ser considerado un estado final. Este procedimeinto recibe como entrada un parámetro que, por ejemplo, permita comparar el estado actual con el `#final-state` en caso de que dicho estado final sea un estado concreto. Si no fuera así, el parámetro pasado no tiene utilidad y la verificación de si es final o no solo se basará en propiedades internas al estado actual.
-
-+ `heuristic` : lo pueden ejecutar los buscadores. Recibe como entrada el objetivo buscado, y devuelve el valor de la heurística que se usará para medir la distancia entre el estado en el que se encuentra el buscador y el objetivo.
++ `AI:get-new-state`: que recibe un estado y genera otro a partir de él (normalmente, al azar entre las transiciones posibles).
++ `AI:EnergyState`: que recibe un estado y devuelve la energía asociada a él.
++ `AI:SimAnnExternalUpdates`: procedimiento adicional auxiliar que se ejecutará en cada ciclo del algoritmo principal, por ejemplo, para mostrar información durante la ejecución o actualizar los valores de agentes del mundo.
 
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
-
-# Instrucciones de uso de LayoutSpace
-
-Véase el [apartado equivalente en BSS](https://github.com/fsancho/IA/blob/master/01.%20State%20Space%20Search/README.md).
