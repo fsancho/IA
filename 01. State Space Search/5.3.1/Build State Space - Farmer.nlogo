@@ -127,7 +127,7 @@ to state-explorer
     let selected-state min-one-of AI:states [distancexy mouse-xcor mouse-ycor]
     ask selected-state [
       output-print (word "Left side: " (reduce word (item 0 content)))
-      output-print (word "Rightt side: " (reduce word (item 1 content)))
+      output-print (word "Right side: " (reduce word (item 1 content)))
       output-print (word "Boat in the " (ifelse-value ((item 2 content) = "R") ["Right"] ["Left"]))
     ]
     wait .1
@@ -195,7 +195,7 @@ INPUTBOX
 180
 70
 Initial_State
-[[\"c\" \"o\" \"l\"][] \"R\"]
+[[\"c\" \"o\" \"l\"][] \"L\"]
 1
 0
 String
