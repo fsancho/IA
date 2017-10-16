@@ -11,7 +11,7 @@ Lista de ficheros asociados a Búquedas Locales:
 + `Templado Simulado.nlogo`:	Modelo de ejemplo básico del Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior). 
 + `Ascenso Colina.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores. 
 + `Ascenso Colina 3D.nlogo3d`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, versión 3D. 
-+ `HilClimbingPatches.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre patches. 
++ `HilClimbingPatches.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre patches. También muestra un experimento para comparar la eficiencia real del sistema de búsqueda cuando se incrementa el número de buscadores.
 + `HillClimbingNetwork.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre grafos genéricos. 
 
 # Instrucciones de uso de SimulatedAnnealing
