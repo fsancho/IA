@@ -8,11 +8,10 @@ Lista de ficheros asociados a Búquedas Locales:
 + `SimulatedAnnealingNonogram.nlogo`: Modelo de solución de puzles Nonogramas haciendo uso de Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior).
 + `SimulatedAnnealingSudoku.nlogo`: Modelo de solución de puzles Sudoku haciendo uso de Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior).
 + `SimulatedAnnealingSudoku2.nlogo`: Variante de solución de puzles Sudoku haciendo uso de Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior). La diferencia con el anterior es que este modelo permite prefijar unos cuantos elementos, tal y como vienen en los periódicos.
-+ `Templado Simulado.nlogo`:	Modelo de ejemplo básico del Templado Simulado (atención: este modelo incluye un algoritmo propio de Templado Simulado, no hace uso de la librería general anterior). 
-+ `Ascenso Colina.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores. 
-+ `Ascenso Colina 3D.nlogo3d`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, versión 3D. 
 + `HilClimbingPatches.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre patches. También muestra un experimento para comparar la eficiencia real del sistema de búsqueda cuando se incrementa el número de buscadores.
 + `HillClimbingNetwork.nlogo`:	Modelo de ejemplo básico del Ascenso de la Colina con uno o varios buscadores, trabajando sobre grafos genéricos. 
+
+Además, en la versión 5.3.1 se puede encontrar la extensión `rnd`, de la que hace uso la librería, pero que va incluida de serie a partir de la versión 6.0.
 
 # Instrucciones de uso de SimulatedAnnealing
 
