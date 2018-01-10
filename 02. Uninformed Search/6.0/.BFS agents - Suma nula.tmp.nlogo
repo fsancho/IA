@@ -1,103 +1,92 @@
-; La familia Points contendrá los puntos a clasificar
-; La familia Clusters representa los clusters en los que queremos dividir los Points
+;----------------- Include Algorithms Library --------------------------------
 
-breed [points point]
-breed [clusters cluster]
+__includes [ "BFS.nls" "LayoutSpace.nls"]
 
-; Tanto Points como Clusters tienen una propiedad, llamada pos, que almacena un vector
-;   D-dimensional.
-; Además, Points tiene una propiedad, llamada cl, donde almacena el cluster al que
-;   pertenece en cada iteración. Finalmente, almacenará el agente cluster en el que se
-;   clasifica
+globals [ I ]
+;--------------- Customizable Reports -------------------
 
-points-own [
-  pos
-  cl
-]
+; These reports must be customized in order to solve different problems using the
+; same BFS function.
 
-clusters-own [
-  pos
-]
+; Rules are represented by using pairs [ "representation" f ]
+; in such a way that f allows to transform states (it is the transition function)
+; and "representation" is a string to identify the rule. We will use tasks in
+; order to store the transition functions.
 
-; Setuo crea N puntos D-dimensionales distribuidos uniformemente en un intervalo [0,10]^D
-; Para problemas concretos se puede trabajar con los puntos dados por el problema
-to setup [N D]
+; children-states is an agent report that returns the children for the current state.
+; it will return a list of pairs [ns tran], where ns is the content of the children-state,
+; and tran is the applicable transition to get it.
+; It maps the applicable transitions on the current content, and then filters those
+; states that are valid.
+
+to-report AI:children-states
+  let indices n-values  (length I) [x -> x]
+  report filter [x -> valid? (first x)] (map [x -> (list (trans content x) (list x))] indices)
+end
+
+; Solo admitimos estados que representan subconjuntos no vacíos
+to-report valid? [l]
+  report sum l > 0
+end
+
+; (trans s j) devuelve un estado que es igual que s salvo en la posición j
+to-report trans [s j]
+  let sj item j s
+  report replace-item j s (1 - sj)
+end
+
+; final-state? is an agent report that identifies the final states for the problem.
+; It usually will be a property on the content of the state (for example, if it is
+; equal to the Final State). It allows the use of parameters because maybe the
+; verification of reaching the goal depends on some extra information from the problem.
+
+; Un estado es final si su suma es nula
+to-report AI:final-state? [params]
+  report sum (map [[x y] -> x * y] content I) = 0
+end
+
+
+;-------- Customs visualization procedures -------------------------------------------
+
+
+to test
   ca
-  create-points N [
-    set pos (n-values D [random-float 10])
-  ]
-end
-
-; Función para crear K clusters en K puntos seleccionados al azar
-to crea-clusters [K]
-  ask n-of K points [
-    hatch 1 [
-      set breed clusters
+  set Initial_State (word n-values 5 [random 2])
+  set I n-values 5 [random 10 - 5]
+  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
+  if p != nobody [
+    ask p [
+      set color red
+      foreach extract-transitions-from-path
+      [ x ->
+        ask x [
+          set color red
+          set thickness .3
+        ]
+      ]
+      output-print "The solution is: "
+      output-print map [x -> [first rule] of x] extract-transitions-from-path
     ]
+    style
   ]
-end
-
-
-; Función principal:
-;    K : Número de cluster para la clasificación
-;    Iter: Número de iteraciones en el algoritmo
-to k-medias [K Iter]
-  crea-clusters K
-  repeat Iter [
-    K-medias-step
-  ]
-  ; Mostramos el contenido de cada cluster
-  ask clusters [
-    show points with [cl = myself]
-  ]
-end
-
-; Un paso de iteración del algoritmo
-to K-medias-step
-  ; Seleccionamos para cada Point el cluster más cercano
-  ask points [
-    let p-point pos
-    set cl min-one-of clusters [distancia pos p-point]
-  ]
-  ; Actualizamos la posición del cluster al punto medio de sus puntos
-  ask clusters [
-    set pos centro ([pos] of points with [cl = myself])
-  ]
-end
-
-; Report de distancia entre dos puntos D-dimensionales
-to-report distancia [p1 p2]
-  report sqrt sum (map [ [?1 ?2] -> (?1 - ?2) ^ 2 ] p1 p2)
-end
-
-; Report del centro geométrico de una lista de posiciones
-to-report centro [lista-pos]
-  let d length first lista-pos
-  let indices (n-values d [ ?1 -> ?1 ])
-  report map [ x -> mean (coords x lista-pos) ] indices
-end
-
-; Lista de las coordenadas i-esimas de una lista de posiciones
-to-report coords [i lp]
-  report map [ x -> item i x ] lp
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-36
-9
-486
-460
--1
--1
-13.4
-1
+180
 10
+617
+448
+-1
+-1
+13.0
+1
+12
 1
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -108,6 +97,91 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+115
+130
+180
+163
+Layout
+layout-space \"*\"\n
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+10
+360
+115
+405
+Explored States
+count turtles
+17
+1
+11
+
+INPUTBOX
+10
+10
+180
+70
+Initial_State
+[0 1 1 1 0]
+1
+0
+String
+
+INPUTBOX
+10
+70
+180
+130
+Final_State
+NIL
+1
+0
+String
+
+BUTTON
+10
+130
+105
+163
+Run Search
+test
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+10
+165
+180
+360
+10
+
+MONITOR
+645
+30
+945
+75
+NIL
+I
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -458,7 +532,7 @@ NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 default
-0.0
+1.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -468,5 +542,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@

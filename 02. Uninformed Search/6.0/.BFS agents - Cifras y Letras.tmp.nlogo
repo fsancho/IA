@@ -1,103 +1,122 @@
-; La familia Points contendrá los puntos a clasificar
-; La familia Clusters representa los clusters en los que queremos dividir los Points
+;----------------- Include Algorithms Library --------------------------------
 
-breed [points point]
-breed [clusters cluster]
+__includes [ "BFS.nls" "LayoutSpace.nls"]
 
-; Tanto Points como Clusters tienen una propiedad, llamada pos, que almacena un vector
-;   D-dimensional.
-; Además, Points tiene una propiedad, llamada cl, donde almacena el cluster al que
-;   pertenece en cada iteración. Finalmente, almacenará el agente cluster en el que se
-;   clasifica
 
-points-own [
-  pos
-  cl
-]
+;--------------- Customizable Reports -------------------
 
-clusters-own [
-  pos
-]
+; These reports must be customized in order to solve different problems using the
+; same BFS function.
 
-; Setuo crea N puntos D-dimensionales distribuidos uniformemente en un intervalo [0,10]^D
-; Para problemas concretos se puede trabajar con los puntos dados por el problema
-to setup [N D]
-  ca
-  create-points N [
-    set pos (n-values D [random-float 10])
-  ]
+; Ops almacena las posibles operaciones como funciones lambda. Además, controla que no se divida por 0
+globals [ops]
+
+; Aplica la operacion op sobre los elementos i y j del estado s (siempre con el mismo orden).
+; Si no se puede aplicar, devuelve false (dividir por 0, división no entera...)
+to-report aplica [op i j s]
+  if i = j [report false]
+  let inds reverse sort (list i j)
+  set i min inds
+  set j max inds
+  let nums reverse sort (list (item i s) (item j s))
+  let res (run-result op (first nums) (last nums))
+  if res = false or res != int res  [report false]
+  report (lput res  (remove-item i (remove-item j s)))
 end
 
-; Función para crear K clusters en K puntos seleccionados al azar
-to crea-clusters [K]
-  ask n-of K points [
-    hatch 1 [
-      set breed clusters
+
+; Un estado es válido si no es false
+to-report valid? [x]
+  report (x != false)
+end
+
+; children-states is an agent report that returns the children for the current state.
+; it will return a list of pairs [ns tran], where ns is the content of the children-state,
+; and tran is the applicable transition to get it.
+; It maps the applicable transitions on the current content, and then filters those
+; states that are valid.
+
+; Por cada operación valida, y par de índices, calcula el siguiente estado aplicación la operación
+; sobre esos elementos
+to-report AI:children-states
+  let indices (n-values (length content) [x -> x])
+  let res []
+  foreach ops
+    [op ->
+      foreach indices
+        [ i ->
+          let r (map [ j -> (list (aplica (first op) i j content)
+                                  (list (word (item i content) (last op) (item j content))))
+                     ] indices)
+          set res sentence r res
+      ]
+  ]
+  report filter [ x -> valid? (first x) ] res
+end
+
+;--------------------- State Explorer Print -----------------------------------------
+
+; We can adapt state-explorer to customize our specific problem needs
+to state-explorer
+  if mouse-down? [
+    clear-output
+    let selected-state min-one-of AI:states [distancexy mouse-xcor mouse-ycor]
+    ask selected-state [
+      output-print (word "Content: " content)
     ]
+    wait .1
   ]
 end
 
 
-; Función principal:
-;    K : Número de cluster para la clasificación
-;    Iter: Número de iteraciones en el algoritmo
-to k-medias [K Iter]
-  crea-clusters K
-  repeat Iter [
-    K-medias-step
-  ]
-  ; Mostramos el contenido de cada cluster
-  ask clusters [
-    show points with [cl = myself]
-  ]
+to-report AI:final-state? [params]
+  report ( member? params content)
 end
 
-; Un paso de iteración del algoritmo
-to K-medias-step
-  ; Seleccionamos para cada Point el cluster más cercano
-  ask points [
-    let p-point pos
-    set cl min-one-of clusters [distancia pos p-point]
+
+;-------- Customs visualization procedures -------------------------------------------
+
+
+to test
+  ca
+  set ops (list (list [[x y] -> x + y] "+")
+    (list [[x y] -> x - y] "-")
+    (list [[x y] -> x * y] "*")
+    (list [[x y] -> ifelse-value (y = 0) [false] [x / y]] "/"))
+  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
+  if p !=  [
+    ask p [
+      set color red
+      foreach extract-transitions-from-path
+      [ ?1 ->
+        ask ?1 [
+          set color red
+          set thickness .3
+        ]
+      ]
+      output-print "The solution is: "
+      output-print map [ ?1 -> [first rule] of ?1 ] extract-transitions-from-path
+    ]
+    style
   ]
-  ; Actualizamos la posición del cluster al punto medio de sus puntos
-  ask clusters [
-    set pos centro ([pos] of points with [cl = myself])
-  ]
-end
-
-; Report de distancia entre dos puntos D-dimensionales
-to-report distancia [p1 p2]
-  report sqrt sum (map [ [?1 ?2] -> (?1 - ?2) ^ 2 ] p1 p2)
-end
-
-; Report del centro geométrico de una lista de posiciones
-to-report centro [lista-pos]
-  let d length first lista-pos
-  let indices (n-values d [ ?1 -> ?1 ])
-  report map [ x -> mean (coords x lista-pos) ] indices
-end
-
-; Lista de las coordenadas i-esimas de una lista de posiciones
-to-report coords [i lp]
-  report map [ x -> item i x ] lp
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-36
-9
-486
-460
--1
--1
-13.4
-1
+180
 10
+617
+448
+-1
+-1
+13.0
+1
+12
 1
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -108,6 +127,80 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+115
+130
+180
+163
+Layout
+layout-space \"*\"
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+10
+360
+115
+405
+Explored States
+count turtles
+17
+1
+11
+
+INPUTBOX
+10
+10
+180
+70
+Initial_State
+[1 5 7 10]
+1
+0
+String
+
+INPUTBOX
+10
+70
+180
+130
+Final_State
+123
+1
+0
+String
+
+BUTTON
+10
+130
+105
+163
+Run Search
+test
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+10
+165
+180
+360
+10
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -458,7 +551,7 @@ NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 default
-0.0
+1.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -468,5 +561,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@

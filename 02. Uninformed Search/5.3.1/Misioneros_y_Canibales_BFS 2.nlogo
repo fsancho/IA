@@ -1,103 +1,94 @@
-; La familia Points contendrá los puntos a clasificar
-; La familia Clusters representa los clusters en los que queremos dividir los Points
+__includes [ "BFS.nls" "LayoutSpace.nls"]
 
-breed [points point]
-breed [clusters cluster]
+;[[ [mi ci] [md cd] b] [mov] ]
 
-; Tanto Points como Clusters tienen una propiedad, llamada pos, que almacena un vector
-;   D-dimensional.
-; Además, Points tiene una propiedad, llamada cl, donde almacena el cluster al que
-;   pertenece en cada iteración. Finalmente, almacenará el agente cluster en el que se
-;   clasifica
+to-report todosEstados [c]
+  let movs [[0 1] [1 0] [1 1] [2 0] [0 2]]
+  let mi first (item 0 c)
+  let ci last (item 0 c)
+  let md first (item 1 c)
+  let cdd last (item 1 c)
+  let b last c
 
-points-own [
-  pos
-  cl
-]
+  ifelse b = 0
+  [
+    report map [(list (list (list (mi - first ?)
+                                  (ci - last ?))
+                            (list (md + first ?)
+                                  (cdd + last ?))
+                             (1 - b))
+                       (list ?))] movs
+  ]
+  [
+    report map [(list (list (list (mi + first ?)
+                                  (ci + last ?))
+                            (list (md - first ?)
+                                  (cdd - last ?))
+                            (1 - b))
+                       (list ?))] movs
+  ]
+end
 
-clusters-own [
-  pos
-]
+to-report estadosValidos [c]
+  report filter [valid? ?] (todosEstados c)
+end
 
-; Setuo crea N puntos D-dimensionales distribuidos uniformemente en un intervalo [0,10]^D
-; Para problemas concretos se puede trabajar con los puntos dados por el problema
-to setup [N D]
+to-report valid? [c]
+  let estado first c
+  let mi first (item 0 estado)
+  let ci last (item 0 estado)
+  let md first (item 1 estado)
+  let cdd last (item 1 estado)
+  report (((mi >= ci) and (md >= cdd)) or mi = 0 or md = 0) and (ci >= 0) and (cdd >= 0)
+end
+
+
+to-report AI:children-states
+  report estadosValidos content
+end
+
+to-report AI:final-state? [params]
+  report (content = params)
+end
+
+to test
   ca
-  create-points N [
-    set pos (n-values D [random-float 10])
-  ]
-end
-
-; Función para crear K clusters en K puntos seleccionados al azar
-to crea-clusters [K]
-  ask n-of K points [
-    hatch 1 [
-      set breed clusters
+  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
+  if p != false [
+    ask p [
+      set color red
+      foreach extract-transitions-from-path
+      [
+        ask ? [
+          set color red
+          set thickness .3
+        ]
+      ]
+      output-print "The solution is: "
+      foreach (map [[first rule] of ?] extract-transitions-from-path) [
+        output-print ?
+      ]
     ]
+    style
   ]
-end
-
-
-; Función principal:
-;    K : Número de cluster para la clasificación
-;    Iter: Número de iteraciones en el algoritmo
-to k-medias [K Iter]
-  crea-clusters K
-  repeat Iter [
-    K-medias-step
-  ]
-  ; Mostramos el contenido de cada cluster
-  ask clusters [
-    show points with [cl = myself]
-  ]
-end
-
-; Un paso de iteración del algoritmo
-to K-medias-step
-  ; Seleccionamos para cada Point el cluster más cercano
-  ask points [
-    let p-point pos
-    set cl min-one-of clusters [distancia pos p-point]
-  ]
-  ; Actualizamos la posición del cluster al punto medio de sus puntos
-  ask clusters [
-    set pos centro ([pos] of points with [cl = myself])
-  ]
-end
-
-; Report de distancia entre dos puntos D-dimensionales
-to-report distancia [p1 p2]
-  report sqrt sum (map [ [?1 ?2] -> (?1 - ?2) ^ 2 ] p1 p2)
-end
-
-; Report del centro geométrico de una lista de posiciones
-to-report centro [lista-pos]
-  let d length first lista-pos
-  let indices (n-values d [ ?1 -> ?1 ])
-  report map [ x -> mean (coords x lista-pos) ] indices
-end
-
-; Lista de las coordenadas i-esimas de una lista de posiciones
-to-report coords [i lp]
-  report map [ x -> item i x ] lp
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-36
-9
-486
-460
--1
--1
-13.4
+335
+30
+938
+654
+16
+16
+17.97
 1
-10
+12
 1
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -108,6 +99,80 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+120
+390
+182
+423
+layout
+layout-space \"*\"\n
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+10
+380
+115
+425
+Explored States
+count turtles
+17
+1
+11
+
+INPUTBOX
+10
+10
+210
+70
+Initial_State
+[[3 3] [0 0] 0]
+1
+0
+String
+
+INPUTBOX
+10
+70
+210
+130
+Final_State
+[[0 0] [3 3] 1]
+1
+0
+String
+
+BUTTON
+15
+135
+110
+168
+Run Search
+test
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+10
+170
+180
+365
+10
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -450,15 +515,16 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
+
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 5.3.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-0.0
+1.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -467,6 +533,7 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
+
 @#$#@#$#@
-0
+1
 @#$#@#$#@

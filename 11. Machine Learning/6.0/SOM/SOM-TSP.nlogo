@@ -61,7 +61,7 @@ to SOM:ExternalUpdate
     let xy [weight] of mynode
     setxy (first xy) (last xy)
   ]
-  ; and coount one tick
+  ; and count one tick
   tick
 end
 @#$#@#$#@

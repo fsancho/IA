@@ -17,8 +17,8 @@ end
 to k-vecinos
   ask patches with [not member? self clases]
   [
-    let distancias sort-by [ [?1 ?2] -> first ?1 < first ?2 ] [(list (distance myself) pcolor)] of clases
-    set distancias map [ ?1 -> last ?1 ] toma k distancias
+    let distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
+    set distancias map [ x -> last x ] toma k distancias
     let c first modes distancias
     set pcolor c
   ]
@@ -64,7 +64,7 @@ K
 K
 1
 Poblacion_inicial
-1.0
+7.0
 1
 1
 NIL

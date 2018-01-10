@@ -114,16 +114,16 @@ end
 to experimento
   clear-plot
   no-display
-  foreach (n-values dispersion [ ?1 -> ?1 + 1 ])
-  [ ?1 ->
+  foreach (n-values dispersion [ x -> x + 1 ])
+  [ x ->
     let p []
     repeat 50 [
-      setup-clusters ?1
+      setup-clusters x
       while [any? clusters with [movido?]]
       [ k-medias ]
       set p lput peso p
     ]
-    plotxy ?1 ?1 * (mean p)
+    plotxy x x * (mean p)
   ]
   display
 end

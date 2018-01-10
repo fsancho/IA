@@ -117,15 +117,15 @@ to train
   ; Repeat the Number of iterations
   repeat Number-of-epochs [
     ; For every trainig data
-    foreach data-list [ ?1 ->
+    foreach (shuffle data-list) [ datum ->
 
       ; Take the input and correct output
-      set inputs first ?1
-      set outputs last ?1
+      set inputs first datum
+      set outputs last datum
 
       ; Load input on input-neurons
-      (foreach (sort input-neurons) inputs [ [??1 ??2] ->
-        ask ??1 [set activation ??2] ])
+      (foreach (sort input-neurons) inputs [ [neur input] ->
+        ask neur [set activation input] ])
 
       ; Forward Propagation of the signal
       Forward-Propagation
@@ -171,9 +171,11 @@ end
 to back-propagation
   let error-sample 0
   ; Compute error and gradient of every output neurons
-  (foreach (sort output-neurons) outputs [ [?1 ?2] ->
-    ask ?1 [ set grad activation * (1 - activation) * (?2 - activation) ]
-    set error-sample error-sample + ( (?2 - [activation] of ?1) ^ 2 ) ])
+  (foreach (sort output-neurons) outputs [
+    [neur ouput] ->
+    ask neur [ set grad activation * (1 - activation) * (ouput - activation) ]
+    set error-sample error-sample + ( (ouput - [activation] of neur) ^ 2 )
+  ])
   ; Average error of the output neurons in this epoch
   set epoch-error epoch-error + (error-sample / count output-neurons)
   ; Compute gradient of hidden layer neurons
@@ -209,9 +211,9 @@ end
 ;; Procedure to store the input and correct output (a consecutive activated output neuron)
 to store-input
   ; Take the pattern from input neurons
-  let pattern map [ ?1 -> [color] of ?1 ] (sort input-neurons)
+  let pattern map [ x -> [color] of x ] (sort input-neurons)
   ; Get the binary input from pattern
-  set inputs map [ ?1 -> ifelse-value (?1 = black) [1] [0] ] pattern
+  set inputs map [ x -> ifelse-value (x = black) [1] [0] ] pattern
   if length data-list < 10 [
     ; Asignamos la salida correspondiente
     assign-output
@@ -281,16 +283,16 @@ end
 ;; The input neurons are read and the signal propagated with the current weights
 
 to test
-  let pattern map [ ?1 -> [color] of ?1 ] (sort input-neurons)
-  set inputs map [ ?1 -> ifelse-value (?1 = black) [1] [0] ] pattern
+  let pattern map [ x -> [color] of x ] (sort input-neurons)
+  set inputs map [ x -> ifelse-value (x = black) [1] [0] ] pattern
   active-inputs
   Forward-Propagation
 end
 
 ; Activate input neurons with read inpiuts
 to active-inputs
-(foreach inputs (sort input-neurons )
-  [ [?1 ?2] -> ask ?2 [set activation ?1] ])
+(foreach (sort input-neurons) inputs
+  [ [neur input] -> ask neur [set activation input] ])
   recolor
 end
 
@@ -455,7 +457,7 @@ Number-of-epochs
 Number-of-epochs
 0
 2000.0
-2000.0
+1000.0
 100
 1
 NIL
@@ -589,7 +591,7 @@ Neurons-Hidden-Layer
 Neurons-Hidden-Layer
 1
 20
-5.0
+10.0
 1
 1
 NIL
@@ -640,76 +642,6 @@ With this button pressed you can click on any hidden/output neuron to analyze it
 1
 
 @#$#@#$#@
-## ¿QUÉ ES?
-
-Es un modelo de reconocimiento de caracteres haciendo uso del método de propagación hacia atrás sobre una red neuronal. Esta versión se basa en la que viene en la librería por defecto de NetLogo, pero ampliando el tamaño de los caracteres a 6x8 pixels y permitiendo decidir el tamaño de la capa de nodos ocultos y ampliando la capa de salida a 10 nodos
-
-## HOW IT WORKS
-
-Initially the weights on the links of the networks are random. Inputs are entered into the input nodes by activating the 'draw' procedure and using the mouse to draw characters in the small frame to the left. After each character is drawn, pressing 'grab-pic' will use the drawing to activate the appropriate input nodes. The user can enter up to four different drawings, which will be then copied to the boxes below the net.
-The values of the inputs times the random weights are added up to create the activation for the next node in the network.  The next node then sends out an activation along its output link.  These link weights and activations are summed up by the final output node which reports a value.  This activation is passed through a sigmoid function, which means that values near 0 are assigned values close to 0, and vice versa for 1.  The values increase nonlinearly between 0 and 1 with a sharp transition at 0.5. Light blue nodes have an activation below 0.5, yellow nodes an activation above 0.5.
-
-To train the network the four inputs are presented to the network along with how the network should correctly classify the inputs. In this case, the outputs are simply the activation of the first, second, third and fourth output nodes for each drawing, in that order.  The network uses a back-propagation algorithm to pass error back from the output node and uses this error to update the weights along each link.
-
-## HOW TO USE IT
-
-To use it press SETUP to create the network and initialize the weights to small random numbers. This will also clear the small frame where the characters can be drawn.
-
-Press DRAW to begin the drawing procedure and use the left button of the mouse to turn the white patches in the red frame to black. The drawings can be any pattern within the 3 X 5 rectangle.
-
-Press GRAB-PIC to let the network know you are done with the character or CLEAR-FRAME to draw something else without recording it as an example. After pressing GRAB-PIC you will notice that the input nodes 'copy' the shape of your character through their activations. At the same time, the boxes below the net will save the characters you have already entered.
-
-Once four characters have been added to the net, press TRAIN-ON-DATA and the net will present the four character inputs consecutively times the number of EXAMPLES-PER-EPOCH selected.
-
-As in the original model, the larger the size of the link, the greater the weight it has.  If the link is red then its a positive weight.  If the link is blue then its a negative weight.
-
-After the net is done training, you can press DRAW again to draw an input to test. Pres the TEST-NET button when you are done and see which output node is activated. The net should be able to recognize the original four characters by activating the appropriate output node (1 through 4, in the order they were entered).
-
-LEARNING-RATE controls how much the neural network will learn from any one example.
-
-## THINGS TO NOTICE
-
-Now that the network has learned the examples, you can try to enter slightly different drawings. The net should be able to deal with 'noisy' inputs and yet recognize them as those that it was trained on. Adding or deleting 'pixels' from a test example will show you this is the case.
-
-It is interesting to note that every time you run the net, even on the same test examples, the final result in terms of the weight and sign (positive or negative) of the links, more clearly visible in the links from the hidden nodes to the ouput nodes, is always slightly different.
-
-## THINGS TO TRY
-
-Manipulate the LEARNING-RATE parameter.  Can you speed up or slow down the training?
-
-The more similar the original drawings are to one another, the more difficult it is to train the net to recognize them correctly. Try entering a letter P and a letter F and see which 'pixels' seem to cause the net to recognize the test examples as one or the other.
-
-
-## EXTENDING THE MODEL
-
-Back-propagation using gradient descent is considered somewhat unrealistic as a model of real neurons, because in the real neuronal system there is no way for the output node to pass its error back.  Can you implement another weight-update rule that is more valid?
-
-## NETLOGO FEATURES
-
-This model uses the link primitives.  It also makes heavy use of lists.
-
-The extended character model also makes use of agentsets to define the frame and boxes.
-
-## RELATED MODELS
-
-The two models in the Neural Net models library. Particularly the Artificial Neural Net of which this is an extension.
-
-## CREDITS AND REFERENCES
-This model is part of NeuroLab, a set of neuroscience-related simulations in NetLogo written by
- Luis F. Schettino
-Psychology Department
-Lafayette College
-Easton, PA, USA.
-https://sites.lafayette.edu/schettil
-
-From the original Artificial Neural Net Model:
-The code for this model is inspired by the pseudo-code which can be found in Tom M. Mitchell's "Machine Learning" (1997).
-
-Thanks to Craig Brozefsky for his work in improving this model.
-
-To refer to this model in academic publications, please use:  Rand, W. and Wilensky, U. (2006).  NetLogo Artificial Neural Net model.  http://ccl.northwestern.edu/netlogo/models/ArtificialNeuralNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
-
-In other publications, please use:  Copyright 2006 Uri Wilensky.  All rights reserved.  See http://ccl.northwestern.edu/netlogo/models/ArtificialNeuralNet for terms of use.
 @#$#@#$#@
 default
 true

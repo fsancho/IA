@@ -43,7 +43,6 @@ to BSS [#initial-state #type #max-depth #debug? #visible?]
 end
 
 to BSSNR [#initial-state #type #max-depth #debug? #visible?]
-  ca
   let level 0
   ; Create the agent associated to the initial state
   create-AI:states 1
@@ -115,7 +114,6 @@ end
 ;   a) children-states : reports the children states of the current state.
 
 to BSSR [#initial-state #max-depth #debug? #visible?]
-  ca
   let level 0
   ; Create the agent associated to the initial state
   create-AI:states 1

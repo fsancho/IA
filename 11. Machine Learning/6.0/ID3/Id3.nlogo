@@ -10,9 +10,9 @@ globals [
 ; Devuelve la entropia de una lista
 to-report entropia [l]
   ; Calculamos la frecuencia relativa de cada uno de sus elementos
-  let l2 map [ ?1 -> frec ?1 l ] (remove-duplicates l)
+  let l2 map [ x -> frec x l ] (remove-duplicates l)
   ; Aplicamos la función de entropía a la lista de frecuencias relativas
-  report sum map [ ?1 -> ifelse-value (?1 = 0)[0][(-1) * ?1 * log ?1 2] ] l2
+  report sum map [ x -> ifelse-value (x = 0)[0][(-1) * x * log x 2] ] l2
 end
 
 ; Devuelve la entropía relativa de un atributo en un dataset
@@ -29,13 +29,13 @@ to-report entropia-rel [ds atr]
   let s 0
   ; Para cada posible valor del atributo:
   foreach remove-duplicates val
-  [ ?1 ->
-    let v ?1
+  [ x ->
+    let v x
     ; Calculamos su frecuencia relativa
     let f frec v val
     ; Filtramos solo aquellas filas que tienen ese valor en el atributo, y
     ; formamos un nuevo dataset, con cabecera, con esas filas
-    let ds2 (fput (first ds) filter [ ??1 -> (item p ??1) = v ] (bf ds))
+    let ds2 (fput (first ds) filter [ y -> (item p y) = v ] (bf ds))
     ;show-dataset ds2
     ; Calculamos la entropia de la última columna en el dataset filtrado
     let ex entropia  bf (columna (last atrs) ds2)
@@ -52,7 +52,7 @@ end
 
 ; Devuelve la frecuencia relativa de un elemento en una lista
 to-report frec [el lista]
-  report (length (filter [ ?1 -> ?1 = el ] lista)) / (length lista)
+  report (length (filter [ x -> x = el ] lista)) / (length lista)
 end
 
 ; Devuelve de un dataset la columna correspondiente a uno de sus atributos.
@@ -60,22 +60,22 @@ end
 to-report columna [at ds]
   let ats first ds
   let p position at ats
-  report map [ ?1 -> item p ?1 ] ds
+  report map [ x -> item p x ] ds
 end
 
 ; Muestra un dataset de forma ordenada
 to show-dataset [ds]
-  let m 1 + max map [ ?1 -> max map [ ??1 -> length (word ??1) ] ?1 ] ds
+  let m 1 + max map [ x -> max map [ y -> length (word y) ] x ] ds
   output-print "Dataset:"
   repeat 1 + (m + 1) * length (first ds) [output-type "-"]
   output-print ""
   foreach ds
-  [ ?1 ->
+  [ x ->
     output-type "|"
-    foreach ?1
-    [ ??1 ->
-      output-type ??1
-      repeat (m - length (word ??1)) [output-type " "]
+    foreach x
+    [ y ->
+      output-type y
+      repeat (m - length (word y)) [output-type " "]
       output-type "|"
     ]
     output-print ""
@@ -87,34 +87,34 @@ end
 to-report output-dataset [ds]
   let s "Dataset:\n"
   let atrs first ds
-  let long map [ ?1 -> 1 + max map [ ??1 -> length (word ??1) ] (columna ?1 ds) ] atrs
+  let long map [ x -> 1 + max map [ y -> length (word y) ] (columna x ds) ] atrs
   set s (word s "\n")
   ;; Lineas
   let lin "├"
   foreach long
-  [ ?1 ->
-    repeat (1 + ?1) [set lin (word lin "─")]
+  [ x ->
+    repeat (1 + x) [set lin (word lin "─")]
     set lin (word lin "┼")
   ]
   set lin (word (bl lin) "┤\n")
   ;; Cabecera
   set s (word s "│ ")
   (foreach (first ds) long
-    [ [?1 ?2] ->
-      set s (word s  ?1 )
-      repeat (?2 - length (word ?1)) [set s (word s " ")]
+    [ [x y] ->
+      set s (word s  x )
+      repeat (y - length (word x)) [set s (word s " ")]
       set s (word s "│ ")
     ])
   set s (word s "\n" lin)
   ; Cuerpo
   foreach bf ds
-  [ ?1 ->
+  [ x ->
     set s (word s lin)
     set s (word s "│ ")
-    (foreach ?1 long
-    [ [??1 ??2] ->
-      set s (word s  ??1 )
-      repeat (??2 - length (word ??1)) [set s (word s " ")]
+    (foreach x long
+    [ [y z] ->
+      set s (word s  y )
+      repeat (z - length (word y)) [set s (word s " ")]
       set s (word s "│ ")
     ])
     set s (word s "\n")
@@ -123,8 +123,8 @@ to-report output-dataset [ds]
   ;; Linea final
   let lin2 "└"
   foreach long
-  [ ?1 ->
-    repeat (1 + ?1) [set lin2 (word lin2 "─")]
+  [ x ->
+    repeat (1 + x) [set lin2 (word lin2 "─")]
     set lin2 (word lin2 "┴")
   ]
   set lin2 (word (bl lin2) "┘\n")
@@ -155,14 +155,14 @@ end
 
 ; Devuelve el atributo de máxima ganancia de un dataset
 to-report Max-GI [ds]
-  let atr1 map [ ?1 -> (list ?1 (GI ds ?1) ) ] (bl first ds)
-  report first first sort-by [ [?1 ?2] -> (last ?1) > (last ?2) ] atr1
+  let atr1 map [ x -> (list x (GI ds x) ) ] (bl first ds)
+  report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
 end
 
 ; Devuelve el atributo de máxima ganancia de un dataset
 to-report Max-GR [ds]
-  let atr1 map [ ?1 -> (list ?1 (ifelse-value ((entropia bf columna ?1 ds) = 0) [0] [(GI ds ?1) / (entropia bf columna ?1 ds)])) ] (bl first ds)
-  report first first sort-by [ [?1 ?2] -> (last ?1) > (last ?2) ] atr1
+  let atr1 map [ x -> (list x (ifelse-value ((entropia bf columna x ds) = 0) [0] [(GI ds x) / (entropia bf columna x ds)])) ] (bl first ds)
+  report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
 end
 
 ; Devuelve si un Dataset está ya calsificado
@@ -224,11 +224,11 @@ to-report ID3 [ds]
       set shape "decision"
       setxy random-pxcor random-pycor
       foreach (remove-duplicates bf (columna mx ds))
-      [ ?1 ->
-        create-link-to (ID3 filtra ds mx ?1)
+      [ x ->
+        create-link-to (ID3 filtra ds mx x)
         [
           set color green
-          set label ?1
+          set label x
           set label-color green + 3
         ]
       ]
@@ -241,7 +241,7 @@ end
 to-report filtra [ds atr val]
   let atrs first ds
   let p position atr atrs
-  let ds2 (fput (first ds) filter [ ?1 -> (item p ?1) = val ] (bf ds))
+  let ds2 (fput (first ds) filter [ x -> (item p x) = val ] (bf ds))
   report ds2
 end
 
