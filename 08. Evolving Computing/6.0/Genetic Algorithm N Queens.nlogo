@@ -9,7 +9,7 @@ breed [queens queen]
 to Setup
   ca
   resize-world 0 (N - 1) 0 (N - 1)
-  set-patch-size 200 / N
+  set-patch-size 320 / N
   ask patches [set pcolor ifelse-value ((pxcor + pycor) mod 2 = 0) [white][black]]
   AI:Initial-Population population
   AI:ExternalUpdate
@@ -124,11 +124,11 @@ end
 GRAPHICS-WINDOW
 145
 10
-353
-219
+473
+339
 -1
 -1
-20.0
+16.0
 1
 10
 1
@@ -139,9 +139,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-9
+19
 0
-9
+19
 0
 0
 1
@@ -198,9 +198,9 @@ NIL
 HORIZONTAL
 
 PLOT
-355
+480
 10
-635
+760
 130
 Fitness
 gen #
@@ -233,9 +233,9 @@ NIL
 HORIZONTAL
 
 PLOT
-355
+480
 130
-635
+760
 250
 Diversity
 gen #
@@ -284,8 +284,8 @@ SLIDER
 N
 N
 0
-10
-10.0
+20
+20.0
 1
 1
 NIL
@@ -599,7 +599,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.3
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@
