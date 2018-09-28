@@ -1,0 +1,178 @@
+;---------------------- Preamble for models using AI Library -----------------
+
+; In this case, we will work with turtles, not patches.
+; Specifically with two types of turtles
+breed[AI:states AI:state]       ; to represent the states of the problem
+breed[AI:searchers AI:searcher] ; to represent the agents that will make the search
+
+; We need one property in the states to store its content
+AI:states-own [
+  content
+  depth
+]
+
+; All the information about the search will be stored in the searchers.
+; To know if a state has been explored it is enough to see if there
+; is a searcher on it.
+
+; Searchers will have some additional properties for their functioning.
+AI:searchers-own [
+  memory               ; Stores the path from the start state to here
+  cost                 ; Stores the real cost from the start
+  total-expected-cost  ; Stores the total exepcted cost from Start to
+                       ;   the Goal that is being computed
+  current-state        ; The state where the searcher is
+  active?              ; is the seacrher active? That is, we have reached
+                       ;   the state, but we must consider it because its
+                       ;   neighbors have not been explored
+]
+
+; The links of the graph store the applied rule between states
+directed-link-breed [AI:transitions AI:transition]
+AI:transitions-own [
+  cost-link
+  rule
+]
+
+;----------------------------------------------------------------------------
+
+; The general Problem Solver A* Algorithm es very similar to the previous one (patches).
+; Where, now, the network is formed by the states of the problem to be solved and the
+; links between them are the transitions that obtains one from the other.
+; The main difference is that it is not a good idea to have all the netwrok precomputed,
+; and we will build it (calculating the children-states) while we need it.
+to-report A* [#Start #Goal #debug? #visible?]
+  ; Create a state with the #Start content, and a searcher in it
+  create-start #Start #Goal #debug? #visible?
+  ; The main loop will run while we have active searchers to
+  ; inspect. Tha means that a path connecting start and goal is still possible
+  while [ any? AI:searchers with [active?]]
+  [
+    ; From the active searchers we take one of the minimal expected cost to the goal
+    ask min-one-of (AI:searchers with [active?]) [total-expected-cost]
+    [
+      ; We will explore its neighbors, so we deactivated it
+      set active? false
+      ; Store this searcher and its current-state in temporal variables to facilitate their use
+      let this-searcher self
+      let previous-cost cost
+      let C-S current-state
+      ; Next, we create the neighbors of the state
+      create-neighbor-states C-S #debug? #visible?
+      ; For every neighbor state of this location
+      ask ([out-AI:transition-neighbors] of C-S)
+      [
+        ; Take the link that connect it to the Location of the searcher
+        let connection in-AI:transition-from C-S
+        ; The cost to reach the neighbor in this path is the previous cost plus the cost of the link
+        let c previous-cost + [cost-link] of connection
+        ; Maybe in this state there are other searchers (comming from other states).
+        ; If this new path is better than the other, then we put a new searcher and remove the old ones
+        if not any? searchers-in-state with [cost < c]
+        [
+          hatch-AI:searchers 1
+          [
+            set current-state myself ; the location of the new searcher is this neighbor state
+            set memory lput connection ([memory] of this-searcher) ; the path is built from the
+                                                                   ; original searcher's path
+            set cost c   ; real cost to reach this state
+            set total-expected-cost cost + AI:heuristic #Goal ; expected cost to reach the goal with this path
+            set active? true  ; it is active to be explored
+            ask other searchers-in-state [die] ; Remove other seacrhers in this state
+          ]
+        ]
+      ]
+    ]
+    ; If some of the searchers has reached the goal, we have an upper bound for the cost, so
+    ; we deactivate all the searchers with cost over this bound. But we must continue with
+    ; the search because maybe there is one other path with lower cost.
+    ; If you want a fast calculated path but maybe not the shorter in cost, you can remove
+    ; this part and stop the main loop as soon as the first searcher has reached the goal:
+    ;  change
+    ;     while [ any? searchers with [active?]]
+    ; by
+    ;     while [ not any? searchers with [final-searcher? #Goal] and
+    ;             any? searchers with [active?]]
+    if any? AI:searchers with [final-searcher? #Goal] [
+      let c min [cost] of (AI:searchers with [final-searcher? #Goal])
+      ask AI:searchers with [active? and cost > c] [set active? false]
+    ]
+  ]
+  ; When the loop has finished, we have two options: no path, or a searcher has reached the goal
+  ; By default the return will be false (no path)
+  let res false
+  ; But if it is the second option
+  if any? AI:searchers with [final-searcher? #Goal]
+  [
+    ; we will return the path located in the memory of one of the searchers
+    ; that reached the goal with minimal cost
+    let minimal-searcher min-one-of (AI:searchers with [final-searcher? #Goal]) [cost]
+    set res [memory] of minimal-searcher
+  ]
+  ; Remove the searchers
+  ask AI:searchers [die]
+  ; and report the result
+  report res
+end
+
+; Auxiliary report to decide (via its current-state) if a searcher has reached thw goal
+to-report final-searcher? [#Goal]
+  report [AI:final-state? #Goal] of current-state
+end
+
+; Auxiliary procedure to create the initial state and the searcher that will start from it
+to create-start [#start #Goal #debug? #visible?]
+  create-AI:states 1 [
+    ifelse #visible? [st][ht]
+    set content #Start
+    if #debug? [set label content]
+    hatch-AI:searchers 1
+    [
+      set current-state myself
+      set memory []
+      set cost 0
+      set total-expected-cost cost + AI:heuristic #Goal ; Compute the expected cost
+      set active? true ; It is active, because we didn't calculate its neighbors yet
+     ]
+  ]
+end
+
+; Create dinamically the neighbors of s
+to create-neighbor-states [s #debug? #visible?]
+  ask s [
+    foreach AI:children-states [
+      let ns first ?
+      let r last ?
+      ifelse not any? AI:states with [content = ns]
+      [
+        hatch-AI:states 1 [
+          ifelse #visible? [st][ht]
+          set content ns
+          if #debug? [set label content]
+          create-AI:transition-from s [
+            ifelse #visible? [show-link][hide-link]
+            set rule r
+            if #debug? [set label first r]
+            set cost-link item 1 r
+          ]
+        ]
+      ]
+      [
+        ask one-of AI:states with [content = ns] [
+          create-AI:transition-from s [
+            ifelse #visible? [show-link][hide-link]
+            set rule r
+            set cost-link item 1 r
+            if #debug? [set label first r]
+          ]
+        ]
+      ]
+    ]
+  ]
+end
+
+; Auxiliary state report to return the searchers located in it (it is like a version of turtles-here)
+to-report searchers-in-state
+  report AI:searchers with [current-state = myself]
+end
+

@@ -1,0 +1,89 @@
+;---------------------- Preamble for models using AI Library -----------------
+
+; In this solution we represent the states of the problem by means of agents
+breed [AI:states AI:state]
+AI:states-own
+[
+  content   ; Stores the content (value) of the state
+  explored? ; Tells if the state has been explored or not
+  path      ; Stores the path to reach this state from the initial state
+  depth     ; Only needed if using LayoutSpace.nls
+]
+
+; Transitions will be representes by means of links
+directed-link-breed [AI:transitions AI:transition]
+AI:transitions-own
+[
+  rule   ; Stores the printable version of the transition
+]
+
+;-------------------- BFS Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the goal is
+; reached (using final-state? report).
+; It needs two reports:
+;   a) children-states : reports the children states of the current state.
+;   b) final-state?    : reports if the current state is a final one.
+
+to-report BFS [#initial-state #final-state #debug? #visible?]
+  ;ca
+  ask AI:states [die]
+  ; Create the agent associated to the initial state
+  create-AI:states 1
+  [
+    set content #initial-state
+    if #debug? [set label content]
+    set path (list self)
+    set explored? false
+    ifelse #visible? [st][ht]
+  ]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [any? AI:states with [not explored?]]
+  [
+    ask AI:states with [not explored?]
+    [
+      ; Compute the children states by applying every rule to the current state
+      foreach AI:children-states
+      [
+        ; We separate the contents and transitions from each children
+        let new-state first ?
+        let applied-rule last ?
+        ; We consider only new states (states that have not been visited previously)
+        if not any? AI:states with [content = new-state]
+        [
+          ; Clone one new agent for each new state
+          hatch-AI:states 1
+          [
+            set content new-state
+            if #debug? [set label content]
+            set explored? false
+            ; and link it with its father using a transition link
+            create-AI:transition-from myself [
+              set rule applied-rule
+              if #debug? [set label first applied-rule]
+              ifelse #visible? [show-link][hide-link]
+            ]
+            ; Update the path for the new state (remember that the clone is a
+            ; copy of the father, so we only need to add the new state to the
+            ; father's path)
+            set path lput self path
+          ]
+        ]
+      ]
+      ; When all its children have been computed, we mark the current state as explored
+      set explored? true
+    ]
+    ; After a new level is totally generated, we check if the goal has been reached
+    if any? AI:states with [AI:final-state? #final-state]
+     [
+       report (one-of AI:states with [AI:final-state? #final-state])
+     ]
+  ]
+  report false
+end
+
+
+to-report extract-transitions-from-path
+  report (map [AI:transition [who] of ?1 [who] of ?2] (bl path) (bf path))
+end

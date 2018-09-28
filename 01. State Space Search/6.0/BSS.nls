@@ -1,0 +1,160 @@
+;----------------------------------------------------------------------------
+
+;------------------------- Preamble definitions -----------------------------
+
+; In this solution we represent the states of the problem by means of agents
+breed [AI:states AI:state]
+AI:states-own
+[
+  content   ; Stores the content (value) of the state
+  explored? ; Tells if the state has been explored or not
+  depth
+]
+
+; Transitions will be representes by means of links
+directed-link-breed [AI:transitions AI:transition]
+AI:transitions-own
+[
+  rule   ; Stores the printable version of the transition
+]
+
+;-------------------- BSS Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the maximum depth 
+; #level is reached.
+; It needs one report:
+;   a) children-states : reports the children states of the current state.
+
+; Arguments:
+; #initial-states : The initial state the algorithm use to build the state space
+; #type           : The type of graph structure to be built in the state space:
+;                    0 - Tree, no repetitions of states
+;                    1 - Tree, repeat states if they appear again
+;                    2 - Graph, no repetitions of states
+; #max-depth      : Max depth (number of applied rules) to be visited from the 
+;                   initial state
+; #debug?         : True / False - do/doesn't show content of state in the label
+; # visible?      : Show/Hide states and transitions in the interface
+
+to BSS [#initial-state #type #max-depth #debug? #visible?]
+  ifelse #type = 1
+  [ BSSR #initial-state #max-depth #debug? #visible?]
+  [ BSSNR #initial-state #type #max-depth #debug? #visible?]
+end
+
+to BSSNR [#initial-state #type #max-depth #debug? #visible?]
+  let level 0
+  ; Create the agent associated to the initial state
+  create-AI:states 1
+  [
+    set content #initial-state
+    if #debug? [set label content]
+    set explored? false
+    set depth 0
+    ifelse #visible? [st] [ht]
+  ]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [level < #max-depth]
+  ;while [any? states with [not explored?]]
+  [
+    ask AI:states with [not explored?]
+    [
+      ; Compute the children states by applying every rule to the current state
+      foreach AI:children-states
+      [ x ->
+        ; We separate the contents and transitions from each children
+        let new-state first x
+        let applied-rule last x
+        ; We consider only new states (states that have not been visited previously)
+        ifelse (not any? AI:states with [content = new-state]) or (#type = 1)
+        [
+          ; Clone one new agent for each new state
+          hatch-AI:states 1
+          [
+            set content new-state
+            if #debug? [set label content]
+            set explored? false
+            ; and link it with its father using a transition link
+            create-AI:transition-from myself [
+              ifelse #visible? [show-link] [hide-link]
+              set rule applied-rule
+              if #debug? [set label first applied-rule]
+            ]
+            set depth depth + 1
+          ]
+        ]
+        [
+          if #type = 2 
+          [
+            ; We don't have to create the state, but we need to connect it
+            let existing-state one-of AI:states with [content = new-state]
+            if existing-state != self [
+              create-AI:transition-to existing-state [
+                set rule applied-rule
+                set label first applied-rule
+              ]
+            ]
+          ]
+        ]
+      ]
+      ; When all its children have been computed, we mark the current state as explored
+      set explored? true
+    ]
+    set level level + 1
+  ]
+end
+
+
+;-------------------- BSSR Algorithm and related procedures ----------------
+; Essentially, the algorithm computes the children states for not explored states
+; and link them by using the applied transition. It iterates until the maximum depth
+; #level is reached. It can repeat nodes.
+; It needs two reports:
+;   a) children-states : reports the children states of the current state.
+
+to BSSR [#initial-state #max-depth #debug? #visible?]
+  let level 0
+  ; Create the agent associated to the initial state
+  create-AI:states 1
+  [
+    set content #initial-state
+    if #debug? [set label content]
+    set explored? false
+    set depth 0
+    ifelse #visible? [st][ht]
+  ]
+  ; While there are not explored states (the verification about the goal is made
+  ; inside the loop)
+  while [level < #max-depth]
+  [
+    ask AI:states with [not explored?]
+    [
+      ; Compute the children states by applying every rule to the current state
+      foreach AI:children-states
+      [ x ->
+        ; We separate the contents and transitions from each children
+        let new-state first x
+        let applied-rule last x
+        ; Clone one new agent for each new state
+        hatch-AI:states 1
+        [
+          set content new-state
+          if #debug? [set label content]
+          set explored? false
+          ; and link it with its father using a transition link
+          create-AI:transition-from myself [
+            set rule applied-rule
+            if #debug? [set label first applied-rule]
+            ifelse #visible? [show-link] [hide-link]
+          ]
+          set depth depth + 1
+        ]
+      ]
+      ; When all its children have been computed, we mark the current state as explored
+      set explored? true
+    ]
+    ; After a new level is totally generated, we check if the goal has been reached
+    set level level + 1
+  ]
+end

@@ -1,0 +1,14 @@
+"Atributo" "Dove" "Chicken" "Duck" "Goose" "Owl" "Hawk" "Eagle" "Fox" "Dog" "Wolf" "Cat" "Tiger" "Lion" "Horse" "Zebra" "Cow"
+"Small" 1 1 1 1 1 1 0 0 0 0 1 0 0 0 0 0
+"Middle" 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0
+"Big" 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1
+"2 paws" 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
+"4 paws" 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
+"Fur" 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
+"Hoofs" 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 
+"Mane" 0 0 0 0 0 0 0 0 0 1 0 0 1 1 1 0
+"Feathers" 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
+"Hunt" 0 0 0 0 1 1 1 1 0 1 1 1 1 0 0 0
+"Run" 0 0 0 0 0 0 0 0 1 1 0 1 1 1 1 0
+"Fly" 1 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0
+"Swing" 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0

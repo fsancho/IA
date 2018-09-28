@@ -1,0 +1,568 @@
+__includes ["SOM3D.nls"]
+
+
+; Markers breed: show the solution in real time
+breed [ markers marker ]
+
+breed [Points Point]
+
+globals [
+  TSet      ; Training set
+  ]
+
+markers-own [
+  mynode     ; Node associated to this marker
+]
+
+; Reset the world removing all the agents and locating the observer
+to reset
+  ca
+  setxyz 20 20 20
+  ; Reset timer
+  reset-ticks
+end
+
+; Random Points Training Set
+to Random-points
+  ask points [die]
+  ask n-of Num-Points patches [
+    sprout-Points 1 [
+      set size .3
+      set color lput 120 extract-rgb blue
+      set shape "circle"
+    ]
+  ]
+  set Tset [coord] of Points
+end
+
+; Create the SOM surface to be trained
+to som-surface
+  ; Remove previous surface
+  ask SOM:Lnodes [die]
+  ask markers [die]
+  ; Create the learning nodes
+  SOM:setup-Lnodes N Topology 3 "G"
+  ; Create the markers
+  setup-markers
+  ; Show the evolution of neighborhood in the current configuration
+  plot-NS2
+end
+
+; Create the markers to be shown in the 3D world
+to setup-markers
+  set-default-shape markers "circle"
+  ; Markers will show the links between them
+  ask SOM:Lnodes [
+    let x (item 0 weight)
+    let y (item 1 weight)
+    let z (item 2 weight)
+    hatch-markers 1 [
+      st
+      set size .2
+      setxyz x y z
+      set color red
+      set mynode myself
+    ]
+  ]
+  ; Create links between markers
+  ask links [
+    let e1 end1
+    let e2 end2
+    let m1 one-of markers with [mynode = e1]
+    let m2 one-of markers with [mynode = e2]
+    ask m1 [create-link-with m2]
+  ]
+  ; Remove links from SOM:Lnodes, they are not needed in this use
+  ask SOM:Lnodes [ask my-links [die]]
+end
+
+; Launch the SOM Algorithm
+to Launch
+  reset-ticks
+  ; Recolor markers and links (maybe they were in use previously)
+  ask markers [set color red set size 0.3]
+  ask links [set color grey]
+  ; Launch COM
+  SOM:SOM TSet Training-Time
+  ; Rotate nodel after training
+  reset-ticks
+  let oz __ozcor
+  repeat Training-Time  [
+    ; During the show, markers and links are recolored
+    ask markers [set size size * .9]
+    ask links [set color (color + (white - color) / 100)]
+    orbit-left 2
+    setxyz __oxcor __oycor (oz + 10 * sin (360 / Training-Time * ticks))
+    tick
+  ]
+end
+
+; External SOM procedure to be used after every iteration of main algorithm
+to SOM:ExternalUpdate
+  ; Update the markers position
+  ask markers [
+    let xyz [weight] of mynode
+    setxyz (item 0 xyz) (item 1 xyz) (item 2 xyz)
+  ]
+  ; Rotate a bit the observer
+  orbit-left (360 / Training-Time)
+  ; Mark the tick position on the plot
+  set-current-plot "Neighbor Size in Time"
+  set-current-plot-pen "current"
+  plot-pen-reset
+  plot-pen-up
+  plotxy ticks 0
+  plot-pen-down
+  plotxy ticks plot-y-max
+  tick
+end
+
+; Procedure to read a vertex model from a file to be used as TSet
+to read
+  ; Remove previous points
+  ask points [die]
+  ; Let user to select the file
+  let file user-file
+  ; Open file
+  file-open file
+  ; Read every line "x y z" from the file
+  while [not file-at-end?]
+  [
+    let linea (word "[" file-read-line "]")
+    let v read-from-string linea
+    set v map [x -> (x + 60) / 4] v
+    ; Create a point for every vertex
+    create-Points 1 [
+      setxyz (2 + (item 0 v))  (6 + (item 2 v)) (-6 + (item 1 v))
+      set size .3
+      set color lput 120 extract-rgb blue
+      set shape "circle"
+    ]
+  ]
+  ; Close fila
+  file-close-all
+
+  ; Compute the Mass Center of Points
+  let Mx mean [xcor] of points
+  let My mean [ycor] of points
+  let Mz mean [zcor] of points
+  ; Move points to be centered
+  ask points [setxyz (xcor - Mx) (ycor - My) (zcor - Mz)]
+  ask points [setxyz (xcor * 1.33) (ycor * 1.33) (zcor * 1.33)]
+
+  ; Fix the TSet list
+  set Tset [coord] of Points
+end
+
+; Auxiliary report to get the vector of coordinates
+to-report coord
+  report (list xcor ycor zcor)
+end
+
+
+;------------------------------------------------------------------------
+;------------------ Auxiliary files for showing the model ---------------
+
+to show-shape
+  ask markers [
+    set shape "circ"
+    set size max [distance myself] of link-neighbors
+    set color white
+    normal
+    ]
+  ask links [set color white set thickness 0]
+end
+
+; A bad test to compute normals and locate a correct flat surface in every vertex
+to normal
+  let ps [coord] of (n-of 2 link-neighbors)
+  let p1 coord
+  let p2 (item 0 ps)
+  let p3 (item 1 ps)
+;  facexyz (cx p2) (cy p2) (cz p2)
+  let v (map - p2 p1)
+  let w (map - p3 p1)
+  let x (cy v) * (cz w) - (cz v) * (cy w)
+  let y (cz v) * (cx w) - (cx v) * (cz w)
+  let z (cx v) * (cy w) - (cy v) * (cx w)
+  let no (list x y z)
+  let nor sqrt sum (map * no no)
+  set no map [i -> i / nor] no
+  facexyz (xcor + (cx no)) (ycor + (cy no)) (zcor + (cz no))
+  tilt-up 90
+end
+
+to-report cx [v]
+  report item 0 v
+end
+to-report cy [v]
+  report item 1 v
+end
+to-report cz [v]
+  report item 2 v
+end
+
+; Change the SOM Surface to be the current weights of SOM:Lnodes
+;  using the current euclidean distribution
+to Reshape-SOM-Surface
+  ask SOM:Lnodes [setxyz (item 0 weight) (item 1 weight) (item 2 weight)]
+  set SOM:min-dis 0.5 * min [link-length] of links
+  set SOM:R0 world-width
+end
+
+; Plot Neighbor Size in Time (using Training-Time as limit)
+to plot-NS2
+  set-current-plot "Neighbor Size in Time"
+  clear-plot
+  foreach (myrange 0 (1 + Training-Time) (Training-Time + 1)) [
+    x ->
+    plotxy x mean [count SOM:Lnodes in-radius (SOM:R x)] of (n-of 20 SOM:Lnodes)
+  ]
+end
+
+; Auxiliary report to obtain the list of np point from a to b
+to-report myrange [a b np]
+  report n-values np [x -> a + x * (b - a) / np]
+end
+@#$#@#$#@
+GRAPHICS-WINDOW
+0
+0
+245
+104
+-1
+-1
+3.505
+1
+10
+1
+1
+1
+0
+1
+1
+1
+-10
+10
+-10
+10
+-10
+10
+1
+1
+1
+ticks
+30.0
+
+SLIDER
+215
+35
+387
+68
+Training-Time
+Training-Time
+1
+1000
+111.0
+10
+1
+NIL
+HORIZONTAL
+
+BUTTON
+302
+106
+387
+139
+SOM!
+Launch
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+215
+106
+300
+139
+Reset
+reset\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+215
+140
+300
+185
+Radius
+precision (SOM:R ticks) 3
+17
+1
+11
+
+MONITOR
+302
+140
+387
+185
+Learning Rate
+precision (SOM:L ticks) 5
+17
+1
+11
+
+SLIDER
+215
+70
+387
+103
+Initial-Learning-Rate
+Initial-Learning-Rate
+0
+1
+0.064
+.001
+1
+NIL
+HORIZONTAL
+
+SLIDER
+105
+145
+197
+178
+N
+N
+1
+600
+27.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
+35
+102
+68
+Num-Points
+Num-Points
+1
+200
+7.0
+1
+1
+NIL
+HORIZONTAL
+
+CHOOSER
+10
+145
+102
+190
+Topology
+Topology
+"Line" "Ring" "SqTorus" "HxTorus" "SqGrid3D" "HxGrid3D" "Cylinder" "CylinderC" "SphereGrid"
+5
+
+BUTTON
+105
+35
+160
+68
+Random
+Random-Points
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+10
+70
+160
+103
+NIL
+Read
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+105
+180
+195
+213
+Create
+SOM-surface
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+PLOT
+10
+215
+195
+335
+Neighbor Size in Time
+Time
+Neigh. Size
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" ""
+"current" 1.0 0 -2674135 true "" ""
+
+TEXTBOX
+10
+10
+160
+31
+Training Set
+17
+0.0
+1
+
+TEXTBOX
+10
+120
+160
+141
+SOM Surface
+17
+0.0
+1
+
+TEXTBOX
+215
+10
+365
+31
+SOM Algorithm
+17
+0.0
+1
+
+@#$#@#$#@
+## WHAT IS IT?
+
+(a general understanding of what the model is trying to show or explain)
+
+## HOW IT WORKS
+
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+@#$#@#$#@
+default
+true
+0
+Polygon -7500403 true true 150 5 40 250 150 205 260 250
+
+circ
+true
+0
+Circle -7500403 true true -1 -1 301
+
+circle
+false
+0
+Circle -7500403 true true 0 0 300
+
+hex
+false
+0
+Polygon -7500403 true true 0 150 75 30 225 30 300 150 225 270 75 270
+
+square
+false
+0
+Rectangle -7500403 true true 30 30 270 270
+
+tri
+true
+0
+Polygon -7500403 true true 30 240 150 0 270 240
+@#$#@#$#@
+NetLogo 3D 6.0.2
+@#$#@#$#@
+@#$#@#$#@
+@#$#@#$#@
+@#$#@#$#@
+@#$#@#$#@
+default
+0.0
+-0.2 0 0.0 1.0
+0.0 1 1.0 0.0
+0.2 0 0.0 1.0
+link direction
+true
+0
+Line -7500403 true 150 150 90 180
+Line -7500403 true 150 150 210 180
+@#$#@#$#@
+1
+@#$#@#$#@

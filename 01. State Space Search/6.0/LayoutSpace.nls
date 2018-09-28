@@ -1,0 +1,136 @@
+;---------------------------------------------------------------------------
+; LAYOUT procedures
+;---------------------------------------------------------------------------
+
+; Radial Layout for the graph of generated states
+
+to layout-space  [layout-type]
+  ifelse layout-type = "*"
+  [
+    let len .25 * (world-width / sqrt (count AI:states))
+    repeat 500 [layout-spring AI:states AI:transitions 0.2 len 1]
+  ]
+  [
+    ifelse layout-type = "o"
+    [
+      layout-radial AI:states AI:transitions (AI:state 0)
+    ]
+    [
+      layout-tree (AI:state 0) layout-type
+    ]
+  ]
+end
+
+
+to style
+  ask patches [ set pcolor white]
+  ask turtles [ 
+    set shape "circle"    
+    set label-color black 
+    set label (word label "  ")
+    set color blue + 2
+  ]
+  ask links [set label-color green]
+end
+
+
+; Representation of a tree from a root node.
+; dir can be "↓" (vertical) o "→" (horizontal), represents the primary direction
+to layout-tree [root dir]
+  let PrimaryDir ifelse-value (dir = "→") [world-width - 1] [world-height - 1]
+  let SecondaryDir ifelse-value (dir = "↓" ) [world-width - 1] [world-height - 1]
+  ; MaxN : MAximum Depth of the tree
+  let MaxN max [depth] of AI:states
+  ; incx: distance between levels in the Primary direction
+  let incP PrimaryDir / (1 + MaxN)
+  ; iniP: Initial position of levels in primary direction
+  let iniP ifelse-value (dir = "→") [min-pxcor + incP / 2][max-pycor - incP / 2]
+  ; dep: current depth
+  let dep 0
+  ; StatesLevel: states in the current depth
+  let StatesLevel (list root)
+  ; We will go through levels representing the states uniformly distributed in the column
+  foreach (n-values (1 + MaxN) [x -> x]) [
+    ; SizeLevel: Number of states in current depth
+    let SizeLevel length StatesLevel
+    ; incS: distance between states in this level
+    let incS SecondaryDir / (1 + SizeLevel)
+    ; iniS: Initial position of states of current level in secondary direction
+    let iniS ifelse-value (dir = "→") [min-pycor + incS] [max-pxcor - incS]
+    ; Now, put the states in the column
+    foreach StatesLevel [ x ->
+      ask x [
+        ifelse dir = "→"
+        [ setxy iniP iniS ]
+        [ setxy iniS iniP ]
+      ]
+      ; Increment the Secondary position for the next state
+      set iniS ifelse-value (dir = "→") [iniS + incS][iniS - incS]
+    ]
+    ; Increment the Primary position for the next level
+    set iniP ifelse-value (dir = "→") [iniP + incP][iniP - incP]
+    ; Increment the depth
+    set dep dep + 1
+    ; Compute states for the next level. It is an ordered list of states:
+    ;   They are the successors of the current level
+    ;   Inorder to avoir crossing links, the block of successors of every state will be
+    ;     added in the same order of their parents (using a map)
+    ;   In every block of successors, we apply a order that considers the weight of the
+    ;     subtree under the parent state (the weight is the number of leaf nodes)
+    ;   Then, we alternate (balance) high values with low values in this weights
+    set StatesLevel reduce sentence ; Flat the list
+                          map ; take successors of current states in the same order
+                            ; Balance the new states according the weights of their subtrees
+                            [ x ->
+                              balance sort-by
+                              [[x1 x2] -> [weight-subtree] of x1 > [weight-subtree] of x2]
+                              ([out-link-neighbors] of x)]
+                            StatesLevel
+
+  ]
+end
+
+; Reports the weight (number of final states) of a subtree (the current state is the root)
+to-report weight-subtree
+  let d depth
+  ifelse depth = max[depth] of AI:states
+  [ report ifelse-value (depth = max[depth] of AI:states) [1][0] ]
+  [ report sum [weight-subtree] of out-link-neighbors with [depth > d ]]
+end
+
+; balance a values list (the list must be decreasing ordered),
+; it puts maximums in the extremes, and intercalates the other:
+;    balance [10 9 8]               -> [10 8 9]
+;    balance [10 9 8 7]             -> [10 7 8 9]
+;    balance [10 9 8 7 6]           -> [10 7 8 6 9]
+;    balance [10 9 8 7 6 5]         -> [10 5 7 8 6 9]
+;    balance [10 9 8 7 6 5 4]       -> [10 5 7 4 8 6 9]
+;    balance [10 9 8 7 6 5 4 3]     -> [10 5 7 4 8 3 6 9]
+;    balance [10 9 8 7 6 5 4 3 2]   -> [10 5 7 4 8 3 6 2 9]
+;    balance [10 9 8 7 6 5 4 3 2 1] -> [10 1 5 7 4 8 3 6 2 9]
+
+to-report balance [s]
+  let res s
+  ; If it has only 2, or less, elements, it does nothing
+  if length s > 2 [
+    ; Start with the first 2 elements (the highest)
+    ;  and the rest (that will be intercalated)
+    set res sublist s 0 2
+    set s sublist s 2 length s
+    while [not empty? s] [
+      ; Select elements to intercalate in this step
+      let j min (list (length s) (-1 + length res))
+      set res intercalate res (sublist s 0 j)
+      set s sublist s j length s
+    ]
+  ]
+  report res
+end
+
+; Given 2 lists (with the adequated lengths) intercalates the elements of the second one into the first one
+;   intercalate [1 3 5 7] [2 4 6] -> [1 2 3 4 5 6 7]
+to-report intercalate [r s]
+  if empty? s [report r]
+  report (sentence (first r) (first s) intercalate (bf r) (bf s))
+end
+

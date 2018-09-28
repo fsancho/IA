@@ -1,0 +1,4 @@
+"Atributos" "Manzanas" "Aguacate" "Platanos" "Filete de ternera" "Hamburguesa Big Mac" "Nueces de Brasil" "Pan" "Mantequilla" "Queso" "Tarta de queso" "Galletas" "Copos de maiz" "Huevos" "Pollo frito" "Patatas fritas" "Chocolate" "Pepperoni" "Pizza" "Pastel de cerdo" "Patatas" "Arroz" "Pollo asado" "Azúcar" "Filete de atun" "Agua"
+"Proteína" 0.4 1.9 1.2 20.9 13 15.5 10.5 1 25 6.4 5.7 7 12.5 17 3 3.8 20.9 12.5 10.1 1.7 6.9 26.1 0 25.6 0
+"Carbohidratos" 11.8 1.9 23.2 0 19 2.9 37 0 0.1 28.2 58.7 84 0 7 36 19.4 5.1 30 27.3 16.1 74 0.3 95.1 0 0
+"Grasa" 0.1 19.5 0.3 7.9 11 68.3 3.2 81 34.4 22.7 29.3 0.9 10.8 20 13 10.2 38.3 11 24.2 0.3 2.8 5.8 0 0.5 0

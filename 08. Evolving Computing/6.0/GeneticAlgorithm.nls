@@ -1,0 +1,129 @@
+;; Individuals = possible solutions
+
+breed [AI:individuals AI:individual]
+
+AI:individuals-own [
+  content  ; Where the representation of the solution is stored in the individual
+  fitness  ; Where the fitness of the individual is stored
+]
+;---------------------------------------------------------------------------------
+
+;--------------- Procedures to be customized -------------------------------------
+
+; They depend on the representation chosen for the problem in the DNA of the 
+; individuals.
+
+; to AI:Initial-Population [#population]
+;   Creates the initial generation of AI:individuals
+
+; to AI:Compute-fitness
+;   Individual report to compute its fitness
+
+; to-report AI:Crossover [c1 c2]
+;   Crossover procedure. It takes content from two parents and returns a list with 
+;   two contents.
+;   When content is a list (as in DNA case) it uses a random cut-point to
+;   cut both contents and mix them:
+;        a1|a2, b1|b2, where long(ai)=long(bi)
+;   and report: a1|b2, b1|a2
+
+; to AI:mutate [#mutation-ratio]
+;   Mutation procedure. Individual procedure. Random mutation of units of the 
+;   content.
+
+; to AI:ExternalUpdate
+;   Auxiliary procedure to be executed in every iteration of the main loop.
+;   Usually to show or update some information.
+
+;------------------------- Algorithm Procedures ----------------------------------
+
+; Main procedure. Parameters:
+;  #num-iters       : Number of iterations of the algorithm
+;  #population      : Population (number) of individuals to take care of
+;  #crossover-ratio : % of crossovers that will be made in every iteration
+;  #mutation-ratio  ; Probability of mutation in every unit of DNA
+
+to-report AI:GeneticAlgorithm [#num-iters #population #crossover-ratio #mutation-ratio]
+  repeat #num-iters [
+    AI:Create-next-generation #population #crossover-ratio #mutation-ratio
+    AI:ExternalUpdate
+  ]
+  report max-one-of AI:individuals [fitness]
+end
+
+; Procedure to create the new generation from the current one.
+; It selects (from fitness) the individuals to reproduce by crossover (sexual)
+; and by clonation (asexual). After that, it mutates randomly the new DNA 
+; sequences. The new generation replace the old one.
+
+to AI:Create-next-generation [#population #crossover-ratio #mutation-ratio]
+  
+  ; Start making a copy of the current pool
+  let old-generation AI:individuals with [true]
+
+  ; Decide how many crossover will be made (in each crossover 2 new individuals
+  ; will be created)
+  let number-crossovers  (floor (#population * #crossover-ratio / 100 / 2))
+
+  ; Make Crossovers
+  repeat number-crossovers
+  [
+    ; Tournament 3 selection: we take 3 random individuals and choose the best 
+    ; of them. Selectors will be the parents of the new spring.
+
+    let father1 max-one-of (n-of 3 old-generation) [fitness]
+    let father2 max-one-of (n-of 3 old-generation) [fitness]
+
+    let content-child AI:crossover ([content] of father1) ([content] of father2)
+
+    ; From 2 parents we create 2 children
+    ask father1 [ hatch-AI:individuals 1 [ set content item 0 content-child ] ]
+    ask father2 [ hatch-AI:individuals 1 [ set content item 1 content-child ] ]
+  ]
+
+  ; The rest of pool will be cloned directly from good individuals of the
+  ; previous generation
+  repeat (#population - number-crossovers * 2)
+  [
+    ask max-one-of (n-of 3 old-generation) [fitness]
+      [ hatch-AI:individuals 1 ]
+  ]
+
+  ; Remove the previous generation
+  ask old-generation [ die ]
+
+  ; Mutate the new spring and compute the new fitness
+  ask AI:individuals
+  [
+    AI:mutate #mutation-ratio
+    AI:Compute-fitness
+  ]
+end
+
+;------------------------------------------------------------------------------
+; We provide some auxiliary procedures that calculate the diversity of the pool
+;  (using the Hamming distance between all individual pairs)
+
+; Provided diversity is the average of Hamming distances between all pairs 
+; in the population.
+
+to-report AI:diversity
+  let distances []
+  ask AI:individuals [
+    let c1 content
+    ask AI:individuals with [self > myself] [
+      set distances fput (AI:distance content c1) distances
+    ]
+  ]
+  report mean distances
+end
+
+to-report AI:distance [c1 c2]
+  report hamming-distance c1 c2
+end
+
+; Hamming Distance between two lists is the proportion of positions they 
+; differ.
+to-report hamming-distance [c1 c2]
+  report (length remove true (map [[x1 x2] -> x1 = x2] c1 c2)) / (length c1)
+end
