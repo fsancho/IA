@@ -12,6 +12,8 @@ Congratulations! You have installed the **Base Grav Package** that provides a **
 
 \(a^x \frac{1}{3}\)
 
+\[a^x \frac{1}{3}\]
+
 ### Find out all about Grav
 
 * Learn about **Grav** by checking out our dedicated [Learn Grav](http://learn.getgrav.org) site.
