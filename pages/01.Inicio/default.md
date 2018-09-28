@@ -12,7 +12,7 @@ Congratulations! You have installed the **Base Grav Package** that provides a **
 
 \(a^x \frac{1}{3}\)
 
-<center>\(a^x \frac{1}{3}\)</center>
+<p align="center">\(a^x \frac{1}{3}\)</p>
 
 ### Find out all about Grav
 
