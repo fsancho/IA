@@ -1,7 +1,8 @@
 ---
 title: 'Espacio de Estados'
 taxonomy:
-    category: docs
+    category:
+        - docs
 visible: true
 ---
 
@@ -9,7 +10,7 @@ visible: true
 
 # Espacio de Estados
 
-[image file="2015-07/c6f563de-154e-11e2-bb76-001e670c2818.jpg" align="left"] Sin lugar a dudas, una de las principales características que reconocemos en la inteligencia es la capacidad para resolver problemas. Si consideramos una inteligencia como la humana, a la habilidad para analizar los elementos intrínsecos de cada problema, que está presente también en muchas otras especies animales, se añade la **capacidad de abstraerlos e identiﬁcar las acciones que se pueden realizar** sobre ellos para resolver el problema. En un nivel incluso superior de abstracción, reconocible solo en las llamadas especies superiores, podemos considerar también la capacidad de determinar cuál puede ser, de entre los posibles métodos que se idean, el más adecuado, ya sea en términos de tiempo, de recursos, de seguridad para el individuo, etc. De esta forma, aparece una triple capacidad de **análisis**, **abstraccción** y **estrategia** que <span>sitúa el tema general de la resolución de problemas en el núcleo de la inteligencia artiﬁcial y, p</span>or ello, no resulta extraño que se consideren deseables para cualquier individuo, artificial o no, que queramos que se comporte inteligentemente.
+![](http://www.cs.us.es/~fsancho/images/2015-07/c6f563de-154e-11e2-bb76-001e670c2818.jpg) Sin lugar a dudas, una de las principales características que reconocemos en la inteligencia es la capacidad para resolver problemas. Si consideramos una inteligencia como la humana, a la habilidad para analizar los elementos intrínsecos de cada problema, que está presente también en muchas otras especies animales, se añade la **capacidad de abstraerlos e identiﬁcar las acciones que se pueden realizar** sobre ellos para resolver el problema. En un nivel incluso superior de abstracción, reconocible solo en las llamadas especies superiores, podemos considerar también la capacidad de determinar cuál puede ser, de entre los posibles métodos que se idean, el más adecuado, ya sea en términos de tiempo, de recursos, de seguridad para el individuo, etc. De esta forma, aparece una triple capacidad de **análisis**, **abstraccción** y **estrategia** que <span>sitúa el tema general de la resolución de problemas en el núcleo de la inteligencia artiﬁcial y, p</span>or ello, no resulta extraño que se consideren deseables para cualquier individuo, artificial o no, que queramos que se comporte inteligentemente.
 
 Podemos pensar en una variedad de problemas que van desde cómo alcanzar una fuente de comida situada a cierta distancia y a la que no se puede ir directamente, hasta cómo resolver un pequeño juego como podría ser el famoso cubo de Rubik, o resolver el problema matemático de encontrar la solución a una ecuación numérica. En todos ellos encontramos elementos comunes tras un proceso de abstracción que nos permiten de forma general deﬁnir la **resolución de problemas** como:
 
