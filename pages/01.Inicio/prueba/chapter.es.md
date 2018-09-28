@@ -1,5 +1,6 @@
 ---
 title: Prueba
+published: true
 taxonomy:
     category: docs
 ---
