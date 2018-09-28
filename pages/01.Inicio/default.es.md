@@ -1,16 +1,21 @@
 ---
-title: Home
-body_classes: title-center title-h1h2
+title: Inicio
+body_classes: 'title-center title-h1h2'
 ---
 
+[TOC]
 # El curso está activo
 ## installation successful...
+
+[MINITOC]
 
 Congratulations! You have installed the **Base Grav Package** that provides a **simple page** and the default **Quark** theme to get you started.
 
 !! If you see a **404 Error** when you click `Typography` in the menu, please refer to the [troubleshooting guide](http://learn.getgrav.org/troubleshooting/page-not-found).
 
 \(a^x \frac{1}{3}\)
+
+<p align="center">\(a^x \frac{1}{3}\)</p>
 
 ### Find out all about Grav
 
