@@ -10,6 +10,8 @@ Congratulations! You have installed the **Base Grav Package** that provides a **
 
 !! If you see a **404 Error** when you click `Typography` in the menu, please refer to the [troubleshooting guide](http://learn.getgrav.org/troubleshooting/page-not-found).
 
+\(a^x \frac{1}{3}\)
+
 ### Find out all about Grav
 
 * Learn about **Grav** by checking out our dedicated [Learn Grav](http://learn.getgrav.org) site.
