@@ -1,5 +1,5 @@
 ---
-title: Home
+title: Inicio
 body_classes: title-center title-h1h2
 ---
 
