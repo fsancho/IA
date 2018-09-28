@@ -5,7 +5,6 @@ taxonomy:
 ---
 
 [TOC]
-### Chapter Number
 
 # Espacio de Estados
 
