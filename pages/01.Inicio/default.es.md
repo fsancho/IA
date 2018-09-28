@@ -1,8 +1,9 @@
 ---
 title: Inicio
-body_classes: title-center title-h1h2
+body_classes: 'title-center title-h1h2'
 ---
 
+[TOC]
 # El curso está activo
 ## installation successful...
 
