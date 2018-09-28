@@ -35,17 +35,13 @@ Este proceso de elegir adecuadamente la información que almacenamos en un estad
 
 **La elección de los estados**, como veremos más adelante en casos concretos, **no solo determina qué información se almacenará de las diversas situaciones por las que pasa el problema, sino que en muchos casos es determinante también para decidir cuáles son las reglas u operaciones básicas que se permiten para realizar transformaciones entre estados**. Otras veces también podemos encontrar restricciones debido a la incapacidad para realizar ciertas acciones para resolver un problema, lo que puede influir en cómo se elegirán los estados para hacerlos coherentes con las operaciones disponibles. En general, e</span>l proceso de transformar el problema original (al que muchas veces llamaremos simplemente "mundo real") en este espacio de estados que es manipulable por medios automáticos es lo que conocemos como **modelar el problema** (debe tenerse en cuenta que el modelado existe en otras muchas ramas de la ciencia, y nosotros aquí solo consideramos el modelado computacional, que es un tipo particular de modelado matemático).
 
-> Modelar computacional de un problema: proceso de transformar el problema original ("mundo real") en un espacio de estados que es manipulable por medios automáticos.</div>
-
-</div>
-
-</div>
+> Modelar computacional de un problema: proceso de transformar el problema original ("mundo real") en un espacio de estados que es manipulable por medios automáticos.
 
 ## Problema de búsqueda básico
 
-<div style="text-align: justify;">[[image file="2016-11/GraphStateSpace.png" align="right" width=300px ]]Si nos imaginamos este espacio de estados como un terreno por el cual nos podemos mover, donde partimos de un punto concreto del terreno (**estado inicial**) y podemos aplicar las reglas válidas para ir saltando de un estado a otro, podemos identificar la resolución del problema (llegar hasta un **estado final** válido) con el problema de **buscar un camino** adecuado entre un estado inicial y un estado final. Es por ello que muy habitualmente se habla del **Problema de Búsqueda en el Espacio de Estados**. Pasemos pues a dar una definición formal de esta idea: </div>
+[[image file="2016-11/GraphStateSpace.png" align="right" width=300px ]]Si nos imaginamos este espacio de estados como un terreno por el cual nos podemos mover, donde partimos de un punto concreto del terreno (**estado inicial**) y podemos aplicar las reglas válidas para ir saltando de un estado a otro, podemos identificar la resolución del problema (llegar hasta un **estado final** válido) con el problema de **buscar un camino** adecuado entre un estado inicial y un estado final. Es por ello que muy habitualmente se habla del **Problema de Búsqueda en el Espacio de Estados**. Pasemos pues a dar una definición formal de esta idea: 
 
-<div style="text-align: justify;">Un **problema de búqueda básico** es una 4-tupla \((X,S,G,d)\), donde </div>
+Un **problema de búqueda básico** es una 4-tupla \((X,S,G,d)\), donde 
 
 *   \(X\) es un **conjunto de estados** (el que hemos estado llamando **Espacio de Estados**).
 *   \(S \subseteq X\), es un conjunto no vacío de **estados iniciales** (no tiene porqué existir un solo estado de partida).
@@ -65,39 +61,33 @@ Una vez fijado este primer marco de representación, podemos dar los pasos gener
 
 ### Ejemplo
 
-<div style="text-align: justify;">Como primer ejemplo, consideremos el **puzle de piezas deslizantes**, donde el objetivo es deslizar las piezas usando el hueco hasta conseguir el orden deseado. El caso general consiste en un puzzle de \(n\times m\) cuadrículas, con \(n\times m-1\) piezas numeradas consecutivamente y 1 hueco. A veces podemos encontrar este puzle en una variante equivalente haciendo uso de imágenes que han de reconstruirse situando el orden adecuado en sus piezas.</div>
+Como primer ejemplo, consideremos el **puzle de piezas deslizantes**, donde el objetivo es deslizar las piezas usando el hueco hasta conseguir el orden deseado. El caso general consiste en un puzzle de \(n\times m\) cuadrículas, con \(n\times m-1\) piezas numeradas consecutivamente y 1 hueco. A veces podemos encontrar este puzle en una variante equivalente haciendo uso de imágenes que han de reconstruirse situando el orden adecuado en sus piezas.
 
-<div style="text-align: center;">[[image file="2015-07/a1c910b4-1527-11e2-bb76-001e670c2818.jpg" ]]</div>
+[[image file="2015-07/a1c910b4-1527-11e2-bb76-001e670c2818.jpg" ]]
 
-<div style="text-align: justify;">El espacio de estados, \(X\), describe todas las posibles combinaciones de las piezas y el hueco. Como queremos dar un método general de resolución, el conjunto de los estados iniciales es, en este caso, todo el espacio \(S=X\), y el conjunto de estados finales es únicamente uno, el estado en el que todos están en orden y el hueco se sitúa al final, tal y como muestra la figura anterior. La función de transición describe el cambio que resulta de mover, en un estado concreto, el hueco en cualquiera de las 4 direcciones (en los bordes y esquinas sólo podrá moverse en 3 o 2 direcciones posibles, respectivamente).</div>
+El espacio de estados, \(X\), describe todas las posibles combinaciones de las piezas y el hueco. Como queremos dar un método general de resolución, el conjunto de los estados iniciales es, en este caso, todo el espacio \(S=X\), y el conjunto de estados finales es únicamente uno, el estado en el que todos están en orden y el hueco se sitúa al final, tal y como muestra la figura anterior. La función de transición describe el cambio que resulta de mover, en un estado concreto, el hueco en cualquiera de las 4 direcciones (en los bordes y esquinas sólo podrá moverse en 3 o 2 direcciones posibles, respectivamente).
 
-<div style="text-align: justify;">Obsérvese que, en este caso, la solución al puzzle no es el estado final, que sabemos exáctamente cuál es, sino el camino que lleva desde un estado inicial (prefijado, o aleatorio) hasta ese estado final. Es decir, deseamos conocer la sucesión de movimientos que nos permiten resolver el puzle.</div>
+Obsérvese que, en este caso, la solución al puzzle no es el estado final, que sabemos exáctamente cuál es, sino el camino que lleva desde un estado inicial (prefijado, o aleatorio) hasta ese estado final. Es decir, deseamos conocer la sucesión de movimientos que nos permiten resolver el puzle.
 
-<div style="text-align: center;">[[image file="2015-07/23717796-1528-11e2-bb76-001e670c2818.jpg" ]]</div>
+[[image file="2015-07/23717796-1528-11e2-bb76-001e670c2818.jpg" ]]
 
-<div style="text-align: justify;">En el caso de un puzle de tamaño \(3\times 3\) (e<span>n este caso el puzle se conoce como </span>**8-puzle**, que es el número de piezas móviles<span>) </span>el número de posibles estados es de \(9!= 362880\), un tamaño que permite, con la capacidad de los ordenadores actuales, hacer una búsqueda exahustiva para encontrar el camino desde cualquier estado al estado final ordenado. Esta búsqueda exahustiva se consigue comenzando por el estado inicial e ir visitando a partir de él todos los demás estados por la aplicación sucesiva de las reglas de transición, de esta forma, si existe una solución (un camino que conecta el estado inicial y el final) este método la encontrará, aunque, posiblemente, de una forma completamente ineficiente.</div>
+En el caso de un puzle de tamaño \(3\times 3\) (en este caso el puzle se conoce como **8-puzle**, que es el número de piezas móviles) el número de posibles estados es de \(9!= 362880\), un tamaño que permite, con la capacidad de los ordenadores actuales, hacer una búsqueda exahustiva para encontrar el camino desde cualquier estado al estado final ordenado. Esta búsqueda exahustiva se consigue comenzando por el estado inicial e ir visitando a partir de él todos los demás estados por la aplicación sucesiva de las reglas de transición, de esta forma, si existe una solución (un camino que conecta el estado inicial y el final) este método la encontrará, aunque, posiblemente, de una forma completamente ineficiente.
 
-<div style="text-align: justify;">
+Si jugamos con el puzle de tamaño \(4\times 4\) (que se conoce como **15-puzle**) el número de posibles estados es de \(16! \approx 2x10^{13}\), demasiado grande para una búsqueda exahustiva. En casos como éste, donde el espacio de estados es excesivamente grande para hacer un recorrido exahustivo de sus elementos, hemos de encontrar estrategias de búsqueda más depuradas que nos permitan alcanzar las soluciones de forma más eficiente y usando menos recursos (en tiempo y en espacio almacenado).
 
-<div>Si jugamos con el puzle de tamaño \(4\times 4\) (que se conoce como **15-puzle**) el número de posibles estados es de \(16! \approx 2x10^{13}\), demasiado grande para una búsqueda exahustiva. En casos como éste, donde el espacio de estados es excesivamente grande para hacer un recorrido exahustivo de sus elementos, hemos de encontrar estrategias de búsqueda más depuradas que nos permitan alcanzar las soluciones de forma más eficiente y usando menos recursos (en tiempo y en espacio almacenado).</div>
+Consideremos otro puzle habitual, **el puzle de los misioneros y caníbales**: Tres misioneros se perdieron explorando una jungla. Separados de sus compañeros, sin alimento y sin radio, sólo sabían que para llegar a su destino debían ir siempre hacia adelante. Los tres misioneros se detuvieron frente a un río que les bloqueaba el paso, preguntándose que podían hacer. De repente, aparecieron tres caníbales llevando un bote, pues también ellos querían cruzar el río. Ya anteriormente se habían encontrado grupos de misioneros y caníbales, y cada uno respetaba a los otros, pero sin confiar entre ellos. Los caníbales se comían a los misioneros cuando les superaban en número, y los misioneros bautizaban a los caníbales en situaciones similares. Todos querían cruzar el río, pero el bote no podía llevar más de dos personas a la vez y los misioneros no querían que los caníbales les aventajaran en número. ¿Cómo puede resolverse el problema, sin que en ningún momento hayan más caníbales que misioneros en cualquier orilla del río?
 
-<div>Consideremos otro puzle habitual, **el puzle de los misioneros y caníbales**: Tres misioneros se perdieron explorando una jungla. Separados de sus compañeros, sin alimento y sin radio, sólo sabían que para llegar a su destino debían ir siempre hacia adelante. Los tres misioneros se detuvieron frente a un río que les bloqueaba el paso, preguntándose que podían hacer. De repente, aparecieron tres caníbales llevando un bote, pues también ellos querían cruzar el río. Ya anteriormente se habían encontrado grupos de misioneros y caníbales, y cada uno respetaba a los otros, pero sin confiar entre ellos. Los caníbales se comían a los misioneros cuando les superaban en número, y los misioneros bautizaban a los caníbales en situaciones similares. Todos querían cruzar el río, pero el bote no podía llevar más de dos personas a la vez y los misioneros no querían que los caníbales les aventajaran en número. ¿Cómo puede resolverse el problema, sin que en ningún momento hayan más caníbales que misioneros en cualquier orilla del río?</div>
+El espacio de estados asociado al problema podría representarse de la siguiente forma (muy descriptiva, pero poco práctica desde el punto de vista computacional):
 
-<div>El espacio de estados asociado al problema podría representarse de la siguiente forma (muy descriptiva, pero poco práctica desde el punto de vista computacional):</div>
+[[image file="2017-09/mc-search-space.png" ]]
 
-<div><span>[[image file="2017-09/mc-search-space.png" ]]</span></div>
+**Ejercicio**: Formaliza la siguiente versión del puzle "_Todos los dígitos del Rey_" explicitando una representación de sus estados y la función de transición entre ellos: Dado el conjunto de dígitos \(0123456789\), inserta los símbolos de los operadores aritméticos (\(\times + - /,\)) entre ellos para que la expresión resultante se evalúe como 100\. Por ejemplo:\[0+1+2+3+4+5+6+7+(8\times 9) =100\]
 
-</div>
-
-<div style="text-align: justify;"><cite>**Ejercicio**: Formaliza la siguiente versión del puzle "_Todos los dígitos del Rey_" explicitando una representación de sus estados y la función de transición entre ellos: Dado el conjunto de dígitos \(0123456789\), inserta los símbolos de los operadores aritméticos (\(\times + - /,\)) entre ellos para que la expresión resultante se evalúe como 100\. Por ejemplo:</cite></div>
-
-<div style="text-align: justify;"><cite>\[0+1+2+3+4+5+6+7+(8\times 9) =100\]</cite></div>
-
-<div style="text-align: justify;"><cite>¿Puedes encontrar otros?</cite></div>
+¿Puedes encontrar otros?
 
 ## Criterios de evaluación
 
-<div style="text-align: justify;">Antes de que pasemos a ver la variedad de algoritmos (estrategias) que han sido diseñados para resolver problemas de búsqueda en espacios de estados, puede merecer la pena mencionar, aunque sea de forma breve, cómo podemos evaluar la eficiencia de estos algoritmos. Habitualmente, se suelen usar los siguientes criterios de evaluación: </div>
+Antes de que pasemos a ver la variedad de algoritmos (estrategias) que han sido diseñados para resolver problemas de búsqueda en espacios de estados, puede merecer la pena mencionar, aunque sea de forma breve, cómo podemos evaluar la eficiencia de estos algoritmos. Habitualmente, se suelen usar los siguientes criterios de evaluación:
 
 *   **Complejidad en tiempo**: Se puede medir como el número de veces que se aplica la función de transición que necesita el algoritmo para encontrar la solución. En un contexto más amplio suele medirse por medio del número de pasos que da un algoritmo en su ejecución.
 *   **Complejidad en espacio**: Se mide por la cantidad de espacio de almacenamiento necesario para encontrar la solución. En el caso que estamos viendo lo podemos medir como el número de estados que el algoritmo debe mantener en memoria para encontrar la solución. Algunos algoritmos podrán "olvidar" los estados por los que van pasando, mientras que otros necesitan mantener una memoria con esos estados para poder volver atrás en la búsqueda o saber por cuáles ha pasado.
@@ -106,20 +96,20 @@ Una vez fijado este primer marco de representación, podemos dar los pasos gener
 
 ## Una representación (casi) universal
 
-<div style="text-align: justify;">Normalmente, los algoritmos que vamos a ver se basan en la suposición de que el espacio de búsqueda tiene la estructura de un grafo dirigido: cada **nodo** del grafo representa uno de los estados del espacio, y dos nodos están conectados si existe una forma de ir de uno al otro por medio de la función de transición.</div>
+Normalmente, los algoritmos que vamos a ver se basan en la suposición de que el espacio de búsqueda tiene la estructura de un grafo dirigido: cada **nodo** del grafo representa uno de los estados del espacio, y dos nodos están conectados si existe una forma de ir de uno al otro por medio de la función de transición.
 
-<div style="text-align: justify;">Normalmente, cuando resolvemos el problema a partir de un estado particular, podemos construir un árbol que se construye partiendo del estado inicial y donde en cada nivel se añaden los estados que se pueden alcanzar desde los estados del nivel anterior (y que, en consecuencia, puede contener estados repetidos). En este caso, la **profundidad** (\(d\), de **depth**) del árbol es la longitud máxima de los caminos que se pueden construir desde cualquier nodo a la raíz; y el **factor de ramificación** (\(b\), de **branch**) del árbol es el máximo número de sucesores que puede tener un nodo del árbol.</div>
+Normalmente, cuando resolvemos el problema a partir de un estado particular, podemos construir un árbol que se construye partiendo del estado inicial y donde en cada nivel se añaden los estados que se pueden alcanzar desde los estados del nivel anterior (y que, en consecuencia, puede contener estados repetidos). En este caso, la **profundidad** (\(d\), de **depth**) del árbol es la longitud máxima de los caminos que se pueden construir desde cualquier nodo a la raíz; y el **factor de ramificación** (\(b\), de **branch**) del árbol es el máximo número de sucesores que puede tener un nodo del árbol.
 
-<div style="text-align: justify;">En un árbol, los sucesores inmediatos de un nodo (salvo las hojas, claro, que son los nodos terminales) se llaman **hijos**, el predecesor de un nodo (salvo la raíz, que no tiene predecesor), que es único, se llama **padre**, y los nodos que tienen el padre común se llaman **hermanos**.</div>
+En un árbol, los sucesores inmediatos de un nodo (salvo las hojas, claro, que son los nodos terminales) se llaman **hijos**, el predecesor de un nodo (salvo la raíz, que no tiene predecesor), que es único, se llama **padre**, y los nodos que tienen el padre común se llaman **hermanos**.
 
-<div style="text-align: center;">[[image file="2015-07/96a74992-1529-11e2-bb76-001e670c2818.png" ]]</div>
+[[image file="2015-07/96a74992-1529-11e2-bb76-001e670c2818.png" ]]
 
-<div style="text-align: justify;">Es importante destacar que nuestro espacio de estados **NO** es un árbol, sino que el árbol se consigue al considerar la estructura ordenada que surge entre los diversos estados de nuestro problema al aplicar las reglas que permiten pasar de unos estados a otros. Si cambiamos la representación de los estados (y en consecuencia las reglas que se pueden aplicar) cambiará el árbol asociado, pero nuestro problema sigue siendo el mismo. Es por ello que la representación es fundamental para obtener soluciones más o menos eficientes, ya que los posibles caminos entre los nodos que representan estados iniciales y los nodos que representan estados finales pueden cambiar completamente dependiendo del árbol que obtengamos.</div>
+Es importante destacar que nuestro espacio de estados **NO** es un árbol, sino que el árbol se consigue al considerar la estructura ordenada que surge entre los diversos estados de nuestro problema al aplicar las reglas que permiten pasar de unos estados a otros. Si cambiamos la representación de los estados (y en consecuencia las reglas que se pueden aplicar) cambiará el árbol asociado, pero nuestro problema sigue siendo el mismo. Es por ello que la representación es fundamental para obtener soluciones más o menos eficientes, ya que los posibles caminos entre los nodos que representan estados iniciales y los nodos que representan estados finales pueden cambiar completamente dependiendo del árbol que obtengamos.
 
 ## Para saber más...
 
-<div style="text-align: justify;">[[popup description="<span>Tema 3 de la asignatura de IA del Grado en Ingeniería en Informática - Tecnologías Informáticas</span>" title="<span>Tema 3 de la asignatura de IA del Grado en Ingeniería en Informática - Tecnologías Informáticas</span>" fb_type="iframe" url="http://www.cs.us.es/cursos/iati/temas/tema-03.pdf"]]</div>
+Tema 3 de la asignatura de IA del Grado en Ingeniería en Informática - Tecnologías Informáticas http://www.cs.us.es/cursos/iati/temas/tema-03.pdf
 
-<div style="text-align: justify;"><span>[[popup description="</span><span>Tema 3 Artificial Intellicenge and its teaching</span><span>" title="<span>Tema 3 Artificial Intellicenge and its teaching</span></span><span>" fb_type="iframe" url="<span>http://aries.ektf.hu/~gkusper/ArtificialIntelligence_LectureNotes.v.1.0.4.pdf</span></span><span>"]]</span></div>
+Tema 3 Artificial Intellicenge and its teaching http://aries.ektf.hu/~gkusper/ArtificialIntelligence_LectureNotes.v.1.0.4.pdf
 
-<div style="text-align: justify;"><span>[[popup description="</span><span>Tema 3 Artificial Intellicenge. Foundations of Computational Agents</span><span>" title="<span>Tema 3 Artificial Intellicenge. Foundations of Computational Agents</span></span><span>" fb_type="iframe" url="<span>http://artint.info/html/ArtInt_46.html</span></span><span>"]]</span></div>
+Tema 3 Artificial Intellicenge. Foundations of Computational Agents http://artint.info/html/ArtInt_46.html
