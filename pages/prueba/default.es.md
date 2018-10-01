@@ -2,4 +2,4 @@
 title: Prueba
 ---
 
-<p>Prueba</p>
+<p>Prueba prueba</p>
