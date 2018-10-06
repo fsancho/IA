@@ -1,8 +1,7 @@
 ---
 title: 'Lógica Proposicional'
 taxonomy:
-    category:
-        - docs
+    category: docs
 visible: true
 ---
 
