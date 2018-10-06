@@ -1,8 +1,7 @@
 ---
 title: 'Espacio de Estados'
 taxonomy:
-    category:
-        - docs
+    category: docs
 visible: true
 ---
 
