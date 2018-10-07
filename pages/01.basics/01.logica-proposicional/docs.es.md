@@ -29,7 +29,7 @@ visible: true
 <table style="margin-left: auto; margin-right: auto;" border="0" align="center">
 <thead>
 <tr>
-<td style="text-align: center;">$p$</td>
+<td style="text-align: center;">\(p\)</td>
 <td style="text-align: center;">$q$</td>
 <td style="text-align: center;">$\neg\ p$</td>
 <td style="text-align: center;">$\neg\ q$</td>
