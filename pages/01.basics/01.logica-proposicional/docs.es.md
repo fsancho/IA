@@ -26,7 +26,7 @@ visible: true
 <p>Evidentemente, no vamos a admitir como correcta cualquier combinaci&oacute;n de los s&iacute;mbolos anteriores, y llamaremos <strong>f&oacute;rmulas</strong> a aquellas expresiones que s&iacute; sean correctas en nuestro sistema (por ejemplo: \((p \rightarrow q) \vee (\neg q \wedge r)\) es una f&oacute;rmula correcta, mientras que \(p \neg \wedge q\) no lo es). Se puede dar una definici&oacute;n formal de qu&eacute; es una f&oacute;rmula (es decir, una expresi&oacute;n que est&aacute; correctamente escrita) y qu&eacute; no lo es, pero con la idea intuitiva es suficiente para este curso acelerado. Basta tener en cuenta que una expresi&oacute;n es una f&oacute;rmula si se puede construir usando las conectivas anteriores usando las variables proposicionales. De esta forma, las variables proposicionales representar&aacute;n las afirmaciones at&oacute;micas del mundo real (o del que estamos formalizando), es decir, aquellas que no pueden ser descompuestas en afirmaciones m&aacute;s peque&ntilde;as; y las otras f&oacute;rmulas representar&aacute;n afirmaciones compuestas.&nbsp;</p>
 <p>De igual forma, podemos definir formalmente cu&aacute;ndo una f&oacute;rmula es una subf&oacute;rmula de otra.</p>
 <p>El significado de las conectivas es el esperado en el lenguaje natural, aunque para determinar sin lugar a dudas su significado es habitual dar las tablas de verdad de las conectivas en funci&oacute;n de la veracidad de las variables (o subf&oacute;rmulas) que intervienen:</p>
-<table style="margin-left: auto; margin-right: auto;" border="0" align="center">
+<table style="margin-left: auto; margin-right: auto;" border="0" align="center" markdown="1">
 <thead>
 <tr>
 <td style="text-align: center;">\(p\)</td>
