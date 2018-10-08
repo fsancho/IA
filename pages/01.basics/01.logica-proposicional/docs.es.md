@@ -5,6 +5,7 @@ taxonomy:
 visible: true
 ---
 
+[TOC]
 <p>En esta entrada vamos a intentar dar un curso acelerado (acelerad&iacute;simo) acerca de qu&eacute; es la <strong>L&oacute;gica Proposicional</strong> y de qu&eacute; forma se pueden automatizar algunos de los problemas m&aacute;s habituales que se presentan dentro de ella. Debido a que es un curso acelerado, el lector no debe buscar aqu&iacute; una formalizaci&oacute;n exahustiva acerca del tema, sino una aproximaci&oacute;n intuitiva a cu&aacute;les son los fundamentos de la misma, a los problemas que resuelve, y a algunos de los algoritmos m&aacute;s habituales para automatizar las soluciones que se pueden dar a los mismos. Si el lector sabe algo de l&oacute;gica, y ya ha visto alg&uacute;n curso de l&oacute;gico proposicional con cierto detalle, lo m&aacute;s probable es que estas notas no le sirvan de mucho, encuentre muchas carencias e incluso alguna "mentira piadosa" (aunque prefiero llamarla "atajo")... en consecuencia, si este es tu caso, es muy probable que estas notas no est&eacute;n hechas para ti... quedas avisado...</p>
 <p>Si quieres tener una visi&oacute;n m&aacute;s completa de la l&oacute;gica, puedes ver el material del curso <a href="http://www.cs.us.es/cursos/liti/" target="_blank" rel="noopener">L&oacute;gica Inform&aacute;tica </a>que se imparte en diversos grados de la E.T.S. Ingenier&iacute;a Inform&aacute;tica de la Universidad de Sevilla, as&iacute; como las referencias bibliogr&aacute;ficas que puedes encontrar en ellos.</p>
 <h2>&iquest;Qu&eacute; es la L&oacute;gica Proposicional?</h2>
