@@ -10,6 +10,7 @@ visible: true
 
 <img style="float: left;" src="http://www.cs.us.es/~fsancho/images/2017-09/ia-imagen.png" align="left" width=300px>El campo de la **Inteligencia Artificial (IA)** es un campo de investigación transdisciplinar que generalmente se relaciona con el desarrollo e investigación de sistemas que operan o actúan inteligentemente. Está considerada una disciplina de las ciencias de la computación ya que tiene un enfoque principalmente computacional, aunque cada día hay más aportaciones desde otras áreas (como neurociencia, estadística, psicología, etc.). La IA clásica aparece en los años 50 como resultado de la comprensión del cerebro por medio de la neurociencia, las nuevas teorías matemáticas de la información, la teoría de control que surge desde la cibernética y la aparición del ordenador digital. 
 
+<iframe width="360"  height="240" src="https://www.youtube.com/embed/Ut6gDw_Onwk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 <iframe width="360"  height="240" src="https://www.youtube.com/embed/PXmnuXA1lrc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 [plugin:youtube](https://www.youtube.com/watch?v=Ut6gDw_Onwk)
