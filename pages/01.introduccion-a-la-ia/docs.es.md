@@ -42,7 +42,7 @@ como humanos
 
 Sistemas que actúan  
 racionalmente
-<img style="float: left;" src="http://www.atariarchives.org/deli/artificial_intelligence1.jpg">
+<img style="float: left;" src="http://www.atariarchives.org/deli/artificial_intelligence1.jpg" width="200px">
 1.  _**Sistemas que piensan como humanos**_: modelan las propiedades del procesamiento cognitivo de los humanos, como por ejemplo un resolvedor general de problemas y sistemas que construyen modelos internos de su mundo.
 2.  _**Sistemas que actúan como humanos**_: pueden realizar cosas específicas que hacen los humanos, lo que incluye tareas como el **Test de Turing**, procesamiento de lenguaje natural, razonamiento automático, repersentación del conocimiento, aprendizaje automático, visión computacional y robótica.
 3.  _**Sistemas que piensan racionalmente**_: sugiere leyes de racionalismo y un pensamiento estructurado, tales como silogismos y lógica formal. 
