@@ -33,7 +33,7 @@ El **encadenamiento de reglas hacia delante** puede utilizarse cuando las premi
 
 El **encadenamiento de reglas hacia atrás** parte del hecho que se quiere concluir y se mira qué reglas lo tienen como conclusión, se toman las premisas de estas reglas y se consideran como objetivos parciales que se quieren verificar. Por un proceso de comparación con los hechos de la base de conocimiento un proceso de backtracking, se va decidiendo cuáles de los objetivos parciales se van cumpliendo y cuáles quedan pendientes.
 
-![](/~fsancho/images/2015-07/encadenamientoadelante.jpg)
+![](http://www.cs.us.es//~fsancho/images/2015-07/encadenamientoadelante.jpg)
 
 En la figura anterior, el encadenamiento hacia adelante partiría desde los hechos de la izquierda y avanzaría aplicando las reglas hacia la derecha, mientras que el encadenamiento hacia atrás partiría de la conclusión de la derecha y va buscando los hechos necesarios y suficientes hacia la izquierda. Debe tenerse en cuenta que el uso de cualquiera de las dos estrategias no es excluyente, y que suelen usarse conjuntamente para obtener mejores resultados (si no se introducen más estrategias, suele ser necesario el uso de las dos para estar seguros de obtener todas las conclusiones factibles). 
 
