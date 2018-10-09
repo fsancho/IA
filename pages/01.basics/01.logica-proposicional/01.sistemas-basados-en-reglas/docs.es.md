@@ -11,7 +11,7 @@ Entre las opciones disponibles, los sistemas basados en reglas se han convertido
 
 La siguiente figura es un ejemplo de las reglas que se podrían extraer de un sistema de cajero automático:
 
-<img style="float: right;" src="http://www.cs.us.es//~fsancho/images/2015-07/ejemploreglas.jpg">
+<img src="http://www.cs.us.es//~fsancho/images/2015-07/ejemploreglas.jpg">
 
 Puedes ver una web con ejemplos de Sistemas Basados en Reglas [aquí](https://visiruleexamples.com/vregs.html).
 
@@ -27,13 +27,13 @@ El Modus Ponens y Modus Tollens se corresponden con los siguientes esquemas bás
 
 <img  src="http://www.cs.us.es//~fsancho/images/2015-07/modusponens.jpg" width="400px">
 
-![](http://www.cs.us.es//~fsancho/images/2015-07/modustollens.jpg)
+<img  src="http://www.cs.us.es//~fsancho/images/2015-07/modustollens.jpg" width="400px">
 
 El **encadenamiento de reglas hacia delante** puede utilizarse cuando las premisas de algunas reglas coinciden con las conclusiones de otras, de forma que al aplicarlas sucesivamente sobre los hechos iniciales podemos obtener nuevos hechos. A medida que obtenermos más hechos, podemos repetir el proceso hasta que no pueden obtenerse más conclusiones.
 
 El **encadenamiento de reglas hacia atrás** parte del hecho que se quiere concluir y se mira qué reglas lo tienen como conclusión, se toman las premisas de estas reglas y se consideran como objetivos parciales que se quieren verificar. Por un proceso de comparación con los hechos de la base de conocimiento un proceso de backtracking, se va decidiendo cuáles de los objetivos parciales se van cumpliendo y cuáles quedan pendientes.
 
-![](http://www.cs.us.es//~fsancho/images/2015-07/encadenamientoadelante.jpg)
+<img  src="http://www.cs.us.es//~fsancho/images/2015-07/encadenamientoadelante.jpg" width="400px">
 
 En la figura anterior, el encadenamiento hacia adelante partiría desde los hechos de la izquierda y avanzaría aplicando las reglas hacia la derecha, mientras que el encadenamiento hacia atrás partiría de la conclusión de la derecha y va buscando los hechos necesarios y suficientes hacia la izquierda. Debe tenerse en cuenta que el uso de cualquiera de las dos estrategias no es excluyente, y que suelen usarse conjuntamente para obtener mejores resultados (si no se introducen más estrategias, suele ser necesario el uso de las dos para estar seguros de obtener todas las conclusiones factibles). 
 
