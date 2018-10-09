@@ -22,28 +22,12 @@ Como medio de recopilar un poc de cultura en las últimas novedades relacionadas
 Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posibles aproximaciones a la hora de entender cómo se puede desarrollar la IA, dependiendo de las combiaciones posibles entre si consideramos una IA basada en cómo piensan los humanos o si se considera una racionalidad ideal, y si consideramos una IA basada en el razonamiento o en el comportamiento:
 
  
+| |**Basado en humanos**|**Racionalidad Ideal**|
+|---|---|---|
+|**Basado en razonamiento**|Sistemas que piensan  como humanos|Sistemas que piensan  racionalmente|
+|---|---|---|
+**Basado en comportamiento**|Sistemas que actúan  como humanos|Sistemas que actúan  racionalmente|
 
-**Basado en humanos**
-
-**Racionalidad Ideal**
-
-**Basado en**  
-**razonamiento**
-
-Sistemas que piensan  
-como humanos
-
-Sistemas que piensan  
-racionalmente
-
-**Basado en**  
-**comportamiento**
-
-Sistemas que actúan  
-como humanos
-
-Sistemas que actúan  
-racionalmente
 <img style="float: right;" src="http://www.atariarchives.org/deli/artificial_intelligence1.jpg" width="300px">
 1.  _**Sistemas que piensan como humanos**_: modelan las propiedades del procesamiento cognitivo de los humanos, como por ejemplo un resolvedor general de problemas y sistemas que construyen modelos internos de su mundo.
 2.  _**Sistemas que actúan como humanos**_: pueden realizar cosas específicas que hacen los humanos, lo que incluye tareas como el **Test de Turing**, procesamiento de lenguaje natural, razonamiento automático, repersentación del conocimiento, aprendizaje automático, visión computacional y robótica.
