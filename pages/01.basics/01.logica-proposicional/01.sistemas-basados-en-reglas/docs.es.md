@@ -11,7 +11,7 @@ Entre las opciones disponibles, los sistemas basados en reglas se han convertido
 
 La siguiente figura es un ejemplo de las reglas que se podrían extraer de un sistema de cajero automático:
 
-![](/~fsancho/images/2015-07/ejemploreglas.jpg)
+![](http://www.cs.us.es//~fsancho/images/2015-07/ejemploreglas.jpg)
 
 Puedes ver una web con ejemplos de Sistemas Basados en Reglas [aquí](https://visiruleexamples.com/vregs.html).
 
@@ -25,9 +25,9 @@ Para obtener conclusiones, se pueden utilizar diferentes tipos de reglas y estra
 
 El Modus Ponens y Modus Tollens se corresponden con los siguientes esquemas básicos de inferencia. Obsérvese que el Modus Tollens se deduce del Modus Ponens teniendo en cuenta que la lógica que usamos es bivaluada (una afirmación, o es verdadera o es falsa, no hay una tercera opción).
 
-![](/~fsancho/images/2015-07/modusponens.jpg)
+![](http://www.cs.us.es//~fsancho/images/2015-07/modusponens.jpg)
 
-![](/~fsancho/images/2015-07/modustollens.jpg)
+![](http://www.cs.us.es//~fsancho/images/2015-07/modustollens.jpg)
 
 El **encadenamiento de reglas hacia delante** puede utilizarse cuando las premisas de algunas reglas coinciden con las conclusiones de otras, de forma que al aplicarlas sucesivamente sobre los hechos iniciales podemos obtener nuevos hechos. A medida que obtenermos más hechos, podemos repetir el proceso hasta que no pueden obtenerse más conclusiones.
 
