@@ -25,7 +25,6 @@ Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posib
 | |**Basado en humanos**|**Racionalidad Ideal**|
 |---|---|---|
 |**Basado en razonamiento**|Sistemas que piensan  como humanos|Sistemas que piensan  racionalmente|
-|---|---|---|
 **Basado en comportamiento**|Sistemas que actúan  como humanos|Sistemas que actúan  racionalmente|
 
 <img style="float: right;" src="http://www.atariarchives.org/deli/artificial_intelligence1.jpg" width="300px">
