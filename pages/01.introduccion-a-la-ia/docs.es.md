@@ -15,7 +15,7 @@ visible: true
 
 \[\[popup description="TecnonautaTV" objwidth=900px objheight=600px fb\_type="youtube" movid="XQdt04iTfVI"\]\]
 
-![](https://yt3.ggpht.com/a-/AN66SAzIPtc5nxMnxMMxH7Z2pf9dZcHReiymkVhBKw=s288-mo-c-c0xffffffff-rj-k-no)Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
+Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
 
 Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posibles aproximaciones a la hora de entender cómo se puede desarrollar la IA, dependiendo de las combiaciones posibles entre si consideramos una IA basada en cómo piensan los humanos o si se considera una racionalidad ideal, y si consideramos una IA basada en el razonamiento o en el comportamiento:
 
@@ -42,7 +42,7 @@ como humanos
 
 Sistemas que actúan  
 racionalmente
-<img style="float: left;" src="http://www.atariarchives.org/deli/artificial_intelligence1.jpg" width="200px">
+<img style="float: right;" src="http://www.atariarchives.org/deli/artificial_intelligence1.jpg" width="300px">
 1.  _**Sistemas que piensan como humanos**_: modelan las propiedades del procesamiento cognitivo de los humanos, como por ejemplo un resolvedor general de problemas y sistemas que construyen modelos internos de su mundo.
 2.  _**Sistemas que actúan como humanos**_: pueden realizar cosas específicas que hacen los humanos, lo que incluye tareas como el **Test de Turing**, procesamiento de lenguaje natural, razonamiento automático, repersentación del conocimiento, aprendizaje automático, visión computacional y robótica.
 3.  _**Sistemas que piensan racionalmente**_: sugiere leyes de racionalismo y un pensamiento estructurado, tales como silogismos y lógica formal. 
