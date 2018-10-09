@@ -50,7 +50,7 @@ Aunque esta lista no es exhaustiva, en ella hemos podido encontrar las principal
 Para saber más...
 -----------------
 
-\[\[popup description="Wikipedia: Historia de la Inteligencia Artificial" title="Wikipedia: Historia de la Inteligencia Artificial" width=900px height=900px fb\_type="iframe" url="http://es.wikipedia.org/wiki/Historia\_de\_la\_inteligencia\_artificial"\]\]
+[Wikipedia: Historia de la Inteligencia Artificia](http://es.wikipedia.org/wiki/Historia\_de\_la\_inteligencia\_artificial)
 
 \[\[popup description="El País: La nueva era de la computación" title="El País: La nueva era de la computación" width=900px height=900px fb\_type="iframe" url="http://elpais.com/m/elpais/2015/07/02/eps/1435845247\_202110.html"\]\]
 
