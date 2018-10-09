@@ -6,6 +6,8 @@ visible: true
 ---
 
 [TOC]
+# Introducción
+
 <img style="float: left;" src="http://www.cs.us.es/~fsancho/images/2017-09/ia-imagen.png" align="left" width=300px>El campo de la **Inteligencia Artificial (IA)** es un campo de investigación transdisciplinar que generalmente se relaciona con el desarrollo e investigación de sistemas que operan o actúan inteligentemente. Está considerada una disciplina de las ciencias de la computación ya que tiene un enfoque principalmente computacional, aunque cada día hay más aportaciones desde otras áreas (como neurociencia, estadística, psicología, etc.). La IA clásica aparece en los años 50 como resultado de la comprensión del cerebro por medio de la neurociencia, las nuevas teorías matemáticas de la información, la teoría de control que surge desde la cibernética y la aparición del ordenador digital. 
 
 [Tres14. Inteligencia Artificial](https://www.youtube.com/watch?v=Ut6gDw_Onwk)
@@ -29,8 +31,7 @@ Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posib
 3.  _**Sistemas que piensan racionalmente**_: sugiere leyes de racionalismo y un pensamiento estructurado, tales como silogismos y lógica formal. 
 4.  _**Sistemas que actúan racionalmente**_: hacen cosas racionales tales como maximizar la utilidad esperada y los agentes racionales.
 
-Arquetipos de la Inteligencia Artificial
-----------------------------------------
+# Arquetipos de la Inteligencia Artificial
 
 En cualquier caso, una de las grandes problemáticas que se observan dentro de la Inteligencia Artificial se debe a la falta de una definición clara acerca de qué se considera IA y qué no, y se puede observar que muchas de las encendidas disputas que hay al respecto tienen su origen en que los interlocutores están asumiendo definiciones distintas del tema de discusión. Es importante tener en cuenta estas diferencias ya que puede haber suposiciones provenientes de visiones distintas que pueden generar contradicciones e inconsistencias a la hora de planificar un proyecto de IA a largo plazo.
 
@@ -43,7 +44,7 @@ En este sentido, Beau Cronin en su artículo _[AI's dueling definitions](https:/
 
 Aunque esta lista no es exhaustiva, en ella hemos podido encontrar las principales líneas que se reconocen como parte de la IA en la actualidad. Cuál de ellas es la más prometedora es una pregunta que cae fuera de esta entrada, pero lo más seguro es que ninguna de ellas por separado pueda ser suficientemente rica como para resolver los problemas que queremos resolver, y que una combinación de ellas, junto con la creación de nuevos enfoques, puede ser una vía a seguir en el futuro de esta disciplina. 
 
-## Para saber más...
+# Para saber más...
 
 [Wikipedia: Historia de la Inteligencia Artificia](http://es.wikipedia.org/wiki/Historia\_de\_la\_inteligencia\_artificial)
 
