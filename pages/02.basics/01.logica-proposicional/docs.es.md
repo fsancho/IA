@@ -1,5 +1,5 @@
 ---
-title: 'ógica Proposicional'
+title: 'Lógica Proposicional'
 id: i1
 class: images
 background_color: 'rgba(255, 255, 255, 0.00)'
