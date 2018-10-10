@@ -53,8 +53,6 @@ Aunque esta lista no es exhaustiva, en ella hemos podido encontrar las principal
 
 ## Para saber más...
 
-[Wikipedia: Historia de la Inteligencia Artificia](http://es.wikipedia.org/wiki/Historia\_de\_la\_inteligencia\_artificial)
-
+[Wikipedia: Historia de la Inteligencia Artificial](http://es.wikipedia.org/wiki/Historia\_de\_la\_inteligencia\_artificial)
 [El País: La nueva era de la computación](http://elpais.com/m/elpais/2015/07/02/eps/1435845247\_202110.html)
-
 [AI: 15 key moments in the story of Artificial Intelligence](http://www.bbc.co.uk/timelines/zq376fr)
