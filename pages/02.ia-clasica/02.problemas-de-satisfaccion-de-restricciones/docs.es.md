@@ -6,7 +6,7 @@ visible: true
 ---
 
 _Basado en "[Introducción a la Programación de Restricciones](http://users.dsic.upv.es/~msalido/papers/aepia-introduccion.pdf)", de Federico Barber y Miguel A. Salido (Departamento de Sistemas Informáticos y Computación de la Universidad Politécnica de Valencia, España)_
-
+[TOC]
 ## Introducción
 
 En muchas ocasiones la resolución de problemas está sujeta a que las diversas componentes en las que se pueden descomponer verifiquen ciertos conjuntos de restricciones. Problemas tan cotidianos como fijar una cita con unos amigos, comprar un coche o preparar una receta culinaria pueden depender de muchos aspectos interdependientes, e incluso conflictivos, sujetos a un conjunto de **restricciones** que deben ser verificadas para poder encontrar una solución al problema planteado.
