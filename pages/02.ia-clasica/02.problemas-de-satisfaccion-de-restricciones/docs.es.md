@@ -23,7 +23,7 @@ Aquí nos centraremos principalmente en los problemas de satisfacción de restri
 
 **Ejemplo.** El **problema de coloración de mapas** es un problema clásico que se puede formular como un PSR. En este problema hay un conjunto de colores y un mapa dividido en regiones. El objetivo es colorear cada región del mapa de manera que regiones adyacentes tengan distintos colores. Una forma de modelar este problema dentro del PSR sería asociando una variable por cada región del mapa (el dominio de cada variable es el conjunto de posibles colores disponibles), y para cada par de regiones contiguas añadir una restricción sobre los valores de las variables correspondientes que impida asignarles el mismo valor (color). Como suele ser habitual, este mapa puede ser representado mediante un grafo donde los nodos representan las diversas regiones del mapa y cada par de regiones adyacentes están unidas por una arista. Veremos que esta representación en forma de grafo, que en este problema es natural, será usada como metodología general para dar una estructura a las restricciones de cualquier problema PSR.
 
-![](/~fsancho/images/2016-09/screen-shot-2013-05-20-at-3.57.27-pm.png)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/screen-shot-2013-05-20-at-3.57.27-pm.png">
 
 ## Resolución del PSR
 
@@ -44,7 +44,7 @@ Como intentar dar una formalización completa de este proceso puede ser un poco 
 
 Consideremos el conocido **problema criptoaritmético ’send+more=money’** utilizado en \[21\]. Este problema puede ser declarado como: asignar a cada letra \\(\\{s, e, n, d, m, o, r, y\\}\\) un dígito diferente del conjunto \\(\\{0,...,9\\}\\) de forma que se satisfaga la expresión \\(send+more=money\\).
 
-![](/~fsancho/images/2016-09/sendmoremoney.jpg)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/sendmoremoney.jpg">
 
 La manera más directa de modelar este problema es asignando una variable a cada una de las letras (que vendrán representadas por las mismas letras), todas ellas tomando valores en el dominio \\(\\{0,...,9\\}\\) y con las restricciones de:
 
@@ -61,7 +61,7 @@ Esta representación del problema es correcta, pero no es muy útil, ya que la p
 
 Vamos a dar otro modelado similar pero más eficiente para resolver el problema, que consiste en decomponer esta restricción global en restricciones más pequeñas haciendo uso de las relaciones que se producen entre los dígitos que ocupan la misma posición en una suma. Para ello, introducimos los **dígitos de acarreo** para descomponer la ecuación anterior en una colección de pequeñas restricciones.
 
-![](/~fsancho/images/2016-09/acarreo.png)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/acarreo.png">
 
   
 Tal y como está planteado el problema, \\(m\\) debe de tomar el valor \\(1\\) (ya que es el acarreo de 2 cifras que como mucho pueden sumar \\(18\\), más un posible acarreo previo de una unidad, lo que limita el resultado a \\(19\\)) y por lo tanto \\(s\\) solamente puede tomar valores de \\(\\{1,...,9\\}\\) (si \\(s=0\\) entonces no podría haber acarreo). Además de las variables del modelo anterior, el nuevo modelo incluye tres variables adicionales, \\(c\_1\\), \\(c\_2\\), \\(c\_3\\) que sirven como dígitos de acarreo. Aunque introducimos nuevas variables, por lo que el espacio de búsqueda se amplia, éstas nos permitirán simplificar las restricciones y facilitar su exploración de forma considerable. En consecuencia, el dominio de \\(s\\) es \\(\\{1,...,9\\}\\), el dominio de \\(m\\) es \\(\\{1\\}\\), el dominio de los dígitos de acarreo es \\(\\{0,1\\}\\), y el dominio del resto de variables es \\(\\{0,...,9\\}\\).
@@ -95,7 +95,7 @@ Básicamente los objetivos que deseamos alcanzar se centran en una de las siguie
 2.  Encontrar todas las soluciones.
 3.  Encontrar una solución _óptima_ (dando alguna **función objetivo** definida en términos de algunas o todas las variables).
 
-![](/~fsancho/images/2016-09/slide_4.jpg)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/slide_4.jpg">
 
 Antes de entrar con más detalles vamos a resumir la notación que utilizaremos posteriormente.
 
@@ -135,7 +135,7 @@ En la literatura se han propuesto varias técnicas de consistencia local como fo
 
 **Definición.** Un problema es **\\((i,j)\\)-consistente** si cualquier solución a un subproblema con \\(i\\) variables puede ser extendido a una solución incluyendo \\(j\\) variables adicionales \[9\].
 
-![](/~fsancho/images/2016-09/261px-query-decomposition-1.svg.png)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/261px-query-decomposition-1.svg.png">
 
 Observa que podemos crear **el grafo de restricciones** (realmente sería un hipergrafo), en el que los nodos son las variables del problema, y las aristas (hiperaristas) serían las restricciones impuestas sobre conjuntos de nodos/variables. Si solo tenemos restricciones binarias, estamos ante el caso de un grafo, si aparecen restricciones unarias, el grafo tendría loops, y si hay restricciones \\(n\\)-arias (con \\(n>2\\)) entonces estaríamos usando un hipergrafo.
 
@@ -158,7 +158,7 @@ La consistencia local más simple de todas es la **consistencia de nodo** o **no
 
 **Definición.** Un problema binario es **arco-consistente** si para cualquier par de variables \\(x\_i\\) y \\(x\_j\\), para cada valor \\(a\\) en \\(D\_i\\) hay al menos un valor \\(b\\) en \\(D\_j\\) tal que las asignaciones \\((x\_i ,a)\\) y \\((x\_j ,b)\\) satisfacen la restricción entre \\(x\_i\\) y \\(x\_j\\).
 
-![](/~fsancho/images/2016-09/constnetac.gif)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/constnetac.gif">
 
 Cualquier valor en el dominio \\(D\_i\\) de la variable \\(x\_i\\) que no es arco-consistente puede ser eliminado de \\(D\_i\\) ya que no puede formar parte de ninguna solución. El dominio de una variable es arco-consistente si todos sus valores son arco-consistentes.
 
@@ -186,7 +186,7 @@ En determinados casos (por ejemplo, si el grafo de restricciones es un árbol), 
 
 Las posibles combinaciones de la asignación de valores a las variables en un PSR genera un espacio de búsqueda al que se puede dotar de estructura para ser visto como un **árbol de búsqueda**. De esta forma, después podremos recorrerlo siguiendo la estrategia que queramos. La búsqueda mediante **backtracking**, que es la base sobre la que se soportan la mayoría de algoritmos para PSR, corresponde a la tradicional exploración en [profundidad DFS](http://www.cs.us.es/~fsancho/?e=95) en el árbol de búsqueda.
 
-![](/~fsancho/images/2016-09/psr-tree.png)La forma más habitual de darle estructura de árbol pasa por asumir que el orden de las variables es estático y no cambia durante la búsqueda, y entonces un nodo en el nivel \\(k\\) del árbol de búsqueda representará un estado donde las variables \\(x\_1 ,...,x\_k\\) están asignadas a valores concretos de sus dominios mientras que el resto de variables, \\(x\_{k+1} ,...,x\_n\\), no lo están. Podemos asignar cada nodo en el árbol de búsqueda con la tupla formada por las asignaciones llevadas a cabo hasta ese momento, donde la raíz del árbol de búsqueda representa la tupla vacía, donde ninguna variable tiene asignado valor alguno.
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/psr-tree.png" align="left"> La forma más habitual de darle estructura de árbol pasa por asumir que el orden de las variables es estático y no cambia durante la búsqueda, y entonces un nodo en el nivel \\(k\\) del árbol de búsqueda representará un estado donde las variables \\(x\_1 ,...,x\_k\\) están asignadas a valores concretos de sus dominios mientras que el resto de variables, \\(x\_{k+1} ,...,x\_n\\), no lo están. Podemos asignar cada nodo en el árbol de búsqueda con la tupla formada por las asignaciones llevadas a cabo hasta ese momento, donde la raíz del árbol de búsqueda representa la tupla vacía, donde ninguna variable tiene asignado valor alguno.
 
 Los nodos en el primer nivel son \\(1\\)−tuplas que representan estados donde se les ha asignado un valor a la variable \\(x\_1\\). Los nodos en el segundo nivel son \\(2\\)−tuplas que representan estados donde se le asignan valores a las variables \\(x\_1\\) y \\(x\_2\\), y así sucesivamente. Un nodo del nivel \\(k\\) es hijo de un nodo del nivel \\(k-1\\) si la tupla asociada al hijo es una extensión de la de su padre añadiendo una asignación para la variable \\(x\_k\\). Si \\(n\\) es el número de variables del problema, los nodos en el nivel \\(n\\), que representan las hojas del árbol de búsqueda, son \\(n\\)−tuplas, que representan la asignación de valores para todas las variables del problema. De esta manera, si una \\(n\\)−tupla es consistente, entonces es solución del problema. Un nodo del árbol de búsqueda es consistente si la asignación parcial actual es consistente, o en otras palabras, si la tupla correspondiente a ese nodo es consistente.
 
@@ -201,7 +201,7 @@ El algoritmo de búsqueda sistemática más conocido para resolver PSR se denomi
 3.  Si no se encuentra ningún valor consistente entonces tenemos una situación sin salida (dead-end) y el algoritmo retrocede a la variable anteriormente asignada y prueba asignándole un nuevo valor.
 4.  Si asumimos que estamos buscando una sola solución, BT finaliza cuando a todas las variables se les ha asignado un valor, en cuyo caso devuelve una solución, o cuando todas las combinaciones de variable-valor se han probado sin éxito, en cuyo caso no existe solución.
 
-![](/~fsancho/images/2016-09/backtrack.gif)Es fácil generalizar BT a restricciones no binarias. Cuando se prueba un valor de la variable actual, el algoritmo comprobará todas las restricciones en las que sólo forman parte la variable actual y las anteriores. Si una restricción involucra a la variable actual y al menos una variable futura, entonces esta restricción no se comprobará hasta que se hayan asignado todas las variables futuras de la restricción.
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/backtrack.gif" align="right"> Es fácil generalizar BT a restricciones no binarias. Cuando se prueba un valor de la variable actual, el algoritmo comprobará todas las restricciones en las que sólo forman parte la variable actual y las anteriores. Si una restricción involucra a la variable actual y al menos una variable futura, entonces esta restricción no se comprobará hasta que se hayan asignado todas las variables futuras de la restricción.
 
 BT es un algoritmo muy simple pero muy ineficiente. El problema es que tiene una visión local del problema. Sólo comprueba restricciones que están formadas por la variable actual y las pasadas, e ignora la relación entre la variable actual y las futuras. Además, este algoritmo es ingenuo en el sentido de que no _recuerda_ las acciones previas, y como resultado, puede repetir la misma acción varias veces innecesariamente. Para ayudar a combatir este problema, se han desarrollado algunos algoritmos de búsqueda más robustos. Estos algoritmos se pueden dividir en algoritmos **look-back** y algoritmos **look-ahead**.
 
@@ -209,7 +209,7 @@ BT es un algoritmo muy simple pero muy ineficiente. El problema es que tiene una
 
 Los **algoritmos look-back** tratan de explotar la información del problema para comportarse más eficientemente en las situaciones sin salida. Al igual que el backtracking cronológico, los algoritmos look-back llevan a cabo la comprobación de la **consistencia hacia atrás**, es decir, entre la variable actual y las pasadas.
 
-**![](/~fsancho/images/2016-09/180px-dead-ends-3.svg.png)Backjumping (BJ)** \[11\] es parecido a BT excepto que se comporta de una manera más inteligente cuando encuentra situaciones sin salida. En vez de retroceder a la variable anteriormente instanciada, BJ salta a la variable más profunda (más cerca de la variable actual) \\(x\_j\\) que está en conflicto con la variable actual \\(x\_i\\) donde \\(j < i\\) (una variable instanciada \\(x\_j\\) está en conflicto con una variable \\(x\_i\\) si la instanciación de \\(x\_j\\) evita uno de los valores en \\(x\_i\\), debido a la restricción entre ellas). Cambiar la instanciación de \\(x\_j\\) puede hacer posible encontrar una instanciación consistente de la variable actual.
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/180px-dead-ends-3.svg.png" align="right"> **Backjumping (BJ)** \[11\] es parecido a BT excepto que se comporta de una manera más inteligente cuando encuentra situaciones sin salida. En vez de retroceder a la variable anteriormente instanciada, BJ salta a la variable más profunda (más cerca de la variable actual) \\(x\_j\\) que está en conflicto con la variable actual \\(x\_i\\) donde \\(j < i\\) (una variable instanciada \\(x\_j\\) está en conflicto con una variable \\(x\_i\\) si la instanciación de \\(x\_j\\) evita uno de los valores en \\(x\_i\\), debido a la restricción entre ellas). Cambiar la instanciación de \\(x\_j\\) puede hacer posible encontrar una instanciación consistente de la variable actual.
 
 Una variante, **conflict-directed Backjumping (CBJ)** \[18\] tiene un comportamiento de salto hacia atrás más sofisticado que BJ, donde se almacena para cada variable un conjunto de conflictos mutuos que permite no repetir conflictos existentes a la vez que saltar a variables anteriores como hace BJ.
 
@@ -289,7 +289,7 @@ Los problemas de asignación fueron quizás el primer tipo de aplicación indust
 
 Otra área de aplicación de restricciones típica es la asignación de personal donde las reglas de trabajo y unas regulaciones imponen una serie de restricciones difíciles de satisfacer. El principal objetivo en este tipo de problemas es balancear el trabajo entre las personas contratadas de manera que todos tengan las mismas ventajas. Existen sistemas como Gymnaste que se desarrolló para la generación de turnos de enfermeras en los hospitales \[2\], para la asignación de tripulación a los vuelos (British Airways, Swissair), la asignación de plantillas en compañías ferroviarias (SNCF, Compañía de Ferrocarril Italiana) \[7\] o sistemas para la obtención de mallas ferroviarias óptimas \[1\].
 
-![](/~fsancho/images/2016-09/examinationtimetablingusecase.png)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/examinationtimetablingusecase.png">
 
 Sin embargo, una de las áreas de aplicación más exitosa de los PSR con dominios finitos es en los problemas de secuenciación o Scheduling, donde de nuevo las restricciones expresan las limitaciones existentes en la vida real. El PSR se utiliza para la secuenciación de actividades industriales, forestales, militares, etc. En general, su uso se está incrementando cada vez más debido a las tendencias de las empresas de trabajar bajo demanda.
 
@@ -303,13 +303,11 @@ Las tendencias actuales en PSR pasan por desarrollar técnicas para resolver det
 4.  Técnicas de computación evolutiva, donde los [algoritmos genéticos](http://www.cs.us.es/~fsancho/?e=65) al igual que las [redes neuronales](http://www.cs.us.es/~fsancho/?e=72), se han ido ganando poco a poco el reconocimiento de los investigadores como técnicas efectivas en problemas de gran complejidad. Se distinguen por utilizar estrategias distintas a la mayor parte de las técnicas de búsqueda clásicas y por usar operadores probabilísticos más robustos que los operadores determinísticos.
 5.  Otros temas de interés son heurísticas inspiradas biológicamente, tales como [colonias de hormigas](http://www.cs.us.es/~fsancho/?e=71), [optimización por enjambres de partículas](http://www.cs.us.es/~fsancho/?e=70), algoritmos meméticos, algoritmos culturales, búsqueda dispersa, etc.
 
-## Para Saber más...
-
-[Capítulo sobre PSR](http://users.dsic.upv.es/~msalido/papers/capitulo.pdf)
-
-[](http://users.dsic.upv.es/~msalido/papers/capitulo.pdf)[Tema de PSR del curso de IA de Ingeniería de Sistemas de la US](https://www.cs.us.es/cursos/ia1/temas/tema-05.pdf)
-
-[Problemas de Satisfacción de Restricciones de Javier Ramírez Rodriguez de la UAM](http://kali.azc.uam.mx/clc/03_docencia/posgrado/i_artificial/12_ProbSatRest.pdf)
+! ## Para Saber más...
+! 
+! [Capítulo sobre PSR](http://users.dsic.upv.es/~msalido/papers/capitulo.pdf)
+! [](http://users.dsic.upv.es/~msalido/papers/capitulo.pdf)[Tema de PSR del curso de IA de Ingeniería de Sistemas de la US](https://www.cs.us.es/cursos/ia1/temas/tema-05.pdf)
+! [Problemas de Satisfacción de Restricciones de Javier Ramírez Rodriguez de la UAM](http://kali.azc.uam.mx/clc/03_docencia/posgrado/i_artificial/12_ProbSatRest.pdf)
 
 ## Referencias
 
@@ -334,16 +332,3 @@ Las tendencias actuales en PSR pasan por desarrollar técnicas para resolver det
 19.  P.W. Purdom. Search rearrangement backtracking and polynomial average time. Artificial Intelligence, 21:117–133, 1983.
 20.  M.A. Salido and F. Barber. A constraint ordering heuristic for scheduling problems. In Proceeding of the 1st Multidisciplinary International Conference on Scheduling : Theory and Applications, pages 476–490, 2003.
 21.  P. Van Hentenryck. Constraint Satisfaction in Logic Programming. MIT Press, 1989.
-
-## También te puede interesar...
-
-**1\.** [Clasificación Supervisada y No Supervisada](/~fsancho/?e=77) (17014 vistas)  
-**2\.** [Introducción al Aprendizaje Automático](/~fsancho/?e=75) (16685 vistas)  
-**3\.** [Algoritmos de hormigas y el problema del viajante](/~fsancho/?e=71) (15715 vistas)  
-**4\.** [Redes Neuronales: una visión superficial](/~fsancho/?e=72) (14069 vistas)  
-**5\.** [Aprendizaje Inductivo: Árboles de Decisión](/~fsancho/?e=104) (11952 vistas)  
-**6\.** [Introducción a las redes complejas](/~fsancho/?e=80) (10884 vistas)  
-**7\.** [Introducción a la Lógica Difusa](/~fsancho/?e=97) (10672 vistas)  
-**8\.** [Ejercicios de Lógica Proposicional](/~fsancho/?e=58) (10060 vistas)  
-**9\.** [PSO: Optimización por enjambres de partículas](/~fsancho/?e=70) (9398 vistas)  
-**10\.** [Una introducción a Prolog](/~fsancho/?e=73) (9038 vistas)
