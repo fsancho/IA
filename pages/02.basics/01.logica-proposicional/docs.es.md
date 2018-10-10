@@ -150,6 +150,8 @@ Como en el ejemplo anterior hemos llegado a obtener la claúsula vacía (que pro
 
 En el siguiente modelo de NetLogo puedes probar el proceso de resolución para algunos conjuntos de claúsulas precargados (el modelo implementa las funciones necesarias para la aplicación del algoritmo de forma general, pero debido a las características de NetLogoWeb el conjunto de cláusulas de ejemplo se ha restringido para facilitar su uso). Selecciona el conjunto de ejemplo con el **slider Conjunto**, cárgalo con el botón **Selecciona**, y a continuación pulsa en **Go**:
 
+<iframe src="http://www.cs.us.es/~fsancho/Modelos/ResolucionLPweb.html" width="730" height="670" style="display: block; margin-left: auto; margin-right: auto;"></iframe>
+
 ## Resumen de la Metodología
 
 En resumen, si queremos resolver un problema habitua de saber si una cierta fórmula es consecuancia lógica (la podemos deducir) de un conjunto de fórmulas (hipótesis), formalmente, $\{F_1,\dots,F_n\}\models F$, los pasos a seguir serían:
