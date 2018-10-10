@@ -1,5 +1,5 @@
 ---
-title: 'Lógica Proposicional'
+title: 'ógica Proposicional'
 id: i1
 class: images
 background_color: 'rgba(255, 255, 255, 0.00)'
@@ -23,7 +23,6 @@ Antes de responder a esta pregunta, vamos a definir un poco el contexto en el qu
 La **Lógica** es la rama del conocimiento que se encarga de estudiar las formas en que se pueden inferir verdades de una forma válida. La visión matemática de la Lógica (lo que se llama la **Lógica Matemática**) añade toda la capa de formalismo necesaria para disponer de un lenguaje adecuado y de los métodos precisos para que este estudio tenga un soporte de validez universal. En este sentido, se pueden dar diversos formalismos para afrontar este gran problema de la inferencia válida, y la **Lógica Proposicional** fue, posiblemente, el primer intento serio al que se dio forma, por allá en tiempos de los famosos griegos atenienses.
 
 ![](http://cmapspublic2.ihmc.us/rid=1KNGMPJK1-1CSPCLM-31XG/L%C3%B3gica%20Proposicional.cmap?rid=1KNGMPJK1-1CSPCLM-31XG&partName=htmljpeg)
-
   
 Todos estos sistemas intentan, de una u otra forma enfrentarse al problema de poder _asegurar cuándo, dada una base de conocimientos que se suponen ciertos, podemos asegurar que una afirmación es necesariamente cierta_... de forma coloquial, cuándo podemos deducir que esta última afirmación se deduce de los hechos observados (o supuestos). En particular, la Lógica Proposicional (que a partir de ahora notaremos abreviadamente como **LP**) se enfrenta a este problema definiendo:
 
@@ -153,10 +152,6 @@ Veamos un ejemplo de aplicación:
 <img src="http://www.cs.us.es/~fsancho/images/2015-10/resolucion.png" width=600px />
 
 Como en el ejemplo anterior hemos llegado a obtener la claúsula vacía (que proviene de una contradicción), podemos afirmar que el conjunto original de cláusulas es contradictorio.
-
-En el siguiente modelo de NetLogo puedes probar el proceso de resolución para algunos conjuntos de claúsulas precargados (el modelo implementa las funciones necesarias para la aplicación del algoritmo de forma general, pero debido a las características de NetLogoWeb el conjunto de cláusulas de ejemplo se ha restringido para facilitar su uso). Selecciona el conjunto de ejemplo con el **slider Conjunto**, cárgalo con el botón **Selecciona**, y a continuación pulsa en **Go**:
-
-<iframe src="http://www.cs.us.es/~fsancho/Modelos/ResolucionLPweb.html" width="730" height="670" style="display: block; margin-left: auto; margin-right: auto;"></iframe>
 
 ## Resumen de la Metodología
 
