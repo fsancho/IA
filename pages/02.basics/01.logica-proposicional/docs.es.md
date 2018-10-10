@@ -38,7 +38,7 @@ De igual forma, podemos definir formalmente cuándo una fórmula es una subfórm
 El significado de las conectivas es el esperado en el lenguaje natural, aunque para determinar sin lugar a dudas su significado es habitual dar las tablas de verdad de las conectivas en función de la veracidad de las variables (o subfórmulas) que intervienen:
 
 |$p$|$q$|$\neg p$|$\neg q$|$p\land q$|$p\lor q$|$p\rightarrow q$|$p\leftrightarrow q$|
----
+|---|---|---|---|---|---|---|---|
 |$1$|$1$|$0$|$0$|$1$|$1$|$1$|$1$|
 |$1$|$0$|$0$|$1$|$0$|$1$|$0$|$0$|
 |$0$|$1$|$1$|$0$|$0$|$1$|$1$|$0$|
