@@ -51,7 +51,7 @@ En este sentido, Beau Cronin en su artículo _[AI's dueling definitions](https:/
 
 Aunque esta lista no es exhaustiva, en ella hemos podido encontrar las principales líneas que se reconocen como parte de la IA en la actualidad. Cuál de ellas es la más prometedora es una pregunta que cae fuera de esta entrada, pero lo más seguro es que ninguna de ellas por separado pueda ser suficientemente rica como para resolver los problemas que queremos resolver, y que una combinación de ellas, junto con la creación de nuevos enfoques, puede ser una vía a seguir en el futuro de esta disciplina. 
 
-! ### Para saber más...
+! ## Para saber más...
 ! [Wikipedia: Historia de la Inteligencia Artificial](http://es.wikipedia.org/wiki/Historia\_de\_la\_inteligencia\_artificial)
 ! [El País: La nueva era de la computación](http://elpais.com/m/elpais/2015/07/02/eps/1435845247\_202110.html)
 ! [AI: 15 key moments in the story of Artificial Intelligence](http://www.bbc.co.uk/timelines/zq376fr)
