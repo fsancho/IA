@@ -1,5 +1,11 @@
 ---
 title: 'Lógica Proposicional'
+id: i1
+class: images
+background_color: 'rgba(255, 255, 255, 0.00)'
+image_align: left
+link: /home
+link_text: 'Read more'
 taxonomy:
     category: docs
 visible: true
