@@ -83,7 +83,7 @@ Los métodos que vamos a ver aquí se podrán aplicar a fórmulas que estén esc
 
 Una fórmula se dice que está en **forma clausal** (también llamada **Forma Normal Conjuntiva**) si es conjunción de disyunciones de literales, es decir, si $L\_{ij}$ son literales, entonces:
 
-$F = (L\_{11}\vee \dots \vee L\_{1n\_1}) \wedge (L\_{21}\vee \dots \vee L\_{2n\_2}) \wedge \dots \wedge (L\_{m1}\vee \dots \vee L\_{mn\_m})$
+$F = (L_{11}\vee \dots \vee L_{1n_1}) \wedge (L_{21}\vee \dots \vee L_{2n_2}) \wedge \dots \wedge (L_{m1}\vee \dots \vee L_{mn_m})$
 
 Por ejemplo: $(p \lor q \lor \neg r) \land (\neg p \lor \neg q) \land (q\lor r)$
 
@@ -91,7 +91,7 @@ Lo interesante es que se puede probar que cualquier fórmula se puede convertir 
 
 En realidad, debido a que la fórmula se ha expresado como una conjunción de disyunciones, podemos considerar que estamos trabajando con un conjunto de $m$ disyunciones, a cada disyunción se le llama **claúsula**. Por ello, podemos hablar de la forma clausal de una fórmula o de un conjunto de fórmulas, que pasaría a ser:
 
-$F = \let\{\{L\_{11},\dots, L\_{1n\_1}\},\ \{L\_{21},\dots,L\_{2n\_2}\},\dots,\{L\_{m1},\dots,L\_{mn\_m}\}\right\}$
+$F = \let\{\{L_{11},\dots, L_{1n_1}\},\ \{L_{21},\dots,L_{2n_2}\},\dots,\{L_{m1},\dots,L_{mn_m}\}\right\}$
 
 <img src="http://www.cs.us.es/~fsancho/images/2015-10/fnc.png" />
 
