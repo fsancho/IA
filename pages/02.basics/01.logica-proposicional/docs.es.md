@@ -73,23 +73,23 @@ Además, **tenemos un método automático para saber si una fórmula es satisfac
 
 Ahora ya podemos decir qué entendemos por **consecuencia lógica** que, como veremos, y la intuición dice, está intimamente relacionado con la idea de implicación:
 
->Diremos que una fórmula, $F$, es **consecuencia lógica** de un conjunto de fórmulas, $U=\{F\_1,\dots,F\_n\}$, y lo  notaremos por $U\models F$, si se verifica que la fórmula $F\_1\wedge \dots \wedge F\_n \rightarrow F$ es una tautología.
+>Diremos que una fórmula, $F$, es **consecuencia lógica** de un conjunto de fórmulas, $U=\{F_1,\dots,F_n\}$, y lo  notaremos por $U\models F$, si se verifica que la fórmula $F\_1\wedge \dots \wedge F\_n \rightarrow F$ es una tautología.
 
 ![](http://images.slideplayer.es/16/5213355/slides/slide_25.jpg)
 
-Como hemos dicho, la idea fundamental es la intuición de que la consecuencia lógica se relaciona, obviamente, con la implicación. Pero además, se puede probar (aunque no lo haremos) que _la definición anterior es equivalente a decir que el conjunto $\{F\_1,\dots,F\_n,\neg F\}$ es insatisfactible (una contradicción)_, que viene a reflejar el método habitual de probar que algo es consecuencia lógica por medio de la **reducción al absurdo** (si suponemos lo contrario, llegamos a una contradicción).
+Como hemos dicho, la idea fundamental es la intuición de que la consecuencia lógica se relaciona, obviamente, con la implicación. Pero además, se puede probar (aunque no lo haremos) que _la definición anterior es equivalente a decir que el conjunto $\{F_1,\dots,F_n,\neg F\}$ es insatisfactible (una contradicción)_, que viene a reflejar el método habitual de probar que algo es consecuencia lógica por medio de la **reducción al absurdo** (si suponemos lo contrario, llegamos a una contradicción).
 
 Al reducir la consecuencia lógica a comprobar una tautología o una satisfactibilidad, los métodos que tengamos para estos problemas podrán ser aplicados directamente para poder resolver el problema de la inferencia. Por tanto, ya tenemos un método, el de las tablas de verdad, para resolverlo... pero es un método demasiado primitivo e ineficiente para lo que buscamos, así que en lo que sigue nos orientaremos a buscar algunos otros métodos más elegantes, y sobre todo que nos proporcionen un mayor control para adaptarnos a las características particulares de la fórmula.
 
 
 
-## Formas Clausales
 
+
+## Formas Clausales
 Los métodos que vamos a ver aquí se podrán aplicar a fórmulas que estén escritas de una cierta forma, que se llama **forma clausal**. Para ello, definimos primero qué entendemos por un **literal**, que será una variable proposicional o la negación de una variable proposicional (por ejemlo, $p$, $\neg p$,...). En general, si tenemos que $L$ es un literal, notaremos por $L^c$ al literal contrario.
 
-Una fórmula se dice que está en **forma clausal** (también llamada **Forma Normal Conjuntiva**) si es conjunción de disyunciones de literales, es decir, si $L\_{ij}$ son literales, entonces:
-
-$F = (L_{11}\vee \dots \vee L_{1n_1}) \wedge (L_{21}\vee \dots \vee L_{2n_2}) \wedge \dots \wedge (L_{m1}\vee \dots \vee L_{mn_m})$
+> Una fórmula se dice que está en **forma clausal** (también llamada **Forma Normal Conjuntiva**) si es conjunción de disyunciones de literales, es decir, si $L\_{ij}$ son literales, entonces:
+> $F = (L_{11}\vee \dots \vee L_{1n_1}) \wedge (L_{21}\vee \dots \vee L_{2n_2}) \wedge \dots \wedge (L_{m1}\vee \dots \vee L_{mn_m})$
 
 Por ejemplo: $(p \lor q \lor \neg r) \land (\neg p \lor \neg q) \land (q\lor r)$
 
@@ -101,11 +101,13 @@ $F = \left\{\{L_{11},\dots, L_{1n_1}\},\ \{L_{21},\dots,L_{2n_2}\},\dots,\{L_{m1
 
 <img src="http://www.cs.us.es/~fsancho/images/2015-10/fnc.png" />
 
-Aunque no lo vamos a usar, también se puede escribir cualquier fórmula en **Forma Normal Disyuntiva**, es decir como una disyunción de conjunciones.
+! Aunque no lo vamos a usar, también se puede escribir cualquier fórmula en **Forma Normal Disyuntiva**, es decir como una disyunción de conjunciones.
 
 Las leyes habituales que nos permiten transformar una fórmula cualquiera en una equivalente en Forma Normal Conjuntiva (o Forma Normal Disyuntiva) son:
 
 <img src="http://www.cs.us.es/~fsancho/images/2018-09/fnc.jpg"  />
+
+
 
 ## Un algoritmo sencillo para SAT: DPLL
 <img src="http://www.cs.us.es/~fsancho/images/2017-10/fredputm.jpg" align="left" width=300px/> DPLL es un algoritmo para decidir la satisfactibilidad de una fórmula (o conjunto de fórmulas) a partir de su forma clausal. Fue propuesto en 1960 por Davis y Putnam, y posteriormente refinado en 1962 por Davis, Logemann y Loveland (de ahí el nombre completo del algoritmo, DPLL). Este algoritmo es la base de la mayoría de los programas que resuelven el problema SAT y que se usan en entornos profesionales.
@@ -139,7 +141,7 @@ Si observamos detenidamente las reglas anteriores, vemos que responden a un mism
 
 $\{L_1,\dots,\ L_n,\ L\} + \{M_1,\dots,\ M_k, L^c\} \models \{L_1,\dots,\ L_n,\ M_1,\dots,\ M_k\}$
 
-Concretamente, si tenemos dos claúsulas, $C_1$ y $C_2$, y un literal, $L$, de forma que $L\in C_1$ y $L^c\in C_2$, entonces se define la **resolvente de $C_1$ y $C_2$ respecto de $L$** como: $res_L(C_1,\ C_2)=(C_1-\{L\})\cup (C_2-\{L^c\})$.
+> Concretamente, si tenemos dos claúsulas, $C_1$ y $C_2$, y un literal, $L$, de forma que $L\in C_1$ y $L^c\in C_2$, entonces se define la **resolvente de $C_1$ y $C_2$ respecto de $L$** como: $res_L(C_1,\ C_2)=(C_1-\{L\})\cup (C_2-\{L^c\})$.
 
 Por ejemplo, si $C_1 = \{p,\ q,\ \neg r\}$ y $C_2 = \{\neg p,\ r,\ s\}$. Entonces $res\_p(C_1, C_2) = \{q,\ \neg r,\ r,\ s\}$. 
 
@@ -152,6 +154,7 @@ Veamos un ejemplo de aplicación:
 <img src="http://www.cs.us.es/~fsancho/images/2015-10/resolucion.png" width=600px />
 
 Como en el ejemplo anterior hemos llegado a obtener la claúsula vacía (que proviene de una contradicción), podemos afirmar que el conjunto original de cláusulas es contradictorio.
+
 
 
 ## Resumen de la Metodología

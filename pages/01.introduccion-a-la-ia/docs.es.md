@@ -17,7 +17,7 @@ visible: true
 
 <img style="float: right;" src="https://yt3.ggpht.com/a-/AN66SAzIPtc5nxMnxMMxH7Z2pf9dZcHReiymkVhBKw=s288-mo-c-c0xffffffff-rj-k-no"  width=75px>
 
-Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
+! Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
 
 ## Diversas aproximaciones
 
