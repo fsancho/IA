@@ -15,7 +15,7 @@ visible: true
 <iframe width="180"  height="120" src="https://www.youtube.com/embed/PXmnuXA1lrc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 <iframe width="180"  height="120" src="https://www.youtube.com/embed/XQdt04iTfVI" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
-Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
+<img style="float: right;" src="https://yt3.ggpht.com/a-/AN66SAzIPtc5nxMnxMMxH7Z2pf9dZcHReiymkVhBKw=s288-mo-c-c0xffffffff-rj-k-no"  width=100px>Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
 
 Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posibles aproximaciones a la hora de entender cómo se puede desarrollar la IA, dependiendo de las combiaciones posibles entre si consideramos una IA basada en cómo piensan los humanos o si se considera una racionalidad ideal, y si consideramos una IA basada en el razonamiento o en el comportamiento:
 
