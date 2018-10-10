@@ -79,11 +79,9 @@ El espacio de estados asociado al problema podría representarse de la siguiente
 
 <img src="http://www.cs.us.es/~fsancho/images/2017-09/mc-search-space.png">
 
-**Ejercicio**: Formaliza la siguiente versión del puzle "_Todos los dígitos del Rey_" explicitando una representación de sus estados y la función de transición entre ellos: Dado el conjunto de dígitos \(0123456789\), inserta los símbolos de los operadores aritméticos (\(\times + - /,\)) entre ellos para que la expresión resultante se evalúe como 100. Por ejemplo:
-
-\\[0+1+2+3+4+5+6+7+(8\times 9) =100\\]
-
-¿Puedes encontrar otros?
+!! **Ejercicio**: Formaliza la siguiente versión del puzle "_Todos los dígitos del Rey_" explicitando una representación de sus estados y la función de transición entre ellos: Dado el conjunto de dígitos \(0123456789\), inserta los símbolos de los operadores aritméticos (\(\times + - /,\)) entre ellos para que la expresión resultante se evalúe como 100. Por ejemplo:
+!! \\[0+1+2+3+4+5+6+7+(8\times 9) =100\\]
+!! ¿Puedes encontrar otros?
 
 ## Criterios de evaluación
 
