@@ -57,7 +57,7 @@ Por ejemplo, si la valoración $v$ asigna $v(p)=v(q)=1,\ v(r)=v(s)=0$, entonces 
 
 A pesar de que la Lógica Proposicional presenta claras limitaciones expresivas y no puede reflejar fielmente muchas de las afirmaciones que podemos hacer en sistemas un poco más ricos, suele ser más que suficiente para muchísimos problemas de la vida real, por lo que sigue siendo útil en campos como el de la Inteligencia Artificial. Además, muchos de los métodos que se utilizan en lógicas más potentes (como la **Lógica de Primer Orden**, la **Lógica Difusa**, etc.) son extensiones de los métodos que se han definido para la Lógica Proposicional, por lo que su estudio en profundidad está más que justificado.
 
-## Qué significa que una fórmula se pueda deducir de un conjunto de fórmulas
+## Cuándo una fórmula se deduce de un conjunto de fórmulas
 
 Una vez que hemos explicitado el lenguaje que usamos para formalizar las afirmaciones, y fijado lo que entendemos por su significado (de verdad o falsedad), es el momento de formalizar qué entendemos por **inferir de forma válida**.
 
