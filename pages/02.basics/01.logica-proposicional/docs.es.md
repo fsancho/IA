@@ -48,7 +48,7 @@ Observa que las variables proposicionales no tienen un valor fijo de verdad, sin
 
 Por ejemplo, si la valoración $v$ asigna $v(p)=v(q)=1,\ v(r)=v(s)=0$, entonces el valor de $\neg(\neg(p\lor q)\lor (\neg r\lor s))$ es $1$, ya que: 
 
-$$$$image file="2018-10/valorverdad.png" width=200px$$$$
+<img src="http://ww.cs.us.es/~fsancho/images/2018-10/valorverdad.png" width=200px>
 
 A pesar de que la Lógica Proposicional presenta claras limitaciones expresivas y no puede reflejar fielmente muchas de las afirmaciones que podemos hacer en sistemas un poco más ricos, suele ser más que suficiente para muchísimos problemas de la vida real, por lo que sigue siendo útil en campos como el de la Inteligencia Artificial. Además, muchos de los métodos que se utilizan en lógicas más potentes (como la **Lógica de Primer Orden**, la **Lógica Difusa**, etc.) son extensiones de los métodos que se han definido para la Lógica Proposicional, por lo que su estudio en profundidad está más que justificado.
 
