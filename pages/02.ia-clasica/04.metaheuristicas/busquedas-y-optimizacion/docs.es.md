@@ -6,7 +6,7 @@ visible: true
 ---
 
 Extraido de una versión reducida de "_[Metaheurísticas: una visión global ![]((https://sci2s.ugr.es/sites/default/files/files/Teaching/GraduatesCourses/Metaheuristicas/Bibliography/metaheuristicas-vision-global.pdf)" (_Inteligencia Artificial, Revista Iberoamericana de Inteligencia Artificial. No.19 (2003),pp. 7-28), de _Belén Melián_, _José A. Moreno Pérez_, _J. Marcos Moreno Vega_
-
+[TOC]
 Las **metaheurísticas de búsqueda** proporcionan estrategias para resolver un problema realizando una búsqueda sobre un espacio cuyos elementos representan las soluciones candidatas alternativas, y que se denomina **Espacio de Soluciones** posibles del problema. La representación de las soluciones se realiza a través de una codificación que debe incluir toda la información necesaria para su identificación y evaluación.
 
 Una **búsqueda** sobre un espacio consiste en generar una sucesión de puntos del espacio en el que cada punto se obtiene del anterior por medio de una serie de transformaciones o movimientos.
