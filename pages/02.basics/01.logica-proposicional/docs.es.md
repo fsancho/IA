@@ -93,7 +93,7 @@ En realidad, debido a que la fórmula se ha expresado como una conjunción de di
 
 \$$F = \left\{\{L\_{11},\dots, L\_{1n\_1}\},\ \{L\_{21},\dots,L\_{2n\_2}\},\dots,\{L\_{m1},\dots,L\_{mn\_m}\}\right\} \$$
 
-$$$$image file="2015-10/fnc.png" $$$$
+<img srg="http://www.cs.us.es/~fsancho/images/2015-10/fnc.png" />
 
 Aunque no lo vamos a usar, también se puede escribir cualquier fórmula en **Forma Normal Disyuntiva**, es decir como una disyunción de conjunciones.
 
