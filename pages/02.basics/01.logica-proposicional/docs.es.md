@@ -14,7 +14,7 @@ link_text: 'Read more'
 [TOC]
 En esta entrada vamos a intentar dar un curso acelerado (aceleradísimo) acerca de qué es la **Lógica Proposicional** y de qué forma se pueden automatizar algunos de los problemas más habituales que se presentan dentro de ella. Debido a que es un curso acelerado, el lector no debe buscar aquí una formalización exahustiva acerca del tema, sino una aproximación intuitiva a cuáles son los fundamentos de la misma, a los problemas que resuelve, y a algunos de los algoritmos más habituales para automatizar las soluciones que se pueden dar a los mismos. Si el lector sabe algo de lógica, y ya ha visto algún curso de lógico proposicional con cierto detalle, lo más probable es que estas notas no le sirvan de mucho, encuentre muchas carencias e incluso alguna "mentira piadosa" (aunque prefiero llamarla "atajo")... en consecuencia, si este es tu caso, es muy probable que estas notas no estén hechas para ti... quedas avisado...
 
-Si quieres tener una visión más completa de la lógica, puedes ver el material del curso [Lógica Informática](http://www.cs.us.es/cursos/liti/) que se imparte en diversos grados de la E.T.S. Ingeniería Informática de la Universidad de Sevilla, así como las referencias bibliográficas que puedes encontrar en ellos.
+! Si quieres tener una visión más completa de la lógica, puedes ver el material del curso [Lógica Informática](http://www.cs.us.es/cursos/liti/) que se imparte en diversos grados de la E.T.S. Ingeniería Informática de la Universidad de Sevilla, así como las referencias bibliográficas que puedes encontrar en ellos.
 
 ## ¿Qué es la Lógica Proposicional?
 
