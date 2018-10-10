@@ -57,8 +57,7 @@ Por ejemplo, si la valoración $v$ asigna $v(p)=v(q)=1,\ v(r)=v(s)=0$, entonces 
 
 A pesar de que la Lógica Proposicional presenta claras limitaciones expresivas y no puede reflejar fielmente muchas de las afirmaciones que podemos hacer en sistemas un poco más ricos, suele ser más que suficiente para muchísimos problemas de la vida real, por lo que sigue siendo útil en campos como el de la Inteligencia Artificial. Además, muchos de los métodos que se utilizan en lógicas más potentes (como la **Lógica de Primer Orden**, la **Lógica Difusa**, etc.) son extensiones de los métodos que se han definido para la Lógica Proposicional, por lo que su estudio en profundidad está más que justificado.
 
-## Cuándo una fórmula se deduce de un conjunto de fórmulas
-
+## SAT y deducción de fórmulas
 Una vez que hemos explicitado el lenguaje que usamos para formalizar las afirmaciones, y fijado lo que entendemos por su significado (de verdad o falsedad), es el momento de formalizar qué entendemos por **inferir de forma válida**.
 
 *   Dada una valoración, $v$, diremos que una fórmula, $F$, es **válida** en $v$ si el valor de verdad de $F$ con esa valoración es $1$, $v(F)=1$, y lo notaremos $v\models F$.
@@ -72,7 +71,7 @@ Además, **tenemos un método automático para saber si una fórmula es satisfac
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Clases_de_complejidad.svg/414px-Clases_de_complejidad.svg.png" align="right" /> Aunque esta no es la entrada adecuada para exponer este problema, es obligatorio decir aquí que el problema de saber si una fórmula es satisfactible (que se denomina **SAT**) cae dentro de los que se denominan problemas **NP**... esencialmente, aquellos problemas para los que se conoce solución, pero es tan mala desde el punto de vista de los recursos que necesitamos para resolverlos (en tiempo o en espacio) que son **intratables** desde un punto de vista práctico cuando el tamaño del problema (el tamaño de la fórmula) es grande. Es más, no solo es NP, sino que además es **NP-completo**, lo que significa que está entre los más complejos de los más complejos. Cuidado que no estamos diciendo que no tengan solución más sencilla, sino que ahora mismo no se conoce una solución sencilla, solo soluciones malas (la idea general es que no existen esas soluciones buenas para este tipo de problemas, aunque todavía no hemos sido capaces de probarlo). Por ello, las soluciones que veremos más adelante relacionadas con SAT conseguirán facilitar la solución en algunos casos, pero nunca serán suficientemente buenas en todos los casos como para considerarlas óptimas.
 
-Ahora ya podemos decir qué entendemos por consecuencia lógica que, como veremos, y la intuición dice, está intimamente relacionado con la idea de implicación:
+Ahora ya podemos decir qué entendemos por **consecuencia lógica** que, como veremos, y la intuición dice, está intimamente relacionado con la idea de implicación:
 
 >Diremos que una fórmula, $F$, es **consecuencia lógica** de un conjunto de fórmulas, $U=\{F\_1,\dots,F\_n\}$, y lo  notaremos por $U\models F$, si se verifica que la fórmula $F\_1\wedge \dots \wedge F\_n \rightarrow F$ es una tautología.
 
@@ -81,6 +80,8 @@ Ahora ya podemos decir qué entendemos por consecuencia lógica que, como veremo
 Como hemos dicho, la idea fundamental es la intuición de que la consecuencia lógica se relaciona, obviamente, con la implicación. Pero además, se puede probar (aunque no lo haremos) que _la definición anterior es equivalente a decir que el conjunto $\{F\_1,\dots,F\_n,\neg F\}$ es insatisfactible (una contradicción)_, que viene a reflejar el método habitual de probar que algo es consecuencia lógica por medio de la **reducción al absurdo** (si suponemos lo contrario, llegamos a una contradicción).
 
 Al reducir la consecuencia lógica a comprobar una tautología o una satisfactibilidad, los métodos que tengamos para estos problemas podrán ser aplicados directamente para poder resolver el problema de la inferencia. Por tanto, ya tenemos un método, el de las tablas de verdad, para resolverlo... pero es un método demasiado primitivo e ineficiente para lo que buscamos, así que en lo que sigue nos orientaremos a buscar algunos otros métodos más elegantes, y sobre todo que nos proporcionen un mayor control para adaptarnos a las características particulares de la fórmula.
+
+
 
 ## Formas Clausales
 
@@ -106,8 +107,7 @@ Las leyes habituales que nos permiten transformar una fórmula cualquiera en una
 
 <img src="http://www.cs.us.es/~fsancho/images/2018-09/fnc.jpg"  />
 
-## Un algoritmo sencillo de satisfactibilidad: DPLL
-
+## Un algoritmo sencillo para SAT: DPLL
 <img src="http://www.cs.us.es/~fsancho/images/2017-10/fredputm.jpg" align="left" width=300px/> DPLL es un algoritmo para decidir la satisfactibilidad de una fórmula (o conjunto de fórmulas) a partir de su forma clausal. Fue propuesto en 1960 por Davis y Putnam, y posteriormente refinado en 1962 por Davis, Logemann y Loveland (de ahí el nombre completo del algoritmo, DPLL). Este algoritmo es la base de la mayoría de los programas que resuelven el problema SAT y que se usan en entornos profesionales.
 
 El algoritmo consta de dos partes bien diferenciadas que se van alternando en caso de necesidad:
@@ -127,8 +127,8 @@ En el ejemplo anterior, la rama derecha proporciona un modelo ($p=0,\ q=0,\ r=1$
 
 En cierta forma, este algoritmo es como el método habitual para resolver un sudoku, si tenemos ya algunos números seguros, su conocimiento se propaga a través del sudoku y nos permite asegurar más posiciones, y si llegamos a un callejón sin salida lo más normal es hacer suposiciones acerca de alguna de las casillas, valorando cómo evoluciona el juego para cada uno de sus posibles valores.
 
-## Regla de Resolución y Algoritmo de Resolución
 
+## Algoritmo de Resolución
 En la lógica clásica hay varias reglas de deducción que son habituales: **Modus Ponens**, **Modus Tollens** y **Encadenamiento**. Vamos a escribir estas reglas en su versión normal y también veremos cómo quedan al escribirlas como claúsulas:
 
 1.  **Modus Ponens**: $\{p\} + \{p\rightarrow q\} \models \{q\}$... en forma clausal: $\{p\} + \{\neg p,\ q\} \models \{q\}$.
@@ -153,6 +153,7 @@ Veamos un ejemplo de aplicación:
 
 Como en el ejemplo anterior hemos llegado a obtener la claúsula vacía (que proviene de una contradicción), podemos afirmar que el conjunto original de cláusulas es contradictorio.
 
+
 ## Resumen de la Metodología
 
 En resumen, si queremos resolver un problema habitua de saber si una cierta fórmula es consecuancia lógica (la podemos deducir) de un conjunto de fórmulas (hipótesis), formalmente, $\{F_1,\dots,F_n\}\models F$, los pasos a seguir serían:
@@ -163,9 +164,10 @@ En resumen, si queremos resolver un problema habitua de saber si una cierta fór
 4.  **Si encontramos un modelo** (en **DPLL**, una de las ramas obtiene una solución que no es contradicción; en **Resolución**, no somos capaces de encontrar la cláusula vacía), **entonces la consecuencia lógica NO es cierta**.
 5.  **Si no encontramos un modelo** (en **DPLL**, todas las ramas llegan a una contradicción; en **Resolución**, encontramos una cadena de resolventes que llegan hasta la cláusula vacía), **entonces la consecuencia lógica SÍ es cierta**.
 
-## Algunas consideraciones finales: sobre la automatización
-
+## Consideraciones finales
 Aunque en general los algoritmos que existen para obtener nuevos resultados matemáticos no son automatizables (es decir, no se pueden programar en una máquina), el caso de la lógica proposicional, con todas sus limitaciones, sí que se puede automatizar. Ya vimos que el método más directo, y el más incómodo, para ello es el de la creación de la tabla de verdad. En esta entrada hemos visto algunos otros algoritmos que son fácilmente implementables (apenas usando algunas estructuras de listas o similares) y que pueden resultar más recomendables en caso de querer disponer de una implementación práctica. 
 
-A pesar de todo, no debemos olvidar que el problema que está detrás es SAT, y que es un problema NP-completo, por tanto no debemos poner nuestras esperanzas en conseguir algoritmos que rebajen el problema de la inferencia (ni siquiera en la Lógica Proposicional) y que lo convierta en un problema tratable para todos los casos, y nos conformamos con obtener métodos que sean suficientemente buenos como para poder atacar problemas con gran número de variables en muchos casos.
+A pesar de todo, no debemos olvidar que el problema que está detrás es **SAT**, y que es un problema **NP**-completo, por tanto no debemos poner nuestras esperanzas en conseguir algoritmos que rebajen el problema de la inferencia (ni siquiera en la Lógica Proposicional) y que lo convierta en un problema tratable para todos los casos, y nos conformamos con obtener métodos que sean suficientemente buenos como para poder atacar problemas con gran número de variables en muchos casos.
+
+
 
