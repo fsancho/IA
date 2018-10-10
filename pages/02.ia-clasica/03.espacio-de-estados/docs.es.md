@@ -37,7 +37,7 @@ Este proceso de elegir adecuadamente la información que almacenamos en un estad
 
 ## Problema de búsqueda básico
 
-<img src="http://www.cs.us.es/~fsancho/images/2016-11/GraphStateSpace.png" align="left"> Si nos imaginamos este espacio de estados como un terreno por el cual nos podemos mover, donde partimos de un punto concreto del terreno (**estado inicial**) y podemos aplicar las reglas válidas para ir saltando de un estado a otro, podemos identificar la resolución del problema (llegar hasta un **estado final** válido) con el problema de **buscar un camino** adecuado entre un estado inicial y un estado final. Es por ello que muy habitualmente se habla del **Problema de Búsqueda en el Espacio de Estados**. Pasemos pues a dar una definición formal de esta idea: 
+<img src="http://www.cs.us.es/~fsancho/images/2016-11/GraphStateSpace.png" align="left" width=300px> Si nos imaginamos este espacio de estados como un terreno por el cual nos podemos mover, donde partimos de un punto concreto del terreno (**estado inicial**) y podemos aplicar las reglas válidas para ir saltando de un estado a otro, podemos identificar la resolución del problema (llegar hasta un **estado final** válido) con el problema de **buscar un camino** adecuado entre un estado inicial y un estado final. Es por ello que muy habitualmente se habla del **Problema de Búsqueda en el Espacio de Estados**. Pasemos pues a dar una definición formal de esta idea: 
 
 Un **problema de búqueda básico** es una 4-tupla \((X,S,G,d)\), donde 
 
