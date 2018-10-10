@@ -56,12 +56,8 @@ Entre las desventajas principales que han llevado a complementarlo o sustituirlo
 2.  **Estrategias de búsqueda muy ineficientes**: esencialmente, el motor de inferencia realiza una búsqueda exahustiva en todas las reglas en cada ciclo de iteración, por lo que los sistemas de reglas con muchas reglas (que pueden llegar a ser miles) son lentos y, a menudo, inviables en problemas del mundo real.
 3.  **Incapaz de aprender**: los sistemas de reglas sin aditivos no son capaces de aprender de la experiencia, por lo que haber extraido un conocimiento nuevo del sistema no te proporciona métodos para poder aprender más cosas de forma más rápida posteriormente.
 
-## Para saber más...
-
-[Sistemas Expertos Basados en Reglas](http://personales.unican.es/gutierjm/cursos/expertos/Reglas.pdf "Sistemas Expertos Basados en Reglas")
-
-[Sistemas Expertos y Modelos de Redes Probabilísticas](http://personales.unican.es/gutierjm/papers/BookCGH.pdf "Sistemas Expertos y Modelos de Redes Probabilísticas")
-
-[CLIPS: A Tool for Building Expert Systems](http://clipsrules.sourceforge.net/ "CLIPS: A Tool for Building Expert Systems")
-
-[Comparing Rule-based systems](http://www.w3.org/2000/10/swap/doc/rule-systems "Comparing Rule-based systems")
+! ## Para saber más...
+! [Sistemas Expertos Basados en Reglas](http://personales.unican.es/gutierjm/cursos/expertos/Reglas.pdf "Sistemas Expertos Basados en Reglas")
+! [Sistemas Expertos y Modelos de Redes Probabilísticas](http://personales.unican.es/gutierjm/papers/BookCGH.pdf "Sistemas Expertos y Modelos de Redes Probabilísticas")
+! [CLIPS: A Tool for Building Expert Systems](http://clipsrules.sourceforge.net/ "CLIPS: A Tool for Building Expert Systems")
+! [Comparing Rule-based systems](http://www.w3.org/2000/10/swap/doc/rule-systems "Comparing Rule-based systems")
