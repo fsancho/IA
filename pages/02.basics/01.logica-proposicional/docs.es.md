@@ -69,9 +69,9 @@ Además, **tenemos un método automático para saber si una fórmula es satisfac
 
 Ahora ya podemos decir qué entendemos por consecuencia lógica que, como veremos, y la intuición dice, está intimamente relacionado con la idea de implicación:
 
-_Diremos que una fórmula, $F$, es **consecuencia lógica** de un conjunto de fórmulas, $U=\{F\_1,\dots,F\_n\}$, y lo  notaremos por $U\models F$, si se verifica que la fórmula $F\_1\wedge \dots \wedge F\_n \rightarrow F$ es una tautología._
+>Diremos que una fórmula, $F$, es **consecuencia lógica** de un conjunto de fórmulas, $U=\{F\_1,\dots,F\_n\}$, y lo  notaremos por $U\models F$, si se verifica que la fórmula $F\_1\wedge \dots \wedge F\_n \rightarrow F$ es una tautología.
 
-_![](http://images.slideplayer.es/16/5213355/slides/slide_25.jpg)_
+![](http://images.slideplayer.es/16/5213355/slides/slide_25.jpg)
 
 Como hemos dicho, la idea fundamental es la intuición de que la consecuencia lógica se relaciona, obviamente, con la implicación. Pero además, se puede probar (aunque no lo haremos) que _la definición anterior es equivalente a decir que el conjunto $\{F\_1,\dots,F\_n,\neg F\}$ es insatisfactible (una contradicción)_, que viene a reflejar el método habitual de probar que algo es consecuencia lógica por medio de la **reducción al absurdo** (si suponemos lo contrario, llegamos a una contradicción).
 
