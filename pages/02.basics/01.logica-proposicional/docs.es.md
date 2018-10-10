@@ -1,14 +1,14 @@
 ---
 title: 'Lógica Proposicional'
+taxonomy:
+    category: docs
+visible: true
 id: i1
 class: images
 background_color: 'rgba(255, 255, 255, 0.00)'
 image_align: left
 link: /home
 link_text: 'Read more'
-taxonomy:
-    category: docs
-visible: true
 ---
 
 [TOC]
@@ -69,7 +69,7 @@ Por ejemplo, la fórmula $p\vee \neg p$ es una tautología, mientras que la fór
 
 Además, **tenemos un método automático para saber si una fórmula es satisfactible**, **tautología** o **insatisfactible**, basta hacer la tabla de verdad de la fórmula y verificar si en el resultado hay algún $1$, si todos son $1$, o si todos son $0$ (respectivamente). El problema evidente es que es un proceso muy laborioso hacer la tabla de verdad de la fórmula cuando el número de variables que intervienen es alto (algo que suele ocurrir en los problemas del mundo real que son interesantes), ya que si tenemos $n$ variables en la fórmula, necesitaremos una tabla de verdad con $2^n$ casos distintos.
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Clases_de_complejidad.svg/414px-Clases_de_complejidad.svg.png" align="right" /> Aunque esta no es la entrada adecuada para exponer este problema, es obligatorio decir aquí que el problema de saber si una fórmula es satisfactible (que se denomina **SAT**) cae dentro de los que se denominan problemas **NP**... esencialmente, aquellos problemas para los que se conoce solución, pero es tan mala desde el punto de vista de los recursos que necesitamos para resolverlos (en tiempo o en espacio) que son **intratables** desde un punto de vista práctico cuando el tamaño del problema (el tamaño de la fórmula) es grande. Es más, no solo es NP, sino que además es **NP-completo**, lo que significa que está entre los más complejos de los más complejos. Cuidado que no estamos diciendo que no tengan solución más sencilla, sino que ahora mismo no se conoce una solución sencilla, solo soluciones malas (la idea general es que no existen esas soluciones buenas para este tipo de problemas, aunque todavía no hemos sido capaces de probarlo). Por ello, las soluciones que veremos más adelante relacionadas con SAT conseguirán facilitar la solución en algunos casos, pero nunca serán suficientemente buenas en todos los casos como para considerarlas óptimas.
+!<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Clases_de_complejidad.svg/414px-Clases_de_complejidad.svg.png" align="right" /> Aunque esta no es la entrada adecuada para exponer este problema, es obligatorio decir aquí que el problema de saber si una fórmula es satisfactible (que se denomina **SAT**) cae dentro de los que se denominan problemas **NP**... esencialmente, aquellos problemas para los que se conoce solución, pero es tan mala desde el punto de vista de los recursos que necesitamos para resolverlos (en tiempo o en espacio) que son **intratables** desde un punto de vista práctico cuando el tamaño del problema (el tamaño de la fórmula) es grande. Es más, no solo es NP, sino que además es **NP-completo**, lo que significa que está entre los más complejos de los más complejos. Cuidado que no estamos diciendo que no tengan solución más sencilla, sino que ahora mismo no se conoce una solución sencilla, solo soluciones malas (la idea general es que no existen esas soluciones buenas para este tipo de problemas, aunque todavía no hemos sido capaces de probarlo). Por ello, las soluciones que veremos más adelante relacionadas con SAT conseguirán facilitar la solución en algunos casos, pero nunca serán suficientemente buenas en todos los casos como para considerarlas óptimas.
 
 Ahora ya podemos decir qué entendemos por **consecuencia lógica** que, como veremos, y la intuición dice, está intimamente relacionado con la idea de implicación:
 
