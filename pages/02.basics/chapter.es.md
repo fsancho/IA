@@ -5,4 +5,7 @@ taxonomy:
 child_type: docs
 ---
 
-<p>### Parte I # IA Cl&aacute;sica Descubre los principios **b&aacute;sicos** que est&aacute;n detr&aacute;s de los resultados cl&aacute;sicos de la Inteligencia Artificial</p>
+### Parte I 
+# IA Clásica 
+
+Descubre los principios **básicos** que están detrás de los resultados clásicos de la Inteligencia Artificial
