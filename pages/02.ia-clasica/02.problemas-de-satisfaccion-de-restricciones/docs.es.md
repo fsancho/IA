@@ -13,7 +13,7 @@ En muchas ocasiones la resolución de problemas está sujeta a que las diversas 
 
 Históricamente, la resolución de **problemas de satisfacción de restricciones** (**PSR**, por sus siglas en español) ha generado una gran expectación entre expertos de muchas áreas debido a su potencial para la resolución de grandes problemas reales que caen, en muchas ocasiones, dentro de lo que se conocen como problemas **NP** (aquellos que presentan una complejidad computacional superior para su resolución). Los primeros trabajos relacionados con la programación de restricciones datan de los años 60 y 70 en el campo de la Inteligencia Artificial.
 
-![](/~fsancho/images/2016-09/constraint-satisfaction-problems-n.jpg)
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/constraint-satisfaction-problems-n.jpg">
 
 La idea de las técnicas de PSR es resolver problemas mediante la declaración de restricciones sobre el área del problema (el espacio de posibles soluciones) y consecuentemente encontrar soluciones que satisfagan todas las restricciones. A veces, se buscan soluciones que, además, optimicen algunos criterios determinados.
 
