@@ -40,7 +40,7 @@ Como hemos señalado anteriormente, una parte muy importante para la resolución
 
 Como intentar dar una formalización completa de este proceso puede ser un poco engorroso, y sin embargo es bastante natural el proceso que se lleva a cabo, vamos a presentar esta etapa de modelado por medio de un ejemplo en el que se mostrarán diversas modelizaciones de un mismo problema y se pondrán de manifiesto las ventajas de una modelización adecuada para resolverlo.
 
-!! Consideremos el conocido **problema criptoaritmético ’send+more=money’** utilizado en \[21\]. Este problema puede ser declarado como: asignar a cada letra \(\{s, e, n, d, m, o, r, y\}\) un dígito diferente del conjunto \(\{0,...,9\}\) de forma que se satisfaga la expresión \(send+more=money\).
+!! Consideremos el conocido **problema criptoaritmético ’send+more=money’**. Este problema puede ser declarado como: asignar a cada letra \(\{s, e, n, d, m, o, r, y\}\) un dígito diferente del conjunto \(\{0,...,9\}\) de forma que se satisfaga la expresión \(send+more=money\).
 
 !! <img src="http://www.cs.us.es/~fsancho/images/2016-09/sendmoremoney.jpg">
 
@@ -71,11 +71,11 @@ Vamos a presentar más formalmente los conceptos y objetivos básicos que son ne
 
 > **Definición.** Un **problema de satisfacción de restricciones** (**PSR**) es una terna \((X,D,C)\) donde:
 > 
-> 1.  \(X\) es un conjunto de \(n\) variables \(\{x\_1 ,...,x\_n \}\).
-> 2.  \(D =\langle D\_1 ,...,D\_n \rangle\) es un vector de dominios (\(D\_i\) es el dominio que contiene todos los posibles valores que puede tomar la variable \(x\_i\)).
+> 1.  \(X\) es un conjunto de \(n\) variables \(\{x_1 ,...,x_n \}\).
+> 2.  \(D =\langle D_1 ,...,D_n \rangle\) es un vector de dominios (\(D_i\) es el dominio que contiene todos los posibles valores que puede tomar la variable \(x_i\)).
 > 3.  \(C\) es un conjunto finito de restricciones. Cada restricción está definida sobre un conjunto de \(k\) variables por medio de un predicado que restringe los valores que las variables pueden tomar simultáneamente.
 
-> **Definición.** Una **asignación de variables**, o **instanciación**, \((x,a)\) es un par variable-valor que representa la asignación del valor \(a\) a la variable \(x\). Una instanciación de un conjunto de variables es una tupla de pares ordenados, \(((x\_1 ,a\_1 ),...,(x\_i ,a\_i ))\), donde cada par ordenado \((x\_i,a\_i)\) asigna el valor \(a\_i\) a la variable \(x\_i\). Una tupla se dice **localmente consistente** si satisface todas las restricciones formadas por variables de la tupla.
+> **Definición.** Una **asignación de variables**, o **instanciación**, \((x,a)\) es un par variable-valor que representa la asignación del valor \(a\) a la variable \(x\). Una instanciación de un conjunto de variables es una tupla de pares ordenados, \(((x_1 ,a_1 ),...,(x_i ,a_i ))\), donde cada par ordenado \((x_i,a_i)\) asigna el valor \(a_i\) a la variable \(x_i\). Una tupla se dice **localmente consistente** si satisface todas las restricciones formadas por variables de la tupla.
 
 > **Definición.** Una **solución a un PSR** es una asignación de valores a todas las variables de forma que se satisfagan todas las restricciones. Es decir, una solución es una tupla consistente que contiene todas las variables del problema. Una **solución parcial** es una tupla consistente que contiene algunas de las variables del problema. Diremos que un **problema es consistente**, si existe al menos una solución.
 
@@ -89,22 +89,25 @@ Antes de entrar con más detalles vamos a resumir la notación que utilizaremos 
 
 > **Notación Variables:** Para representar las **variables** utilizaremos las últimas letras del alfabeto, por ejemplo \(x,y,z\), así como esas mismas letras con un subíndice.
 
-> **Notación Restricciones:** Una **restricción k−aria** entre las variables \(\{x\_1 ,...,x\_k\}\) la denotaremos por \(C\_{1..k}\). De esta manera, una **restricción binaria** entre las variables \(x\_i\) y \(x\_j\) la denotaremos por \(C\_{ij}\). Cuando los índices de las variables en una restricción no son relevantes, lo denotaremos simplemente por \(C\).
+> **Notación Restricciones:** Una **restricción $k$−aria** entre las variables \(\{x_1 ,...,x_k\}\) la denotaremos por \(C_{1..k}\). De esta manera, una **restricción binaria** entre las variables \(x_i\) y \(x_j\) la denotaremos por \(C_{ij}\). Cuando los índices de las variables en una restricción no son relevantes, lo denotaremos simplemente por \(C\).
 
 La **aridad** de una restricción es el número de variables que componen dicha restricción. Una **restricción unaria** es una restricción que consta de una sola variable. Una **restricción binaria** es una restricción que consta de dos variables. Una **restricción n−aria** es una restricción que involucra a \(n\) variables.
 
-!! **Ejemplo.** La restricción \(x \leq 5\) es una restricción unaria sobre la variable \(x\). La restricción \(x\_4 − x\_3 \neq 3\) es una restricción binaria. La restricción \(2x\_1 − x\_2 + 4x\_3 \leq 4\) es una restricción ternaria.
+!! **Ejemplo.** La restricción \(x \leq 5\) es una restricción unaria sobre la variable \(x\). La restricción \(x_4 − x_3 \neq 3\) es una restricción binaria. La restricción \(2x_1 − x_2 + 4x_3 \leq 4\) es una restricción ternaria.
 
-> **Definición.** Una tupla \(p\) de una restricción \(C\_{i..k}\) es un elemento del producto cartesiano \(D\_i \times \dots\times D\_k\). Una tupla \(p\) que satisface la restricción \(C\_{i..k}\) se le llama **tupla permitida o válida** (en caso contrario, se dirá no permitida o no válida). Una tupla \(p\) de una restricción \(C\_{i..k}\) se dice que es **soporte** para un valor \(a \in D\_j\) si la variable \(x\_j \in X\_{C\_{i..k} }\), \(p\) es una tupla permitida y contiene a \((x\_j,a)\). Verificar si una tupla dada es permitida o no por una restricción se llama **comprobación de la consistencia**.
+> **Definición.** Una tupla \(p\) de una restricción \(C_{i..k}\) es un elemento del producto cartesiano \(D_i \times \dots\times D_k\). Una tupla \(p\) que satisface la restricción \(C_{i..k}\) se le llama **tupla permitida o válida** (en caso contrario, se dirá no permitida o no válida). Una tupla \(p\) de una restricción \(C_{i..k}\) se dice que es **soporte** para un valor \(a \in D_j\) si la variable \(x_j \in X_{C_{i..k} }\), \(p\) es una tupla permitida y contiene a \((x_j,a)\). Verificar si una tupla dada es permitida o no por una restricción se llama **comprobación de la consistencia**.
 
 Una restricción puede definirse extensionalmente mediante un conjunto de tuplas válidas o no válidas (cuando sea posible) o también intencionalmente mediante un predicado entre las variables.
 
-!! **Ejemplo.** Consideremos una restricción entre 4 variables \(x\_1 ,x\_2 ,x\_3 ,x\_4\) , todas ellas con dominios el conjunto \(\{1,2\}\), donde la suma entre las variables \(x\_1\) y \(x\_2\) es menor o igual que la suma entre \(x\_3\) y \(x\_4\). Esta restricción puede representarse intencionalmente mediante la expresión \(x\_1 + x\_2 \leq x\_3 + x\_4\). Además, esta restricción también puede representarse extensionalmente mediante el conjunto de tuplas permitidas:
+!! **Ejemplo.** Consideremos una restricción entre 4 variables \(x_1 ,x_2 ,x_3 ,x_4\) , todas ellas con dominios el conjunto \(\{1,2\}\), donde la suma entre las variables \(x_1\) y \(x_2\) es menor o igual que la suma entre \(x_3\) y \(x_4\). Esta restricción puede representarse intencionalmente mediante la expresión \(x_1 + x_2 \leq x_3 + x_4\). Además, esta restricción también puede representarse extensionalmente mediante el conjunto de tuplas permitidas:
 !! 
 !! \(\{(1,1,1,1), (1,1,1,2), (1,1,2,1), (1,1,2,2), (2,1,2,2), (1,2,2,2),\)
 !! \( (1,2,1,2), (1,2,2,1),(2,1,1,2), (2,1,2,1), (2,2,2,2)\}\),
 !! o mediante el conjunto de tuplas no permitidas:
 !! \(\{(1,2,1,1), (2,1,1,1), (2,2,1,1), (2,2,1,2), (2,2,2,1)\}\).
+
+
+
 
 ## Consistencia en un PSR
 Al igual que ocurre con los algoritmos de búsqueda generales, una forma común de crear algoritmos de búsqueda sistemática para la resolución de PSR tienen como base la búsqueda basada en **backtracking**. Sin embargo, esta búsqueda sufre con frecuencia una explosión combinatoria en el espacio de búsqueda, y por lo tanto no es por sí solo un método suficientemente eficiente para resolver este tipo de problemas.
@@ -126,40 +129,40 @@ La mayoría de las formas de consistencia se pueden ver como especificaciones de
 
 Un problema es **fuertemente \(k\)-consistente** si es \(i\)-consistente para todo \(i \leq k\). Un problema fuertemente \(k\)-consistente con \(k\) variables se llama **globalmente consistente**. La complejidad espacial y temporal en el peor caso de forzar la \(k\)-consistencia es exponencial con \(k\). Además, cuando \(k\geq 2\), forzar la \(k\)-consistencia cambia la estructura del grafo de restricciones añadiendo nuevas restricciones no unarias. Esto hace que la \(k\)-consistencia sea impracticable cuando \(k\) es grande.
 
-En \[4\] puede encontrarse un análisis más detallado acerca de consistencias en PSR. Vamos a ver aquí solo algunos casos particulares que son de uso común en algoritmos básicos:
+En la literatura puede encontrarse un análisis más detallado acerca de consistencias en PSR. Vamos a ver aquí solo algunos casos particulares que son de uso común en algoritmos básicos:
 
 ### Consistencia de Nodo (1-consistencia)
 
 La consistencia local más simple de todas es la **consistencia de nodo** o **nodo-consistencia**. Forzar este nivel de consistencia nos asegura que todos los valores en el dominio de una variable satisfacen todas las restricciones unarias sobre esa variable.
 
 > **Definición.** Un problema es **nodo-consistente** si y sólo si todas sus variables son nodo-consistentes:  
-\[\forall x\_i \in X,\ \forall C\_i,\ \exists a \in D\_i \ :\ a\ satisface\ C\_i\]
+\[\forall x_i \in X,\ \forall C_i,\ \exists a \in D_i \ :\ a\ satisface\ C_i\]
 
-!! **Ejemplo.** Consideremos una variable \(x\) en un problema con dominio \(\[2,15\]\) y la restricción unaria \(x \leq 7\). La consistencia de nodo eliminará el intervalo \(\[8,15\]\) del dominio de \(x\).
+!! **Ejemplo.** Consideremos una variable \(x\) en un problema con dominio \([2,15]\) y la restricción unaria \(x \leq 7\). La consistencia de nodo eliminará el intervalo \([8,15]\) del dominio de \(x\).
 
 ### Consistencia de Arco (2\-consistencia)
 
-> **Definición.** Un problema binario es **arco-consistente** si para cualquier par de variables \(x\_i\) y \(x\_j\), para cada valor \(a\) en \(D\_i\) hay al menos un valor \(b\) en \(D\_j\) tal que las asignaciones \((x\_i ,a)\) y \((x\_j ,b)\) satisfacen la restricción entre \(x\_i\) y \(x\_j\).
+> **Definición.** Un problema binario es **arco-consistente** si para cualquier par de variables \(x_i\) y \(x_j\), para cada valor \(a\) en \(D_i\) hay al menos un valor \(b\) en \(D_j\) tal que las asignaciones \((x_i ,a)\) y \((x_j ,b)\) satisfacen la restricción entre \(x_i\) y \(x_j\).
 <img src="http://www.cs.us.es/~fsancho/images/2016-09/constnetac.gif">
-Cualquier valor en el dominio \(D\_i\) de la variable \(x\_i\) que no es arco-consistente puede ser eliminado de \(D\_i\) ya que no puede formar parte de ninguna solución. El dominio de una variable es arco-consistente si todos sus valores son arco-consistentes.
+Cualquier valor en el dominio \(D_i\) de la variable \(x_i\) que no es arco-consistente puede ser eliminado de \(D_i\) ya que no puede formar parte de ninguna solución. El dominio de una variable es arco-consistente si todos sus valores son arco-consistentes.
 
-!! **Ejemplo.** La restricción \(C\_{ij} = x\_i < x\_j\), donde \(x\_i\in \[3,6\]\) y \(x\_j\in \[8,10\]\) es consistente, ya que para cada valor \(a \in \[3,6\]\) hay al menos un valor \(b \in \[8,10\]\) de manera que se satisface la restricción \(C\_{ij}\). Sin embargo, si la restricción fuese \(C\_{ij} = x\_i > x\_j\) no sería arco-consistente.
+!! **Ejemplo.** La restricción \(C_{ij} = x_i < x_j\), donde \(x_i\in [3,6]\) y \(x_j\in [8,10]\) es consistente, ya que para cada valor \(a \in [3,6]\) hay al menos un valor \(b \in [8,10]\) de manera que se satisface la restricción \(C_{ij}\). Sin embargo, si la restricción fuese \(C_{ij} = x_i > x_j\) no sería arco-consistente.
 
 > Un **problema es arco-consistente** si y sólo si todos sus arcos son arco-consistentes:  
-\[\forall C\_{ij} \in C,\ \forall a \in D\_i,\ \exists b \in D\_j \ : \ b \mbox{ es un  
-soporte para } a \mbox{ en } C\_{ij}\]
+\[\forall C_{ij} \in C,\ \forall a \in D_i,\ \exists b \in D_j \ : \ b \mbox{ es un  
+soporte para } a \mbox{ en } C_{ij}\]
 
 ### Consistencia de caminos (3-consistencia)
 
-La consistencia de caminos es un nivel más alto de consistencia local que la arco-consistencia. La consistencia de caminos requiere, para cada par de valores \(a\) y \(b\) de dos variables \(x\_i\) y \(x\_j\), que la asignación de \(((x\_i,a), (x\_j,b))\) satisfaga la restricción entre \(x\_i\) y \(x\_j\), y que además exista un valor para cada variable a lo largo del camino entre \(x\_i\) y \(x\_j\) de forma que todas las restricciones a lo largo del camino se satisfagan.
+La consistencia de caminos es un nivel más alto de consistencia local que la arco-consistencia. La consistencia de caminos requiere, para cada par de valores \(a\) y \(b\) de dos variables \(x_i\) y \(x_j\), que la asignación de \(((x_i,a), (x_j,b))\) satisfaga la restricción entre \(x_i\) y \(x_j\), y que además exista un valor para cada variable a lo largo del camino entre \(x_i\) y \(x_j\) de forma que todas las restricciones a lo largo del camino se satisfagan.
 
-Un problema satisface la consistencia de caminos si y sólo si todo par de variables \((x\_i ,x\_j) \) verifica la consistencia de caminos. Cuando un problema satisface la consistencia de caminos y además es nodo-consistente y arco-consistente se dice que satisface fuertemente la consistencia de caminos.
+Un problema satisface la consistencia de caminos si y sólo si todo par de variables \((x_i ,x_j) \) verifica la consistencia de caminos. Cuando un problema satisface la consistencia de caminos y además es nodo-consistente y arco-consistente se dice que satisface fuertemente la consistencia de caminos.
 
 ## Consistencia Global
 
 A veces es deseable una noción más fuerte que la consistencia local. Decimos que un etiquetado, construido mediante un algoritmo de consistencia, es globalmente consistente si contiene solamente aquellas combinaciones de valores que forman parte de, al menos, una solución.
 
-**Definición.** Dado un PSR \\((X,D,C)\\), se dice que es **globalmente consistente** si y sólo si para cada variable  \\(x\_i \\) y cada valor posible para ella, \\(a \\in D\_i\\), la asignación \\((x\_i, a)\\) forma parte de una solución del PSR.
+**Definición.** Dado un PSR \((X,D,C)\), se dice que es **globalmente consistente** si y sólo si para cada variable  \(x_i \) y cada valor posible para ella, \(a \in D_i\), la asignación \((x_i, a)\) forma parte de una solución del PSR.
 
 En determinados casos (por ejemplo, si el grafo de restricciones es un árbol), niveles bajos de consistencia son equivalentes a la consistencia global, lo que permite generar algoritmos que en tiempo polinomial pueden dar el conjunto de soluciones sin hacer backtracking.
 
@@ -167,9 +170,9 @@ En determinados casos (por ejemplo, si el grafo de restricciones es un árbol), 
 
 Las posibles combinaciones de la asignación de valores a las variables en un PSR genera un espacio de búsqueda al que se puede dotar de estructura para ser visto como un **árbol de búsqueda**. De esta forma, después podremos recorrerlo siguiendo la estrategia que queramos. La búsqueda mediante **backtracking**, que es la base sobre la que se soportan la mayoría de algoritmos para PSR, corresponde a la tradicional exploración en [profundidad DFS](http://www.cs.us.es/~fsancho/?e=95) en el árbol de búsqueda.
 
-<img src="http://www.cs.us.es/~fsancho/images/2016-09/psr-tree.png" align="left"> La forma más habitual de darle estructura de árbol pasa por asumir que el orden de las variables es estático y no cambia durante la búsqueda, y entonces un nodo en el nivel \\(k\\) del árbol de búsqueda representará un estado donde las variables \\(x\_1 ,...,x\_k\\) están asignadas a valores concretos de sus dominios mientras que el resto de variables, \\(x\_{k+1} ,...,x\_n\\), no lo están. Podemos asignar cada nodo en el árbol de búsqueda con la tupla formada por las asignaciones llevadas a cabo hasta ese momento, donde la raíz del árbol de búsqueda representa la tupla vacía, donde ninguna variable tiene asignado valor alguno.
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/psr-tree.png" align="left"> La forma más habitual de darle estructura de árbol pasa por asumir que el orden de las variables es estático y no cambia durante la búsqueda, y entonces un nodo en el nivel \(k\) del árbol de búsqueda representará un estado donde las variables \(x_1 ,...,x_k\) están asignadas a valores concretos de sus dominios mientras que el resto de variables, \(x_{k+1} ,...,x_n\), no lo están. Podemos asignar cada nodo en el árbol de búsqueda con la tupla formada por las asignaciones llevadas a cabo hasta ese momento, donde la raíz del árbol de búsqueda representa la tupla vacía, donde ninguna variable tiene asignado valor alguno.
 
-Los nodos en el primer nivel son \\(1\\)−tuplas que representan estados donde se les ha asignado un valor a la variable \\(x\_1\\). Los nodos en el segundo nivel son \\(2\\)−tuplas que representan estados donde se le asignan valores a las variables \\(x\_1\\) y \\(x\_2\\), y así sucesivamente. Un nodo del nivel \\(k\\) es hijo de un nodo del nivel \\(k-1\\) si la tupla asociada al hijo es una extensión de la de su padre añadiendo una asignación para la variable \\(x\_k\\). Si \\(n\\) es el número de variables del problema, los nodos en el nivel \\(n\\), que representan las hojas del árbol de búsqueda, son \\(n\\)−tuplas, que representan la asignación de valores para todas las variables del problema. De esta manera, si una \\(n\\)−tupla es consistente, entonces es solución del problema. Un nodo del árbol de búsqueda es consistente si la asignación parcial actual es consistente, o en otras palabras, si la tupla correspondiente a ese nodo es consistente.
+Los nodos en el primer nivel son \(1\)−tuplas que representan estados donde se les ha asignado un valor a la variable \(x_1\). Los nodos en el segundo nivel son \(2\)−tuplas que representan estados donde se le asignan valores a las variables \(x_1\) y \(x_2\), y así sucesivamente. Un nodo del nivel \(k\) es hijo de un nodo del nivel \(k-1\) si la tupla asociada al hijo es una extensión de la de su padre añadiendo una asignación para la variable \(x_k\). Si \(n\) es el número de variables del problema, los nodos en el nivel \(n\), que representan las hojas del árbol de búsqueda, son \(n\)−tuplas, que representan la asignación de valores para todas las variables del problema. De esta manera, si una \(n\)−tupla es consistente, entonces es solución del problema. Un nodo del árbol de búsqueda es consistente si la asignación parcial actual es consistente, o en otras palabras, si la tupla correspondiente a ese nodo es consistente.
 
 ## Backtracking Cronológico
 
@@ -190,7 +193,7 @@ BT es un algoritmo muy simple pero muy ineficiente. El problema es que tiene una
 
 Los **algoritmos look-back** tratan de explotar la información del problema para comportarse más eficientemente en las situaciones sin salida. Al igual que el backtracking cronológico, los algoritmos look-back llevan a cabo la comprobación de la **consistencia hacia atrás**, es decir, entre la variable actual y las pasadas.
 
-<img src="http://www.cs.us.es/~fsancho/images/2016-09/180px-dead-ends-3.svg.png" align="right"> **Backjumping (BJ)**  es parecido a BT excepto que se comporta de una manera más inteligente cuando encuentra situaciones sin salida. En vez de retroceder a la variable anteriormente instanciada, BJ salta a la variable más profunda (más cerca de la variable actual) \\(x\_j\\) que está en conflicto con la variable actual \\(x\_i\\) donde \\(j < i\\) (una variable instanciada \\(x\_j\\) está en conflicto con una variable \\(x\_i\\) si la instanciación de \\(x\_j\\) evita uno de los valores en \\(x\_i\\), debido a la restricción entre ellas). Cambiar la instanciación de \\(x\_j\\) puede hacer posible encontrar una instanciación consistente de la variable actual.
+<img src="http://www.cs.us.es/~fsancho/images/2016-09/180px-dead-ends-3.svg.png" align="right"> **Backjumping (BJ)**  es parecido a BT excepto que se comporta de una manera más inteligente cuando encuentra situaciones sin salida. En vez de retroceder a la variable anteriormente instanciada, BJ salta a la variable más profunda (más cerca de la variable actual) \(x_j\) que está en conflicto con la variable actual \(x_i\) donde \(j < i\) (una variable instanciada \(x_j\) está en conflicto con una variable \(x_i\) si la instanciación de \(x_j\) evita uno de los valores en \(x_i\), debido a la restricción entre ellas). Cambiar la instanciación de \(x_j\) puede hacer posible encontrar una instanciación consistente de la variable actual.
 
 Una variante, **conflict-directed Backjumping (CBJ)** tiene un comportamiento de salto hacia atrás más sofisticado que BJ, donde se almacena para cada variable un conjunto de conflictos mutuos que permite no repetir conflictos existentes a la vez que saltar a variables anteriores como hace BJ.
 
@@ -202,17 +205,17 @@ Los algoritmos look-back tratan de reforzar el comportamiento de BT mediante un 
 
 El pseudo código de Forward Checking podría ser el siguiente:
 
-1.  Seleccionar \\(x\_i\\).
-2.  Instanciar \\((x\_i , a\_i) : a\_i \\in D\_i\\).
-3.  Razonar hacia adelante (check-forward): Eliminar de los dominios de las variables aún no instanciadas con un valor aquellos valores inconsistentes con respecto a la instanciación \\((x\_i, a\_i)\\), de acuerdo al conjunto de restricciones.
+1.  Seleccionar \(x_i\).
+2.  Instanciar \((x_i , a_i) : a_i \in D_i\).
+3.  Razonar hacia adelante (check-forward): Eliminar de los dominios de las variables aún no instanciadas con un valor aquellos valores inconsistentes con respecto a la instanciación \((x_i, a_i)\), de acuerdo al conjunto de restricciones.
 4.  Si quedan valores posibles en los dominios de todas las variables por instanciar, entonces:
-    *   Si \\(i < n\\), incrementar \\(i\\), e ir al paso 1.
-    *   Si \\(i = n\\), parar devolviendo la solución.
-5.  Si existe una variable por instanciar sin valores posibles en su dominio entonces retractar los efectos de la asignación \\((x\_i, a\_i)\\):
-    *   Si quedan valores por intentar en \\(D\_i\\), ir al paso 2.
+    *   Si \(i < n\), incrementar \(i\), e ir al paso 1.
+    *   Si \(i = n\), parar devolviendo la solución.
+5.  Si existe una variable por instanciar sin valores posibles en su dominio entonces retractar los efectos de la asignación \((x_i, a_i)\):
+    *   Si quedan valores por intentar en \(D_i\), ir al paso 2.
     *   Si no quedan valores:
-        *   Si \\(i > 1\\), decrementar \\(i\\) y volver al paso 2.
-        *   Si \\(i = 1\\), salir sin solución.
+        *   Si \(i > 1\), decrementar \(i\) y volver al paso 2.
+        *   Si \(i = 1\), salir sin solución.
 
 <img src="http://www.cs.us.es/~fsancho/images/2016-09/australia-fc4.gif">
 
@@ -234,7 +237,7 @@ La ordenación de variables puede ser estática y dinámica. Las heurísticas de
 
 Se han propuesto varias heurísticas de ordenación de variables estáticas. Estas heurísticas se basan en la información global que se deriva de la topología del grafo de restricciones original que representa el PSR:
 
-1.  **Minimum Width (MW)**: La anchura de la variable \\(x\\) es el número de variables que están antes de \\(x\\), de acuerdo a un orden dado, y que son adyacentes a \\(x\\). La anchura de un orden es la máxima anchura de todas las variables bajo ese orden. La anchura de un grafo de restricciones es la anchura mínima de todos los posibles ordenes. Después de calcular la anchura de un grafo de restricciones, las variables se ordenan desde la última hasta la primera en anchura decreciente. Esto significa que las variables que están al principio de la ordenación son las más restringidas y las variables que están al final de la ordenación son las menos restringidas. Asignando las variables más restringidas al principio, las situaciones sin salida se pueden identificar antes y además se reduce el número de vueltas atrás.
+1.  **Minimum Width (MW)**: La anchura de la variable \(x\) es el número de variables que están antes de \(x\), de acuerdo a un orden dado, y que son adyacentes a \(x\). La anchura de un orden es la máxima anchura de todas las variables bajo ese orden. La anchura de un grafo de restricciones es la anchura mínima de todos los posibles ordenes. Después de calcular la anchura de un grafo de restricciones, las variables se ordenan desde la última hasta la primera en anchura decreciente. Esto significa que las variables que están al principio de la ordenación son las más restringidas y las variables que están al final de la ordenación son las menos restringidas. Asignando las variables más restringidas al principio, las situaciones sin salida se pueden identificar antes y además se reduce el número de vueltas atrás.
 2.  **Maximun Degree (MD)**: ordena las variables en un orden decreciente de su grado en el grafo de restricciones. El grado de un nodo se define como el número de nodos que son adyacentes a él. Esta heurística también tiene como objetivo encontrar un orden de anchura mínima, aunque no lo garantiza.
 3.  **Maximun Cardinality (MC)**: selecciona la primera variable arbitrariamente y después en cada paso, selecciona la variable que es adyacente al conjunto más grande de las variables ya seleccionadas.
 
@@ -252,7 +255,7 @@ Algunos resultados experimentales prueban que todas las heurísticas de ordenaci
 
 Se ha realizado poco trabajo sobre heurísticas para la ordenación de valores. La idea básica que hay detrás de las heurísticas de ordenación de valores es seleccionar el valor de la variable actual que más probabilidad tenga de llevarnos a una solución. La mayoría de las heurísticas propuestas tratan de seleccionar el valor menos restringido de la variable actual, es decir, el valor que menos reduce el número de valores útiles para las futuras variables.
 
-Una de las heurísticas de ordenación de valores más conocidas es la **heurística min-conflicts**. Básicamente, esta heurística ordena los valores de acuerdo a los conflictos en los que éstos están involucrados con las variables no instanciadas. Esta heurística asocia a cada valor \\(a\\) de la variable actual, el número total de valores en los dominios de las futuras variables adyacentes que son incompatibles con \\(a\\). El valor seleccionado es el asociado a la suma más baja. Esta heurística se puede generalizar para PSR no binarios de forma directa.
+Una de las heurísticas de ordenación de valores más conocidas es la **heurística min-conflicts**. Básicamente, esta heurística ordena los valores de acuerdo a los conflictos en los que éstos están involucrados con las variables no instanciadas. Esta heurística asocia a cada valor \(a\) de la variable actual, el número total de valores en los dominios de las futuras variables adyacentes que son incompatibles con \(a\). El valor seleccionado es el asociado a la suma más baja. Esta heurística se puede generalizar para PSR no binarios de forma directa.
 
 ### Otras Técnicas: Métodos Estocásticos
 Además de las técnicas sistemáticas y completas, existen también aproximaciones no sistemáticas e incompletas incluyendo heurísticas (tales como hill climbing, búsqueda tabú, enfriamiento simulado, algoritmos genéticos o algoritmos de hormigas).
@@ -261,7 +264,7 @@ Estas técnicas pueden considerarse como adaptativas en el sentido de que comien
 
 ## Aplicaciones
 
-PSR se ha aplicado con mucho éxito a muchos problemas de áreas tan diversas como planificación, scheduling, generación de horarios, empaquetamiento, diseño y configuración, diagnosis, modelado, recuperación de información, CAD/CAM, criptografía, etc.
+PSR se ha aplicado con mucho éxito a muchos problemas de áreas tan diversas como planificación, generación de horarios, empaquetamiento, diseño y configuración, diagnosis, modelado, recuperación de información, CAD/CAM, criptografía, etc.
 
 Los problemas de asignación fueron quizás el primer tipo de aplicación industrial que fue resuelta con herramientas de restricciones. Entre los ejemplos típicos iniciales figuran la asignación de stands en los aeropuertos, donde los aviones deben aparcar en un stand disponible durante la estancia en el aeropuerto (aeropuerto Roissy en Paris) o la asignación de pasillos de salida y atracaderos en el aeropuerto internacional de Hong Kong.
 
@@ -269,11 +272,11 @@ Otra área de aplicación de restricciones típica es la asignación de personal
 
 <img src="http://www.cs.us.es/~fsancho/images/2016-09/examinationtimetablingusecase.png">
 
-Sin embargo, una de las áreas de aplicación más exitosa de los PSR con dominios finitos es en los problemas de secuenciación o Scheduling, donde de nuevo las restricciones expresan las limitaciones existentes en la vida real. El PSR se utiliza para la secuenciación de actividades industriales, forestales, militares, etc. En general, su uso se está incrementando cada vez más debido a las tendencias de las empresas de trabajar bajo demanda.
+Sin embargo, una de las áreas de aplicación más exitosa de los PSR con dominios finitos es en los problemas de secuenciación de tareas, donde de nuevo las restricciones expresan las limitaciones existentes en la vida real. El PSR se utiliza para la secuenciación de actividades industriales, forestales, militares, etc. En general, su uso se está incrementando cada vez más debido a las tendencias de las empresas de trabajar bajo demanda.
 
 ## Tendencias
 
-Las tendencias actuales en PSR pasan por desarrollar técnicas para resolver determinados problemas de satisfacción de restricciones basándose principalmente en la topología de estos. Entre todas podemos destacar las siguientes:
+Las tendencias actuales en PSR pasan por desarrollar técnicas para resolver determinados problemas de satisfacción de restricciones basándose principalmente en la topología de éstos. Entre todas podemos destacar las siguientes:
 
 1.  Técnicas para resolver problemas con muchas restricciones.
 2.  Técnicas para resolver problemas con muchas variables y restricciones, donde puede resultar conveniente la paralelización o distribución del problema de forma que éste se pueda dividir en un conjunto de subproblemas más fáciles de manejar.
