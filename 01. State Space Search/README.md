@@ -85,6 +85,10 @@ De forma más general, podemos dar la siguiente definición equivalente, que hac
                     (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]  reglas)
     end
 
+Ahora, para que construya el árbol simple (sin repeticiones) que se consigue a partir de, por ejemplo, S=5, con 3 niveles de profundidad, mostrando los estados en nodos y reglas en transiciones, y mostrando la información en el mundo:
+
+    BSS S 0 3 True True
+
 ## Instrucciones de uso de LayoutSpace
 
 Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax). El objetivo de esta librería de representación no es proporcionar un producto final, sino dar las herramientas básicas para poder centrarse en la generación de los espacios de estados, y no en su representación, por lo que podría ser necesario adaptarla a contextos con necesidades más específicas.
