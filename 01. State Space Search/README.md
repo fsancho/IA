@@ -47,7 +47,7 @@ En los modelos de ejemplo se pueden ver algunas definiciones válidas para disti
 ## Ejemplo
 
 Vamos a definir la estructura de datos y reports necesarios para resolver el juego: 
-> Dado dos números S y G, encontrar una forma de transofrmar S en G por medio de las operaciones permitidas (+3) (*7) (-2).
+> Dado dos números S y G, encontrar una forma de transofrmar S en G por medio de las operaciones permitidas sumar 3, multiplicar por 7, o restar 2.
 
 El contenido de los estados será simplemente un valor numérico.
 
