@@ -44,6 +44,35 @@ Para el correcto funcionamiento de esta librería en el modelo principal se debe
   
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
+## Ejemplo
+
+Vamos a definir la estructura de datos y reports necesarios para resolver el juego: Dado dos números S y G, encontrar una forma de transofrmar S en G por medio de las operaciones permitidas (+3) (*7) (-2).
+
+El contenido de los estados será simplemente un valor numérico.
+
+Las reglas aplicables las construiremos directamente por medio de la construcción de listas y reports anónimos:
+ [ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
+
+    to-report applicable-transitions ;
+      report (list
+               (list "*3" ([ ?1 -> ?1 * 3 ]))
+               (list "+7" ([ ?1 -> ?1 + 7 ]))
+               (list "-2" ([ ?1 -> ?1 - 2 ])))
+    end
+
+Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report:
+
+    to-report AI:children-states
+      let res []
+      foreach applicable-transitions [
+        regla -> 
+        let app last regla
+        let r (run-result app content)
+        if r > 0 [set res lput (list r regla) res]
+      ]
+      report res
+    end
+
 ## Instrucciones de uso de LayoutSpace
 
 Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax). El objetivo de esta librería de representación no es proporcionar un producto final, sino dar las herramientas básicas para poder centrarse en la generación de los espacios de estados, y no en su representación, por lo que podría ser necesario adaptarla a contextos con necesidades más específicas.
