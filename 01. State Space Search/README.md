@@ -54,7 +54,7 @@ Las reglas aplicables las construiremos directamente por medio de la construcci�
 
 [ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
 
-    to-report applicable-transitions ;
+    to-report reglas
       report (list
                (list "*3" ([ x -> x * 3 ]))
                (list "+7" ([ x -> x + 7 ]))
@@ -65,7 +65,7 @@ Una vez definidas las reglas, podemos definir el procedimiento que calcula los e
 
     to-report AI:children-states
       let res []
-      foreach applicable-transitions [
+      foreach reglas [
         regla -> 
         let app last regla
         let r (run-result app content)
@@ -82,8 +82,7 @@ De forma más general, podemos dar la siguiente definición equivalente, que hac
 
     to-report AI:children-states
       report filter [ ?1 -> valid? (first ?1) ]
-                    (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
-                         applicable-transitions)
+                    (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]  reglas)
     end
 
 ## Instrucciones de uso de LayoutSpace
