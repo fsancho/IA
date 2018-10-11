@@ -67,6 +67,7 @@ Por ejemplo, para llegar del 5 al 20, una solución posible sería la que pasa p
 
 * Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report:
 
+ 
     to-report AI:children-states
       let res []
       foreach reglas [
