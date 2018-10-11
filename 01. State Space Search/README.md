@@ -52,9 +52,9 @@ Vamos a definir la estructura de datos y reports necesarios para construir (una 
 
 Por ejemplo, para llegar del 5 al 20, una solución posible sería la que pasa por los siguientes estados, aplicando las reglas anteriores: 5 -(*3)-> 15 -(+7)-> 22 -(-2)-> 20.
 
-El contenido de los estados será simplemente un valor numérico.
+* El contenido de los estados será simplemente un valor numérico.
 
-Las reglas aplicables las construiremos directamente por medio de la construcción de listas y reports anónimos:
+* Las reglas aplicables las construiremos directamente por medio de la construcción de listas y reports anónimos:
 
 [ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
 
@@ -65,7 +65,7 @@ Las reglas aplicables las construiremos directamente por medio de la construcci�
                (list "-2" ([ x -> x - 2 ])))
     end
 
-Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report:
+* Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report:
 
     to-report AI:children-states
       let res []
