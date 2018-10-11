@@ -51,7 +51,8 @@ Vamos a definir la estructura de datos y reports necesarios para resolver el jue
 El contenido de los estados será simplemente un valor numérico.
 
 Las reglas aplicables las construiremos directamente por medio de la construcción de listas y reports anónimos:
- [ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
+
+[ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
 
     to-report applicable-transitions ;
       report (list
@@ -73,7 +74,7 @@ Una vez definidas las reglas, podemos definir el procedimiento que calcula los e
       report res
     end
     
-De forma más general, podemos dar la siguiente definición equivalente, que hace uso de un report auxiliar que indica cuándo es válido un estado junto con una aproximación funcional:
+De forma más general, podemos dar la siguiente definición equivalente, que hace uso de un report auxiliar que indica cuándo es válido un estado, y que además hace uso de una aproximación funcional:
 
     to-report valid? [x]
       report (x > 0)
