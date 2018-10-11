@@ -55,9 +55,9 @@ Las reglas aplicables las construiremos directamente por medio de la construcci�
 
     to-report applicable-transitions ;
       report (list
-               (list "*3" ([ ?1 -> ?1 * 3 ]))
-               (list "+7" ([ ?1 -> ?1 + 7 ]))
-               (list "-2" ([ ?1 -> ?1 - 2 ])))
+               (list "*3" ([ x -> x * 3 ]))
+               (list "+7" ([ x -> x + 7 ]))
+               (list "-2" ([ x -> x - 2 ])))
     end
 
 Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report:
@@ -71,6 +71,18 @@ Una vez definidas las reglas, podemos definir el procedimiento que calcula los e
         if r > 0 [set res lput (list r regla) res]
       ]
       report res
+    end
+    
+De forma más general, podemos dar la siguiente definición equivalente, que hace uso de un report auxiliar que indica cuándo es válido un estado junto con una aproximación funcional:
+
+    to-report valid? [x]
+      report (x > 0)
+    end
+
+    to-report AI:children-states
+      report filter [ ?1 -> valid? (first ?1) ]
+                    (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
+                         applicable-transitions)
     end
 
 ## Instrucciones de uso de LayoutSpace
