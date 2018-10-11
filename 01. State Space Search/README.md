@@ -85,7 +85,7 @@ De forma más general, podemos dar la siguiente definición equivalente, que hac
                     (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]  reglas)
     end
 
-Ahora, para que construya el árbol simple (sin repeticiones) que se consigue a partir de, por ejemplo, S=5, con 3 niveles de profundidad, mostrando los estados en nodos y reglas en transiciones, y mostrando la información en el mundo:
+Ahora, para que construya el árbol simple (sin repeticiones) que se consigue a partir de S, con 3 niveles de profundidad, mostrando los estados en nodos y reglas en transiciones, y mostrando la información en el mundo (observa que como estamos construyendo el espacio de estados, no realizando la búsqueda, no es necesario conocer el valor buscado final, G):
 
     BSS S 0 3 True True
 
