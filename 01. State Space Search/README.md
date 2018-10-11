@@ -50,7 +50,7 @@ Vamos a definir la estructura de datos y reports necesarios para construir (una 
 > Dado dos números, S y G, encontrar una forma de transofrmar S en G por medio de las operaciones permitidas:
 >   sumar 3, multiplicar por 7, o restar 2.
 
-Por ejemplo, para llegar del 5 al 20, una solución posible sería la que pasa por los siguientes estados, aplicando las reglas anteriores: 5 (*3) 15 (+7) 22 (-2) 20.
+Por ejemplo, para llegar del 5 al 20, una solución posible sería la que pasa por los siguientes estados, aplicando las reglas anteriores: 5 -(*3)-> 15 -(+7)-> 22 -(-2)-> 20.
 
 El contenido de los estados será simplemente un valor numérico.
 
