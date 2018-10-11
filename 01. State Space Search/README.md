@@ -65,8 +65,9 @@ Por ejemplo, para llegar del 5 al 20, una solución posible sería la que pasa p
                (list "-2" ([ x -> x - 2 ])))
     end
 
-* Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report:
+* Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report.
 
+Una posible definición sería:
  
     to-report AI:children-states
       let res []
