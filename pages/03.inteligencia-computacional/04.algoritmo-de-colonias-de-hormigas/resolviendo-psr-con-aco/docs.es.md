@@ -5,6 +5,7 @@ taxonomy:
 visible: true
 ---
 
+[TOC]
 Hemos visto cómo podemos usar sistemas descentralizados basados en poblaciones para resolver problemas que son inabordables por técnicas clásicas. Por ejemplo, [los sistemas de hormigas pueden resolver problemas de optimización](http://www.cs.us.es/~fsancho/?e=71) por medio de modelos, como al ACO, que hacen uso de la estigmergia (por medio del depósito de feromonas) para que la colonia encuentre soluciones cada vez más óptimas. En concreto, se suelen usar ACOs para aproximar soluciones óptimas definidas sobre grafos (como el famoso problema del viajante, o problemas de recorrido mínimo), pero gracias a la reducción de problemas de todo tipo a problemas de optimización en grafos, es relativamente fácil conseguir buenas aproximaciones a problemas que originalmente parecen alejados de este tratamiento.
 
 <img src="http://www.cs.us.es/~fsancho/images/2016-11/tsp1.png"/>
