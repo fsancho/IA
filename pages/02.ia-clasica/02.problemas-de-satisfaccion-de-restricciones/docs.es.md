@@ -57,10 +57,6 @@ Como intentar dar una formalización completa de este proceso puede ser un poco 
 !! \(c_3 + s + m = 10m + o\)
 !! Esta nueva representación presenta la ventaja de que las restricciones más pequeñas pueden comprobarse durante la búsqueda de una forma más sencilla y local, permitiendo podar más inconsistencias y consecuentemente reduciendo el tamaño del espacio de búsqueda efectivo.
 
-
-
-
-
 ## Conceptos PSR
 Vamos a presentar más formalmente los conceptos y objetivos básicos que son necesarios en los problemas de satisfacción de restricciones y que utilizaremos a lo largo de esta entrada.
 
@@ -100,20 +96,6 @@ Una restricción puede definirse extensionalmente mediante un conjunto de tuplas
 !! \( (1,2,1,2), (1,2,2,1),(2,1,1,2), (2,1,2,1), (2,2,2,2)\}\),
 !! o mediante el conjunto de tuplas no permitidas:
 !! \(\{(1,2,1,1), (2,1,1,1), (2,2,1,1), (2,2,1,2), (2,2,2,1)\}\).
-
-
-## Consistencia en un PSR
-Al igual que ocurre con los algoritmos de búsqueda generales, una forma común de crear algoritmos de búsqueda sistemática para la resolución de PSR tienen como base la búsqueda basada en **backtracking**. Sin embargo, esta búsqueda sufre con frecuencia una explosión combinatoria en el espacio de búsqueda, y por lo tanto no es por sí solo un método suficientemente eficiente para resolver este tipo de problemas.
-
-Una de las principales dificultades con las que nos encontramos en los algoritmos de búsqueda es la aparición de inconsistencias locales que van apareciendo continuamente. Las inconsistencias locales son valores individuales, o una combinación de valores de las variables, que no pueden participar en la solución porque no satisfacen alguna propiedad de consistencia.
-
-Las restricciones explícitas en un PSR, que generalmente coinciden con las que se conocen explícitamente del problema a resolver, se generan cuando se combinan restricciones implícitas que pueden causar inconsistencias locales. Si un algoritmo de búsqueda no almacena las restricciones implícitas, repetidamente redescubrirá la inconsistencia local causada por ellas y malgastará esfuerzo de búsqueda tratando repetidamente de intentar instanciaciones que ya han sido probadas y que no llevan a una solución del problema.
-
-!! **Ejemplo.** Tenemos un problema con tres variables \(x,y,z\), con los dominios respectivos \(\{0,1\}\), \(\{2,3\}\) y \(\{1,2\}\). Hay dos restricciones en el problema: \(y < z\) y \(x \neq y\). Si asumimos que la búsqueda mediante backtracking trata de instanciar las variables en el orden \(x,y,z\) entonces probará todas las posibles \(2^3\) combinaciones de valores para las variables antes de descubrir que no existe solución alguna. Si miramos la restricción entre \(y\) y \(z\) podremos ver que no hay ninguna combinación de valores para las dos variables que satisfagan la restricción. Si el algoritmo pudiera identificar esta inconsistencia local antes, se evitaría un gran esfuerzo de búsqueda.
-
-En la literatura se han propuesto varias técnicas de consistencia local como formas de mejorar la eficiencia de los algoritmos de búsqueda. Tales técnicas borran valores inconsistentes de las variables o inducen restricciones implícitas que nos ayudan a podar el espacio de búsqueda. Estas técnicas de consistencia local se usan como etapas de preproceso donde se detectan y eliminan las inconsistencias locales antes de empezar la búsqueda o durante la misma con el fin de reducir el árbol de búsqueda.
-
-A veces es deseable una noción más fuerte que la consistencia local. Decimos que un etiquetado, construido mediante un algoritmo de consistencia, es globalmente consistente si contiene solamente aquellas combinaciones de valores que forman parte de, al menos, una solución.
 
 ## Aplicaciones
 PSR se ha aplicado con mucho éxito a muchos problemas de áreas tan diversas como planificación, generación de horarios, empaquetamiento, diseño y configuración, diagnosis, modelado, recuperación de información, CAD/CAM, criptografía, etc.
