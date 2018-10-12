@@ -109,7 +109,7 @@ Nada|No|No|Sí|Sí|No|No|No|No|No|No|No|No|No|No|No|No|
 
 Usando las columnas anteriores como vectores de entrenamiento, y un tamaño adecuado del mundo para que los vectores puedan distribuirse en él con comodidad, podemos obtener una clasificación 2D de los elementos a los que caracterizan (animales), dando relaciones de similaridad (clasificándose) automáticamente:
 
-<img src="http://www.cs.us.eshttp://www.cs.us.es/~fsancho/images/2016-05/som-hexaclassifierview.png"/>
+<img src="http://www.cs.us.es/~fsancho/images/2016-05/som-hexaclassifierview.png"/>
 
 Al igual que en el caso anterior, se normalizan las componentes de los vectores (ya están normalizados, convirtiendo No = 0, Sí = 1) y se generan pesos al azar con componentes aleatorias entre 0 y 1. En este caso, debido a que cada vector tiene 13 componentes, usamos sólo las 3 primeras para dar una ligera clasificación por colores, pero no reflejan la información adicional que hay en los pesos reales que se usan en el algoritmo.
 
@@ -117,7 +117,7 @@ Puede observarse que la clasificación tiene sentido, ya que agrupa de forma coh
 
 ## Preprocesado de Datos
 
-<img style="float:left;margin:0 10px 10px 0;" src="http://www.cs.us.eshttp://www.datapreparator.com/_Media/kddpicture-3.jpeg"/> Rara vez los conjuntos de datos sirven tal como nos los dan, ya que es habitual encontrar que vienen dados en escalas muy diferentes, con altos grados de variabilidad (y diferente para cada atributo almacenado), e incluso con distintos tipos de datos, donde algunos son numéricos y otros categóricos. Por eso, normalmente, y antes de realizar el entrenamiento, hay que realizar algún tipo de _preprocesamiento_ que tiene como objetivo conseguir que todas las variables tengan aproximadamente el mismo rango y la misma desviación estándar. Una de las formas para conseguir esto es el siguiente:
+<img style="float:left;margin:0 10px 10px 0;" src="http://www.datapreparator.com/_Media/kddpicture-3.jpeg"/> Rara vez los conjuntos de datos sirven tal como nos los dan, ya que es habitual encontrar que vienen dados en escalas muy diferentes, con altos grados de variabilidad (y diferente para cada atributo almacenado), e incluso con distintos tipos de datos, donde algunos son numéricos y otros categóricos. Por eso, normalmente, y antes de realizar el entrenamiento, hay que realizar algún tipo de _preprocesamiento_ que tiene como objetivo conseguir que todas las variables tengan aproximadamente el mismo rango y la misma desviación estándar. Una de las formas para conseguir esto es el siguiente:
 
 *   Convertir variables categóricas que tengan \(n\) posibles valores (categorías) en \(n\) variables distintas. Los valores de estas variables dependerán de cómo hayamos preprocesado el resto del fichero, pero normalmente se pondrá al valor máximo de la normalización en caso de que la variable corresponda a esa categoría y al valor mínimo en caso de que no.
 *   Normalizar las columnas numéricas restando la media y dividiento por la desviación estándar. Así todas las variables tendrán la mayor parte de sus valores entre -1 y 1.
