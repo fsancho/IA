@@ -28,7 +28,7 @@ A grandes rasgos, ya que no hay vector objetivo al que aproximarse, lo que se ha
 
 De forma más detallada, los pasos que se siguen para el proceso de entrenamiento son:
 
-1.  Cada nodo se inicializa con un peso (aleatorio). Normalmente, vectores en \(\[0,1\]^n\),
+1.  Cada nodo se inicializa con un peso (aleatorio). Normalmente, vectores en \([0,1]^n\),
     
 2.  Se selecciona al azar un vector del conjunto de entrenamiento.
     
