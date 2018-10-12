@@ -93,7 +93,7 @@ Por ejemplo, si la hormiga $k$ ha realizado el recorrido $T^k(t)$, de longitud t
 
 De esta forma, recorridos más largos tendrán menos ganancia de feromona en sus aristas, lo que disminuirá su probablidad relativa de ser seleccionadas en etapas posteriores.
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-07/4eaf1d4e-392a-11e1-bb76-001e670c2818.png"/>
+<img src="http://www.cs.us.es/~fsancho/images/2015-07/4eaf1d4e-392a-11e1-bb76-001e670c2818.png"/>
 
 Para que este método funcione correctamente es necesario además dejar que la feromona no permanezca indefinidamente, sino que su influencia decaiga en el tiempo, de manera que aquellas aristas que no vuelvan a ser visitados por las hormigas, y que por tanto no son reforzadas, tengan cada vez menos influencia en la heurística de decisión de cada paso.Esta disminución en el tiempo de la cantidad de feromona refleja un hecho que ocurre en la realidad, y es que la feromona usada en este tipo de procesos se evapora con una cierta tasa en cuanto es depositada, de forma que es útil únicamente si hay refuerzo constante en cada tramo.
 
