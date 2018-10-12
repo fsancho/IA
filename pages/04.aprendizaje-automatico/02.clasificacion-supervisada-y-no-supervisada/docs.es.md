@@ -12,7 +12,7 @@ Aunque estas definiciones son generales y contienen entre las dos la prática to
 
 ## Algoritmo de Clasificación Supervisado: K Vecinos más cercanos
 
-<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.eshttp://upload.wikimedia.org/wikipedia/commons/e/e7/KnnClassification.svg"/> El algoritmo de los **k vecinos más cercanos** (**k-NN Nearest Neighbour**) es un sistema de clasificación supervisado basado en criterios de vecindad. Recordemos que los sistemas de **clasificación supervisados** son aquellos en los que, a partir de un conjunto de ejemplos clasificados (**conjunto de entrenamiento**), intentamos asignar una clasificación a un segundo conjunto de ejemplos. En particular, k-NN se basa en la idea de que los nuevos ejemplos serán clasificados a la clase a la cual pertenezca la mayor cantidad de vecinos más cercanos del conjunto de entrenamiento más cercano a él.
+<img style="float:right;margin:0 10px 10px 0;" src="http://upload.wikimedia.org/wikipedia/commons/e/e7/KnnClassification.svg"/> El algoritmo de los **k vecinos más cercanos** (**k-NN Nearest Neighbour**) es un sistema de clasificación supervisado basado en criterios de vecindad. Recordemos que los sistemas de **clasificación supervisados** son aquellos en los que, a partir de un conjunto de ejemplos clasificados (**conjunto de entrenamiento**), intentamos asignar una clasificación a un segundo conjunto de ejemplos. En particular, k-NN se basa en la idea de que los nuevos ejemplos serán clasificados a la clase a la cual pertenezca la mayor cantidad de vecinos más cercanos del conjunto de entrenamiento más cercano a él.
 
 El **algoritmo del vecino más cercano** explora todo el conocimiento almacenado en el conjunto de entrenamiento para determinar cuál será la clase a la que pertenece una nueva muestra, pero únicamente tiene en cuenta el vecino más próximo a ella, por lo que es lógico pensar que es posible que no se esté aprovechando de forma eficiente toda la información que se podría extraer del conjunto de entrenamiento.
 
@@ -20,7 +20,7 @@ Con el objetivo de resolver esta posible deficiencia surge la regla de los k vec
 
 En problemas prácticos donde se aplica esta regla de clasificación se acostumbra tomar un número k de vecinos impar para evitar posibles empates (aunque esta decisión solo resuelve el problema en clasificaciones binarias). En otras ocasiones, en caso de empate, se selecciona la clase que verifique que sus representantes tengan la menor distancia media al ejemplo que se está clasificando. En última instancia, si se produce un empate, siempre se puede decidir aleatoriamente entre las clases con mayor representación.
 
-<img src="http://www.cs.us.eshttp://perclass.com/doc/kb/images/16_knn_decisions.png"/>
+<img src="http://perclass.com/doc/kb/images/16_knn_decisions.png"/>
 
 Una posible variante de este algoritmo consiste en **ponderar la contribución de cada vecino** de acuerdo a la distancia entre él y el ejemplar a ser clasificado, dando mayor peso a los vecinos más cercanos. Por ejemplo podemos ponderar el voto de cada vecino de acuerdo al cuadrado inverso de sus distancias:  
 Si \(x\) es el ejemplo que queremos clasificar enntre las clases \(V\), y \(\{x_i\}\) es el conjunto de los \(k\) ejemplos de entrenamiento más cercanos, definimos
@@ -35,7 +35,7 @@ Esta mejora es muy efectiva en muchos problemas prácticos. Es robusto ante los 
 
 ## Algoritmo de Clasificación No Supervisado: K medias
 
-<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.eshttp://media.tumblr.com/tumblr_ljk6rsrrIX1qzd2hd.png"/> En contra de los algoritmos supervisados como el que hemos visto anteriormente, los sistemas de **clasificación no supervisados** son aquellos en los que no disponemos de una batería de ejemplos previamente clasificados, sino que únicamente a partir de las propiedades de los ejemplos intentamos dar una **agrupación** (**clasificación**, **clustering**) de los ejemplos según su similaridad.
+<img style="float:right;margin:0 10px 10px 0;" src="http://media.tumblr.com/tumblr_ljk6rsrrIX1qzd2hd.png"/> En contra de los algoritmos supervisados como el que hemos visto anteriormente, los sistemas de **clasificación no supervisados** son aquellos en los que no disponemos de una batería de ejemplos previamente clasificados, sino que únicamente a partir de las propiedades de los ejemplos intentamos dar una **agrupación** (**clasificación**, **clustering**) de los ejemplos según su similaridad.
 
 Como ejemplo de algoritmo de clasificación no supervisado vamos a explicar brevemente el que, posiblemente, sea el más sencillo y extendido de todos ellos, el **algoritmo de las K-medias**, que es aplicable en los casos en que tengamos una inmersión de nuestros ejemplos en un espacio geométrico.
 
