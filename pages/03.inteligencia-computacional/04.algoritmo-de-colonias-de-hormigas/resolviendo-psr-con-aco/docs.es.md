@@ -7,7 +7,7 @@ visible: true
 
 Hemos visto cómo podemos usar sistemas descentralizados basados en poblaciones para resolver problemas que son inabordables por técnicas clásicas. Por ejemplo, [los sistemas de hormigas pueden resolver problemas de optimización](http://www.cs.us.es/~fsancho/?e=71) por medio de modelos, como al ACO, que hacen uso de la estigmergia (por medio del depósito de feromonas) para que la colonia encuentre soluciones cada vez más óptimas. En concreto, se suelen usar ACOs para aproximar soluciones óptimas definidas sobre grafos (como el famoso problema del viajante, o problemas de recorrido mínimo), pero gracias a la reducción de problemas de todo tipo a problemas de optimización en grafos, es relativamente fácil conseguir buenas aproximaciones a problemas que originalmente parecen alejados de este tratamiento.
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2016-11/tsp1.png"/>
+<img src="http://www.cs.us.es/~fsancho/images/2016-11/tsp1.png"/>
 
 Como la Inteligencia Artificial tiene como objetivo la resolución inteligente y automática de problemas, estamos interesados en ver de qué forma podemos usar este tipo de metaheurísticas para resolver, no problemas individuales aislados, sino familias de problemas amplios.
 
@@ -23,7 +23,7 @@ Puedes encontrar una [extensa introducción a PSR aquí](http://www.cs.us.es/~fs
 2.  \(D =\langle D_1 ,...,D_n \rangle\) es un vector de dominios (\(D_i\) es el dominio que contiene todos los posibles valores que puede tomar la variable \(x_i\)).
 3.  \(C\) es un conjunto finito de restricciones. Cada restricción está definida sobre un conjunto de \(k\) variables por medio de un predicado que restringe los valores que las variables pueden tomar simultáneamente.
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2016-09/slide_4.jpg"/>
+<img  src="http://www.cs.us.es/~fsancho/images/2016-09/slide_4.jpg"/>
 
 **Definición.** Una **asignación de variables**, \((x,a)\) es un par variable-valor que representa la asignación del valor \(a\) a la variable \(x\). Una asignación de un conjunto de variables es una tupla de pares ordenados, \(((x_1 ,a_1 ),...,(x_i ,a_i ))\), donde cada par ordenado \((x_i,a_i)\) asigna el valor \(a_i\) a la variable \(x_i\). Una tupla se dice **localmente consistente** si satisface todas las restricciones formadas por variables de la tupla.
 
@@ -53,7 +53,7 @@ $E_2=(\bigcup_{i=1}^n D_i)\times X$
 
 Es decir, las aristas de $E_1$ conectan las variables con los posibles valores que pueden tomar (los elementos de su dominio), mientras que las aristas de $E_2$ conectan todos los valores de todos los dominios de nuevo con todas las variables del problema.
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2017-11/psr-aco.jpg"/>
+<img  src="http://www.cs.us.es/~fsancho/images/2017-11/psr-aco.jpg"/>
 
 **Nota:** Observa que en la figura anterior se han añadido nodos auxiliares (en color amarillo) para facilitar la representación de las aristas de $E_2$.
 
@@ -67,7 +67,7 @@ Hasta aquí conseguimos que los caminos se interpreten como asignaciones válida
 
 ## Estrategias de Selección
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2017-11/selection_1.jpg"/> Al proceso de seleccionar una arista de $E_2$ se le denomina "**Selección de variable**", ya que es el paso en el cual la asignación crece eligiendo qué variable será la siguiente a ser asignada. Aunque al final hay que elegir todas las variables, se puede comprobar que una heurística de selección de variables adecuada puede acelerar considerablemente la convergencia de las soluciones generadas por la colonia a una solución óptima, ya que generalmente una restricción solo puede ser comprobada cuando todas las variables que intervienen han sido asignadas.
+<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2017-11/selection_1.jpg"/> Al proceso de seleccionar una arista de $E_2$ se le denomina "**Selección de variable**", ya que es el paso en el cual la asignación crece eligiendo qué variable será la siguiente a ser asignada. Aunque al final hay que elegir todas las variables, se puede comprobar que una heurística de selección de variables adecuada puede acelerar considerablemente la convergencia de las soluciones generadas por la colonia a una solución óptima, ya que generalmente una restricción solo puede ser comprobada cuando todas las variables que intervienen han sido asignadas.
 
 En el caso general que nos ocupa no se sabe qué asignación de pesos y probabilidades puede ser la más adecuada, pero sí se sabe que una buena solución se puede conseguir si se elige un orden adecuado de preferencia de probabilidades, por ejemplo:
 
@@ -99,7 +99,7 @@ Es precisamente en este punto en el que la optimización distribuida que consigu
 
 ## Depósito de Feromona
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2017-11/hormigas.jpg"/> Una vez que una hormiga ha conseguido construir con éxito una asignación completa ha de depositar feromona en el camino conseguido para marcar la solución encontrada para las demás hormigas. Para ello, basta que deje una cantidad de feromona proporcional a la bondad de la asignación encontrada, lo que en nuestro caso podría significar, por ejemplo, inversamente proporcional al número de restricciones no satisfechas (también podemos medir cómo de satisfecha es cada restricción con un peso según el error cometido, y se considera el error global como la suma ponderada de los errores de cada restricción). Si la asignación representa una solución completa, entonces la cantidad de feromona será máxima.
+<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2017-11/hormigas.jpg"/> Una vez que una hormiga ha conseguido construir con éxito una asignación completa ha de depositar feromona en el camino conseguido para marcar la solución encontrada para las demás hormigas. Para ello, basta que deje una cantidad de feromona proporcional a la bondad de la asignación encontrada, lo que en nuestro caso podría significar, por ejemplo, inversamente proporcional al número de restricciones no satisfechas (también podemos medir cómo de satisfecha es cada restricción con un peso según el error cometido, y se considera el error global como la suma ponderada de los errores de cada restricción). Si la asignación representa una solución completa, entonces la cantidad de feromona será máxima.
 
 Usando la notación anterior, el incremento de feromona que realiza una hormiga tras haber acabado su recorrido (ya no le quedan más asignaciones que realizar) se calcula como inversamente proporcional al coste de la asignación conseguida:
 
