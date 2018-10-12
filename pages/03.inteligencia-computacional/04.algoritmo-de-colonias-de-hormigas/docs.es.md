@@ -110,7 +110,7 @@ El número total de hormigas que intervienen, que hemos denotado por $m$ en las 
 
 Aunque no hay resultados teóricos que indiquen qué cantidad de hormigas es la óptima, una de las propuestas experimentales que más fuerza tiene es la de tomar tantas hormigas como ciudades haya, es decir, $m=N$. Lo que supone un incremento lineal de los recursos.
 
-<img src="http://www.cs.us.es/~fsancho/images/2015-07/b6cb1be0-3924-11e1-bb76-001e670c2818.png"/ width=200px />
+<img src="http://www.cs.us.es/~fsancho/images/2015-07/b6cb1be0-3924-11e1-bb76-001e670c2818.png" width=200px />
 <img src="http://www.cs.us.es/~fsancho/images/2015-07/b7efe604-3924-11e1-bb76-001e670c2818.png" width=200px />
 <img src="http://www.cs.us.es/~fsancho/images/2015-07/b7624358-3924-11e1-bb76-001e670c2818.png" width=200px />
 
