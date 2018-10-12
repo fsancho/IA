@@ -6,6 +6,7 @@ visible: true
 ---
 
 [TOC]
+# Introducción
 Los primeros ejemplos de lo que hoy podríamos llamar algoritmos genéticos aparecieron a finales de los 50 y principios de los 60, programados en computadoras por biólogos evolutivos que buscaban explícitamente realizar modelos de aspectos de la evolución natural. A ninguno de ellos se le ocurrió que esta estrategia podría aplicarse de manera más general a los problemas artificiales, pero ese reconocimiento no tardaría en llegar: _La computación evolutiva estaba definitivamente en el aire en los días formativos de la computadora electrónica_. En 1962, investigadores como G.E.P. Box, G.J. Friedman, W.W. Bledsoe y H.J. Bremermann habían desarrollado independientemente algoritmos inspirados en la evolución para optimización de funciones y aprendizaje automático, pero sus trabajos generaron poca reacción. En 1965 surgió un desarrollo más exitoso, cuando Ingo Rechenberg, entonces de la Universidad Técnica de Berlín, introdujo una técnica que llamó estrategia evolutiva, aunque se parecía más a los algoritmos escaladores nombrados anteriormente que a los algoritmos genéticos. En esta técnica no había población ni cruzamiento; un padre mutaba para producir un descendiente, y se conservaba el mejor de los dos, convirtiéndose en el padre de la siguiente ronda de mutación. Versiones posteriores introdujeron la idea de población.
 
 El siguiente desarrollo importante en el campo vino en 1966, cuando L.J. Fogel, A.J. Owens y M.J. Walsh introdujeron una técnica que llamaron programación evolutiva. En este método, las soluciones candidatas para los problemas se representaban como máquinas de estado finito sencillas; al igual que en la estrategia evolutiva de Rechenberg, su algoritmo funcionaba mutando aleatoriamente una de estas máquinas simuladas y conservando la mejor de las dos. Sin embargo, lo que todavía faltaba en estas dos metodologías era el reconocimiento de la importancia del cruzamiento.
@@ -18,7 +19,7 @@ Al principio, estas aplicaciones eran principalmente teóricas. Sin embargo, al 
 
 <img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-11/paisaje-evolutivo-view.png"/> Aunque a continuación veremos los Algoritmos Genéticos como máximos representantes de estas ideas, hay otros muchos ejemplos en los que se pueden utilizar las ideas de selección por supervivencia para conseguir optimizaciones de problemas. Basándose en la idea de que los más aptos sobreviven mejor a las situaciones del entorno, es posible crear simulaciones en las que los individuos están obligados a sobrevivir en un ambiente hostil, y solo aquellos con las condiciones más adecuadas para ese entorno serán capaces de durar el tiempo suficiente para reproducirse (sea sexual o asexualmente) y dejar descendencia en la que sus caracteres positivos den más opciones a los nuevos individuos, que junto con la mutación, puede producir una paulatina adpatación al medio. Tras este proceso durante generaciones, los individuos que queden reflejarán en sus características una solución (cuasi) óptima al problema de la supervivencia en el entorno.
 
-### ¿Qué es un algoritmo genético?
+# ¿Qué es un algoritmo genético?
 
 Brevemente, un **algoritmo genético** (**AG**) es una técnica de resolución de problemas que imita a la evolución biológica como estrategia para resolver problemas, englobándose dentro de lo que antes hemos denominado técnicas basadas en poblaciones. Dado un problema específico a resolver, la entrada del AG es un conjunto de soluciones potenciales a ese problema, codificadas de alguna manera, y una métrica llamada **función de aptitud**, o **fitness**, que permite evaluar cuantitativamente a cada solución candidata. Estas candidatas pueden ser soluciones que ya se sabe que funcionan, con el objetivo de que el AG las mejore, pero se suelen generar aleatoriamente.
 
@@ -50,7 +51,7 @@ Otra estrategia, desarrollada principalmente por John Koza, de la Universidad de
 
 <img src="http://www.cs.us.es/~fsancho/images/2016-05/cross2.gif"/>
 
-### Métodos de selección
+## Métodos de selección
 
 Un algoritmo genético puede utilizar muchas técnicas diferentes para seleccionar a los individuos que deben copiarse hacia la siguiente generación. A continuación mostramos una breve explicación de los más habituales (debe tenerse en cuenta de que algunos son mutuamente excluyentes, mientras que otros se pueden combinar):
 
@@ -63,7 +64,7 @@ Un algoritmo genético puede utilizar muchas técnicas diferentes para seleccion
 *   **Selección generacional**: la descendencia de los individuos seleccionados en cada generación se convierte en toda la siguiente generación. No se conservan individuos entre las generaciones.
 *   **Selección jerárquica**: los individuos atraviesan múltiples rondas de selección en cada generación. Las evaluaciones de los primeros niveles son más rápidas y menos discriminatorias, mientras que los que sobreviven hasta niveles más altos son evaluados más rigurosamente. La ventaja de este método es que reduce el tiempo total de cálculo al utilizar una evaluación más rápida y menos selectiva para eliminar a la mayoría de los individuos que se muestran poco o nada prometedores, y sometiendo a una evaluación de aptitud más rigurosa y computacionalmente más costosa sólo a los que sobreviven a esta prueba inicial.
 
-### Métodos de cambio
+## Métodos de cambio
 
 Una vez que la selección ha elegido a los individuos aptos, éstos deben ser alterados aleatoriamente con la esperanza de mejorar su aptitud para la siguiente generación. Existen dos estrategias básicas para realizar esta tarea:
 
