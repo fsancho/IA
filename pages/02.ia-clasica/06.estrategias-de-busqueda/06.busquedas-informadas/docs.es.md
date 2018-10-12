@@ -49,7 +49,6 @@ Esta estrategia se traduce en el **algoritmo voraz** (**greedy best first**), cu
 Aunque explorar antes los nodos vecinos más cercanos puede ayudar a encontrar una solución antes, es fácil dar ejemplos en los que no se garantice que la solución encontrada sea óptima.
 
 ## El algoritmo A estrella
-
 Dado que nuestro objetivo no es solo llegar lo mas rápidamente a la solución, sino encontrar la de menor coste tendremos que tener en cuenta el coste de todo el camino y no solo el camino recorrido o el camino por recorrer.
 
 <img src="http://www.cs.us.es/~fsancho/images/2015-07/c685bc9e-178f-11e2-bb76-001e670c2818.jpg"/>
@@ -58,8 +57,9 @@ Para poder introducir el siguiente algoritmo y establecer sus propiedades es nec
 
 *   El **coste de una arista** entre dos nodos \(n_i\) y \(n_j\) es el coste del operador que nos permite pasar de un nodo al otro, y lo denotaremos como \(c(n_i,n_j)\). Este coste siempre será positivo.
 *   El **coste de un camino** entre dos nodos \(n_i\) y \(n_j\) es la suma de los costes de todos los arcos que llevan desde un nodo al otro y lo denotaremos como: 
-<p style="center">$C(n_i,n_j) =\sum_{x=i}^{j-1}  c(n_x,n_{x+1})$</p>
-*   El **coste del camino mínimo** entre dos nodos \(n_i\) y \(n_j\) (el del camino de menor coste de aquellos que llevan desde un nodo al otro) se denotará por:$ K(n_i,n_j) = min_{k} C_k(n_i,n_j)$
+$C(n_i,n_j) =\sum_{x=i}^{j-1}  c(n_x,n_{x+1})$
+*   El **coste del camino mínimo** entre dos nodos \(n_i\) y \(n_j\) (el del camino de menor coste de aquellos que llevan desde un nodo al otro) se denotará por:
+$ K(n_i,n_j) = min_{k} C_k(n_i,n_j)$
 *   Si \(n_j\) es un nodo terminal, para cada nodo \(n_i\) notaremos \(h^∗(n_i) = K(n_i,n_j)\), es decir, el coste del camino mínimo desde ese estado a un estado solución.
 *   Si \(n_i\) es un nodo inicial, para cada nodo \(n_j\) notaremos \(g^∗(n_j) = K(n_i,n_j)\), es decir, el coste del camino mínimo desde un estado inicial a ese estado.
 
@@ -117,6 +117,8 @@ Este resultado nos da una cota para posibles actuaciones: Si no podemos encontra
     *   Si su coste es menor, reabrimos el nodo insertándolo en la estructura de nodos abiertos con el nuevo coste, no hacemos nada con sus sucesores, ya que se reabrirán si hace falta.
     *   Si su coste es mayor o igual, nos olvidamos del nodo.
 
+
+
 ## ¿Cuándo podemos encontrar el óptimo?
 
 Hasta ahora no hemos hablado de cómo garantizar la optimalidad de la solución. Hemos visto que en el caso degenerado (\(h=0\)) tenemos una búsqueda en anchura guiada por el coste del camino explorado, eso nos debería garantizar el óptimo en este caso, aunque a costa de un mayor tiempo de búsqueda. Pero como hemos comentado, la función \(h\) nos permite introducir un comportamiento de búsqueda en profundidad, donde sabemos que no se garantiza el óptimo, pero a cambio podemos realizar la búsqueda en menor tiempo, porque podemos evitar explorar ciertos caminos.
@@ -134,7 +136,6 @@ Esto quiere decir que la función heurística ha de ser un **estimador optimista
 Para una discusión sobre técnicas para construir heurísticos admisibles se puede consultar el capítulo 4, sección 4.2, del libro “Inteligencia Artificial: Un enfoque moderno” de S. Russell y P. Norvig.
 
 ### Consistencia
-
 La **consistencia** se puede ver como una extensión de la admisibilidad. A partir de la admisibilidad se deduce que si tenemos el coste \(h^*(n_i)\) y el coste \(h^*(n_j)\) y el coste óptimo para ir de \(n_i\) a \(n_j\), o sea \(K(n_i,n_j)\), se ha de cumplir la desigualdad triangular:
 
 $h^*(n_i) ≤ h^*(n_j) + K(n_i,n_j)$
@@ -148,6 +149,10 @@ Es decir, que la diferencia de las estimaciones sea menor o igual que la distanc
 Si \(h\) es consistente además se cumple que el valor de \(g(n)\) para cualquier nodo es \(g^*(n)\), por lo tanto, una vez hemos llegado a un nodo sabemos que hemos llegado a él por el camino óptimo desde el nodo inicial. Si esto es así, no es posible que encontrar el mismo nodo por un camino alternativo con un coste menor y esto hace que el tratamiento de nodos cerrados duplicados sea innecesario, lo que ahorra tener que almacenarlos.
 
 Suele ser un resultado habitual que las funciones heurísticas admisibles sean consistentes y, de hecho, hay que esforzarse bastante para conseguir que no sea así.
+
+
+
+
 
 ### Heurístico más informado
 
