@@ -21,7 +21,7 @@ visible: true
 
 ## Diversas aproximaciones
 
-<img style="float:left;margin:0 10px 10px 0; width=300px" src="http://www.cs.us.es/~fsancho/images/2017-09/ia-imagen.png" /> Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posibles aproximaciones a la hora de entender cómo se puede desarrollar la IA, dependiendo de las combiaciones posibles entre si consideramos una IA basada en cómo piensan los humanos o si se considera una racionalidad ideal, y si consideramos una IA basada en el razonamiento o en el comportamiento:
+<img style="float:left;margin:0 10px 10px 0; width:300px" src="http://www.cs.us.es/~fsancho/images/2017-09/ia-imagen.png" /> Russell y Norvig proporcionan una perspectiva que describe esencialmente 4 posibles aproximaciones a la hora de entender cómo se puede desarrollar la IA, dependiendo de las combiaciones posibles entre si consideramos una IA basada en cómo piensan los humanos o si se considera una racionalidad ideal, y si consideramos una IA basada en el razonamiento o en el comportamiento:
 
  
 | |**Basado en humanos**|**Racionalidad Ideal**|
