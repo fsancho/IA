@@ -67,7 +67,7 @@ Hasta aquí conseguimos que los caminos se interpreten como asignaciones válida
 
 ## Estrategias de Selección
 
-<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2017-11/selection_1.jpg"/> Al proceso de seleccionar una arista de $E_2$ se le denomina "**Selección de variable**", ya que es el paso en el cual la asignación crece eligiendo qué variable será la siguiente a ser asignada. Aunque al final hay que elegir todas las variables, se puede comprobar que una heurística de selección de variables adecuada puede acelerar considerablemente la convergencia de las soluciones generadas por la colonia a una solución óptima, ya que generalmente una restricción solo puede ser comprobada cuando todas las variables que intervienen han sido asignadas.
+<img style="float:right;margin:0 10px 10px 0;width:200px" src="http://www.cs.us.es/~fsancho/images/2017-11/selection_1.jpg"/> Al proceso de seleccionar una arista de $E_2$ se le denomina "**Selección de variable**", ya que es el paso en el cual la asignación crece eligiendo qué variable será la siguiente a ser asignada. Aunque al final hay que elegir todas las variables, se puede comprobar que una heurística de selección de variables adecuada puede acelerar considerablemente la convergencia de las soluciones generadas por la colonia a una solución óptima, ya que generalmente una restricción solo puede ser comprobada cuando todas las variables que intervienen han sido asignadas.
 
 En el caso general que nos ocupa no se sabe qué asignación de pesos y probabilidades puede ser la más adecuada, pero sí se sabe que una buena solución se puede conseguir si se elige un orden adecuado de preferencia de probabilidades, por ejemplo:
 
