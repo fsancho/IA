@@ -91,7 +91,8 @@ En general, los SOM se pueden usar para representar datos complejos de una forma
 
 Supongamos ahora que tenemos la siguiente tabla de información acerca de las propiedades de un conjunto de animales:
 
-||Paloma|Gallina|Pato|Ganso|Buho|Halcón|Águila|Zorro|Perro|Lobo|Gato|Tigre|León|Caballo|Cebra|Vaca|
+|    |Paloma|Gallina|Pato|Ganso|Buho|Halcón|Águila|Zorro|Perro|Lobo|Gato|Tigre|León|Caballo|Cebra|Vaca|
+|---|-----------|---------|------|---------|-------|---------|---------|------|--------|-------|-------|------|------|-----------|--------|------|
 Pequeño|Sí|Sí|Sí|Sí|Sí|Sí|No|No|No|No|Sí|No|No|No|No|No|
 Medio|No|No|No|No|No|No|Sí|Sí|Sí|Sí|No|No|No|No|No|No|
 Grande|No|No|No|No|No|No|No|No|No|No|No|Sí|Sí|Sí|Sí|Sí|
