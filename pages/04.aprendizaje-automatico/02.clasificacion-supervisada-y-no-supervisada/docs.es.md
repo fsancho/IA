@@ -43,7 +43,7 @@ El algoritmo intenta encontrar una partición de nuestros ejemplos en K agrupaci
 
 $\sum_i \sum_j d(x_j^i,c_i)^2$
 
-<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2016-05/hqdefault.jpg"/> El algoritmo que se sigue es el siguiente:
+<img style="float:right;margin:0 10px 10px 0;width:300px" src="http://www.cs.us.es/~fsancho/images/2016-05/hqdefault.jpg"/> El algoritmo que se sigue es el siguiente:
 
 1.  Seleccionar al azar K puntos como centros de los grupos.
 2.  Asignar los ejemplos al centro más cercano.
