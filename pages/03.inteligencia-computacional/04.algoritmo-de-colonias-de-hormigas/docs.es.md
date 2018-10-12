@@ -85,7 +85,7 @@ Donde $\alpha$ y $\beta$ son dos parámetros ajustables que controlan el peso re
 
 Por ello, parece que puede ser interesante una estrategia intermedia que mezcle ambas posibilidades, algo que se ha comprobado experimentalmente yque da sentido al hecho de haber formado las probabilidades anteriores como una combinación de ambas técnicas.
 
-<img style="float:center;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2016-11/antsystem-interface.png"/>
+<img src="http://www.cs.us.es/~fsancho/images/2016-11/antsystem-interface.png"/>
 
 Con el fin de mejorar los recorridos más prometedores para el problema, tras completar un recorrido cada hormiga deposita una cantidad de feromona, $\Delta\tau_{ij}^k(t)$, en cada una de las aristas por las que ha pasado. Esta cantidad dependerá de lo bueno que hay sido ese recorrido en comparación con el del resto de las hormigas.
 
