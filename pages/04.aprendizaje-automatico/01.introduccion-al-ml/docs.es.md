@@ -15,7 +15,7 @@ En cualquier caso, como el tema del que estamos hablando está relacionado con e
 
 Una definición relativamente general de **aprendizaje** dentro del contexto humano podría ser la siguiente: _proceso a través del cual se adquieren o modifican habilidades, destrezas, conocimientos, conductas o valores como resultado del estudio, la experiencia, la instrucción, el razonamiento y la observación_. De esta definición es importante hacer notar que el aprendizaje debe producirse a partir de la experiencia con el entorno, no se considera aprendizaje toda aquella habilidad o conocimiento que sean innatos en el individuo o que se adquieran como resultado del crecimiento natural de éste. Siguiendo un esquema similar, en el AA vamos a considerar aprendizaje a aquello que la máquina pueda **aprender a partir de la experiencia**, no a partir del reconocimiento de patrones programados a priori. Por tanto, una tarea central de cómo aplicar esta definición al contexto de la computación va a consistir en alimentar la experiencia de la máquina por medio de objetos con los que entrenarse (**ejemplos**) para, posteriormente, aplicar los patrones que haya reconocido sobre otros objetos distintos (en un sistema de recomendación de productos, un ejemplo sería un par particular cliente/producto, junto con la información acerca de la valoración que aquel haya hecho de éste)..
 
-<img src="http://www.cs.us.eshttp://blog.adnanmasood.com/wp-content/uploads/2012/04/ml-wordle-1024x546.jpg"/>
+<img src="http://blog.adnanmasood.com/wp-content/uploads/2012/04/ml-wordle-1024x546.jpg"/>
 
 Hay un gran número de problemas que caen dentro de lo que llamamos **aprendizaje inductivo**. La principal diferencia entre ellos estriba en el tipo de objetos que intentan predecir. Algunas clases habituales son:
 
@@ -23,7 +23,7 @@ Hay un gran número de problemas que caen dentro de lo que llamamos **aprendizaj
 *   **Clasificación** (binaria o multiclase): Intentan predecir la clasificación de objetos sobre un conjunto de clases prefijadas. Por ejemplo, clasificar si una determinada noticia es de deportes, entretenimiento, política, etc. Si solo se permiten 2 posibles clases, entonces se llama **clasificación binaria**; si se permiten más de 2 clases, estamos hablando de **clasificación multiclase**.
 *   **Ranking**: Intentar predecir el orden óptimo de un conjunto de objetos según un orden de relevancia predefinido. Por ejemplo, el orden en que un buscador devuelve recursos de internet como respuesta a una búsqueda de un usuario.
 
-<img src="http://www.cs.us.eshttp://mlpy.sourceforge.net/images/screenshots.jpg"/>
+<img src="http://mlpy.sourceforge.net/images/screenshots.jpg"/>
 
 Normalmente, cuando se aborda un nuevo problema de AA lo primero que se hace es emarcarlo dentro de alguna de las clases anteriores, ya que dependiendo de cómo se clasifique será la forma en que podemos medir el error cometido entre la predicción y la realidad. En consecuencia, el problema de medir cómo de acertado es el aprendizaje obtenido deberá ser tratado para cada caso particular de metodología aplicada, aunque en general podemos adelantar que necesitaremos "embeber" la representación del problema en un espacio en el que tengamos definida una medida.
 
