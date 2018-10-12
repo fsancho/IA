@@ -44,6 +44,57 @@ Para el correcto funcionamiento de esta librería en el modelo principal se debe
   
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
+## Ejemplo
+
+Vamos a definir la estructura de datos y reports necesarios para construir (una parte de) el espacio de estados del siguiente juego: 
+> Dado dos números, S y G, encontrar una forma de transofrmar S en G por medio de las operaciones permitidas:
+>   sumar 3, multiplicar por 7, o restar 2.
+
+Por ejemplo, para llegar del 5 al 20, una solución posible sería la que pasa por los siguientes estados, aplicando las reglas anteriores: 5 -(*3)-> 15 -(+7)-> 22 -(-2)-> 20.
+
+* El contenido de los estados será simplemente un valor numérico.
+
+* Las reglas aplicables las construiremos directamente por medio de la construcción de listas y reports anónimos:
+
+[ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
+
+    to-report reglas
+      report (list
+               (list "*3" ([ x -> x * 3 ]))
+               (list "+7" ([ x -> x + 7 ]))
+               (list "-2" ([ x -> x - 2 ])))
+    end
+
+* Una vez definidas las reglas, podemos definir el procedimiento que calcula los estados siguientes por medio del siguiente report.
+
+Una posible definición sería:
+ 
+    to-report AI:children-states
+      let res []
+      foreach reglas [
+        regla -> 
+        let app last regla
+        let r (run-result app content)
+        if r > 0 [set res lput (list r regla) res]
+      ]
+      report res
+    end
+    
+De forma más general, podemos dar la siguiente definición equivalente, que hace uso de un report auxiliar que indica cuándo es válido un estado, y que además hace uso de una aproximación funcional:
+
+    to-report valid? [x]
+      report (x > 0)
+    end
+
+    to-report AI:children-states
+      report filter [ ?1 -> valid? (first ?1) ]
+                    (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]  reglas)
+    end
+
+Ahora, para que construya el árbol simple (sin repeticiones) que se consigue a partir de S, con 3 niveles de profundidad, mostrando los estados en nodos y reglas en transiciones, y mostrando la información en el mundo (observa que como estamos construyendo el espacio de estados, no realizando la búsqueda, no es necesario conocer el valor buscado final, G):
+
+    BSS S 0 3 True True
+
 ## Instrucciones de uso de LayoutSpace
 
 Esta librería no se usa únicamente en este tipo de ejercicios, sino que se puede utilizar para la representación de cualquier espacio de estados (por lo que será también útil en las búsquedas no informadas, informadas, locales y Minimax). El objetivo de esta librería de representación no es proporcionar un producto final, sino dar las herramientas básicas para poder centrarse en la generación de los espacios de estados, y no en su representación, por lo que podría ser necesario adaptarla a contextos con necesidades más específicas.
