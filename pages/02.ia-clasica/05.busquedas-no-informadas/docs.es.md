@@ -32,7 +32,7 @@ Respecto al tratamiento de nodos repetidos, se comporta bien. Si el nodo genera
 
 Éstas son las buenas noticias... la mala noticia es que en términos de **tiempo**, lo que tarda es:
 
-$$1+b+b^2 + ... + b^d = \sum_{i=0}^d b^i =\frac{b^{d+1}-1}{b-1}= O(b^d)$$ 
+$1+b+b^2 + ... + b^d = \sum_{i=0}^d b^i =\frac{b^{d+1}-1}{b-1}= O(b^d)$
 
  En términos de **espacio**, BFS almacena una lista con todos los nodos en todas las profundidades, y a distancia \(d\) esta lista es de longitud \(b^d\). Lo que supone una cantidad exponencial de nodos.
 
@@ -118,7 +118,7 @@ Aparentemente podría parecer que este algoritmo es más costoso que los anterio
 
 Respecto a la complejidad en tiempo, se comporta como DFS y BFS, del orden \(O(b^d)\), esto es, en el peor caso es exponencial en \(d\). ID visita los nodos a profundidad \(0\), \(d+1\) veces, los que están a profundidad \(1\), \(d\) veces, ..., y los que están a produndidad \(d\), \(1\) vez. Por tanto, el tiempo total requerido es:
 
-$$1+(1+b)+(1+ b+ b^2)+\dots+(1+ b+ b^2 + \dots + b^d)= O(1+b+b^2 + \dots + b^d)= O(b^d)$$
+$1+(1+b)+(1+ b+ b^2)+\dots+(1+ b+ b^2 + \dots + b^d)= O(1+b+b^2 + \dots + b^d)= O(b^d)$
 
 Igual que en el caso del algoritmo en profundidad, el tratar nodos repetidos acaba con todas las ventajas espaciales del algoritmo, por lo que es aconsejable no hacerlo. Como máximo se puede utilizar la estructura de nodos abiertos para detectar bucles en el camino actual.
 
