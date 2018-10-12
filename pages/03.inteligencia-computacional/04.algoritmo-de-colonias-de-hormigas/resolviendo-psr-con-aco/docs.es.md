@@ -23,7 +23,7 @@ Puedes encontrar una [extensa introducción a PSR aquí](http://www.cs.us.es/~fs
 2.  \(D =\langle D_1 ,...,D_n \rangle\) es un vector de dominios (\(D_i\) es el dominio que contiene todos los posibles valores que puede tomar la variable \(x_i\)).
 3.  \(C\) es un conjunto finito de restricciones. Cada restricción está definida sobre un conjunto de \(k\) variables por medio de un predicado que restringe los valores que las variables pueden tomar simultáneamente.
 
-<img  src="http://www.cs.us.es/~fsancho/images/2016-09/slide_4.jpg"/>
+<img  src="http://www.cs.us.es/~fsancho/images/2016-09/slide_4.jpg" width=500px/>
 
 **Definición.** Una **asignación de variables**, \((x,a)\) es un par variable-valor que representa la asignación del valor \(a\) a la variable \(x\). Una asignación de un conjunto de variables es una tupla de pares ordenados, \(((x_1 ,a_1 ),...,(x_i ,a_i ))\), donde cada par ordenado \((x_i,a_i)\) asigna el valor \(a_i\) a la variable \(x_i\). Una tupla se dice **localmente consistente** si satisface todas las restricciones formadas por variables de la tupla.
 
