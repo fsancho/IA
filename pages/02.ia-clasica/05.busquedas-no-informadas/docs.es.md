@@ -97,7 +97,7 @@ El algoritmo ID es **óptimo** y **completo**, garantiza encontrar una solució
     Procedimiento: Busqueda en profundidad iterativa (limite: entero)
     prof ← 1
     Actual ← Estado inicial
-    mientras no es_final?(Actual) y prof
+    mientras no es_final?(Actual) y prof<limite
       Est_abiertos.inicializar()
       Est_abiertos.insertar(Estado inicial)
       Actual ← Est_abiertos.primero()
@@ -111,7 +111,7 @@ El algoritmo ID es **óptimo** y **completo**, garantiza encontrar una solució
         fin
         Actual← Est_abiertos.primero()
       fin
-    prof ← prof+1
+      prof ← prof+1
     fin
 
 Aparentemente podría parecer que este algoritmo es más costoso que los anteriores al tener que repetir en cada iteración la búsqueda anterior, pero si pensamos en el número de nodos nuevos que recorremos a cada iteración, estos son siempre tantos como todos los que hemos recorrido en todas las iteraciones anteriores, por lo que las repeticiones suponen un factor constante respecto a los que recorreríamos haciendo solo la última iteración.
