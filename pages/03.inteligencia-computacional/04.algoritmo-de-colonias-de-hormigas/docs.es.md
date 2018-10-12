@@ -8,7 +8,7 @@ visible: true
 [TOC]
 ## El problema del Viajante
 
-** <img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2016-11/tsp.png"\> El problema del viajante** (**TSP**: **Travelling Salesman Problem**) es uno de los problemas más famosos y estudiados en el campo de la optimización combinatoria computacional, ya que a pesar de la aparente sencillez de su planteamiento es uno de los más complejos de resolver, haciéndolo comparable en complejidad a la de otros problemas aparentemente mucho más complejos que han retado a los matemáticos desde hace siglos.
+** <img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2016-11/tsp.png"/> El problema del viajante** (**TSP**: **Travelling Salesman Problem**) es uno de los problemas más famosos y estudiados en el campo de la optimización combinatoria computacional, ya que a pesar de la aparente sencillez de su planteamiento es uno de los más complejos de resolver, haciéndolo comparable en complejidad a la de otros problemas aparentemente mucho más complejos que han retado a los matemáticos desde hace siglos.
 
 Es un ejemplo que muestra la problemática que subyace tras algunos tipos de problemas matemáticos que a priori parecen tener una solución relativamente fácil, pero que en la práctica presentan un gran reto. La dificultad de este tipo de problemas no radica en que no se sepa cómo resolverlo, sino en la eficiencia de la solución que se conoce, ya que en la práctica la solución no es factible debido al tiempo computacional que se precisa para obtenerla.
 
