@@ -118,12 +118,12 @@ A grandes rasgos, el algoritmo que hemos seguido y que puede servir de base para
 
     Depositar una cantidad de feromona inicial en todas las aristas
     Crear m hormigas
-    Repetir:
+    Repetir
         Reiniciar hormigas (borrar memoria)
         Cada hormiga: Construir solución usando feromonas y coste de las aristas
         Cada hormiga: Depositar feromonas en aristas de la solución
         Evaporar feromona en las aristas
-    Devolver: la mejor solución encontrada   
+    Devolver la mejor solución encontrada   
 
 <img src="http://www.cs.us.es/~fsancho/images/2016-11/aco.png"/>
 
