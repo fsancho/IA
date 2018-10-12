@@ -160,7 +160,7 @@ Si un heurístico es mas informado que otro, al hacer uso de él en el algoritmo
 
 Esto podría hacer pensar que siempre hay que escoger el heurístico más informado, pero se ha de tener en cuenta que la función heurística también tiene un tiempo de cálculo que afecta al tiempo de cada iteración, y que suele ser más costoso cuanto más informado sea el heurístico. Podemos imaginar por ejemplo que, si tenemos un heurístico que necesita 10 iteraciones para llegar a la solución, pero tiene un coste de 100 unidades de tiempo por iteración, tardará más en llegar a la solución que otro heurístico que necesite 100 iteraciones pero que solo necesite una unidad de tiempo por iteración. Lo que lleva a buscar un equilibrio entre el coste del cálculo de la función heurística y el número de expansiones que ahorramos al utilizarla. En este sentido, es posible que una función heurística peor acabe dando mejor resultado.
 
-## Variante con menos memoria: El algoritmo \(IDA^\*\)
+## Variante con menos memoria: El algoritmo IDA estrella
 
 Como hemos visto, el algoritmo \(A^*\) tiene limitaciones de espacio por poder acabar degenerando en una búsqueda en anchura si la función heurística no es demasiado buena. Además, al igual que ocurría en la búsqueda ciega, si la solución del problema está a mucha profundidad o el tamaño del espacio de búsqueda es muy grande, podemos encontrarnos con necesidades de espacio prohibitivas. Esto lleva a buscar algoritmos alternativos que tengan menores necesidades de espacio.
 
