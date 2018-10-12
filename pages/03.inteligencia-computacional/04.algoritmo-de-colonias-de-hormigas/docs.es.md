@@ -74,7 +74,7 @@ Para cada hormiga, la transición de la ciudad $i$ a la ciudad $j$ en una iterac
 
 Una vez consideradas las condiciones anteriores, la **probabilidad de que la hormiga $k$ vaya de $C_i$ a $C_j$ en la construcción del recorrido actual**, viene dada por una expresión del tipo siguiente:
 
-$ p_{ij}^k(t)=\frac{[\tau_{ij}(t)]^\alpha [\nu_{ij}]^\beta}{\sum_{l\in J_i^k} [\tau_{il}(t)]^\alpha\[\nu_{il}]^\beta} \mbox{, si } j\in J_i^k$
+$ p_{ij}^k(t)=\frac{[\tau_{ij}(t)]^\alpha [\nu_{ij}]^\beta}{\sum_{l\in J_i^k} [\tau_{il}(t)]^\alpha [\nu_{il}]^\beta} \mbox{, si } j\in J_i^k$
 
 $ p_{ij}^k(t)=0 \mbox{, si } j\notin J_i^k$
 
