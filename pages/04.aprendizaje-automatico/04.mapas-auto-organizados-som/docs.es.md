@@ -18,7 +18,7 @@ Uno de los aspectos más interesantes de los SOM es que aprenden a clasificar **
 
 En general, el algoritmo SOM considera una arquitectura en 2 capas: por una parte tenemos una capa de **nodos de aprendizaje**, de la que nos importa la relación geométrica que hay entre ellos y que serán los que finalmente contendrán la información acerca de la representación resultante, junto con una capa de **nodos de entrada**, donde se representarán los vectores originales durante el proceso de entrenamiento. Además, todos los elementos de la primera capa están conectados con todos los elementos de la segunda capa. La siguiente figura muestra una posible arquitectura 2D para un entrenamiento SOM, la red de aprendizaje viene representada por los nodos rojos, y los vectores de entrenamiento vienen representados en verde. Como en muchos sistemas similares, la idea del algoritmo consistirá en encontrar los pesos adecuados de las conexiones entre ambas capaz para dar una "representación" adecuada de los datos de entrada en la estructura geométrica de los nodos de aprendizaje.
 
-<img src="http://www.cs.us.eshttp://www.ai-junkie.com/ann/som/images/Figure2.jpg"/>
+<img src="http://www.ai-junkie.com/ann/som/images/Figure2.jpg"/>
 
 En realidad, como no nos importa la representación geométrica ni topológica de los nodos de entrada, es común que solo se de una representación en la que aperecen los nodos de aprendizaje y los pesos asociados a cada uno de ellos se muestran como un vector de pesos (cada elemento de este vector es el peso de la conexión con el correspondiente nodo de entrada). De esta forma, si la capa de entrada tiene tamaño \(n\) (que es la dimensión del espacio original), cada nodo de aprendizaje tendrá un vector de pesos, \(W\), de dimensión \(n\). 
 
