@@ -82,11 +82,7 @@ En este algoritmo se van guardando un número N de las mejores soluciones, expa
       fin
     fin
 
-El algoritmo acaba cuando ninguno de los sucesores mejora a las soluciones guardadas, lo que quiere decir que todas las soluciones son un óptimo local. Como veremos más adelante, esta técnica de búsqueda tiene bastantes puntos en común con los **algoritmos genéticos**.
-
-[![Mona Lisa con 150 círculos usando Ascenso de la Colina en Algoritmos Genéticos](http://i2.ytimg.com/vi/rGt3iMAJVT8/default.jpg)](#entry-542635958 "Mona Lisa con 150 círculos usando Ascenso de la Colina en Algoritmos Genéticos")
-[![Daniel Boone con 300 círculos usando Ascenso de la Colina](http://i2.ytimg.com/vi/v49M7rhSLoU/default.jpg)](#entry-409168605 "Daniel Boone con 300 círculos usando Ascenso de la Colina")
-[![Gerónimo con círculos usando Ascenso de la Colina](http://i2.ytimg.com/vi/6rKJUTm3-LU/default.jpg)](#entry-1645859104 "Gerónimo con círculos usando Ascenso de la Colina")
+El algoritmo acaba cuando ninguno de los sucesores mejora a las soluciones guardadas, lo que quiere decir que todas las soluciones son un óptimo local.
 
 ! ###  Para saber más...
 ! [Transparencias de Javier Béjar Alonso](http://www.cs.upc.edu/~bejar/ia/transpas/teoria/2-BH3-Busqueda_local.pdf)
