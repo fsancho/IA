@@ -48,7 +48,7 @@ Esta estrategia se traduce en el **algoritmo voraz** (**greedy best first**), cu
 
 Aunque explorar antes los nodos vecinos más cercanos puede ayudar a encontrar una solución antes, es fácil dar ejemplos en los que no se garantice que la solución encontrada sea óptima.
 
-## El algoritmo \(A^\*\)
+## El algoritmo $A^*$
 
 Dado que nuestro objetivo no es solo llegar lo mas rápidamente a la solución, sino encontrar la de menor coste tendremos que tener en cuenta el coste de todo el camino y no solo el camino recorrido o el camino por recorrer.
 
