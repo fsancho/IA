@@ -5,6 +5,7 @@ taxonomy:
 visible: true
 ---
 
+[TOC]
 A continuación vamos a describir **fenómenos que sólo aparecen en sistemas compuestos por dos o más individuos**. En particular, estamos interesados en los **fenómenos colectivos que proporcionan una función adaptativa** que no está disponible en individuos que operan de manera aislada.
 
 <img style="float:left;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-07/6758c9fa-2cb2-11e1-bb76-001e670c2818.jpg"/> Consideremos, por ejemplo, un grupo de personas caminando por un centro comercial en una tarde de sábado o una _escuela de peces_ que se agregan en presencia de un depredador. En ambos casos el comportamiento de un individuo se ve afectado por el comportamiento de sus vecinos. Sin embargo, mientras que en el primer caso, las trayectorias no son fundamentales para un comportamiento colectivo adaptativo, en el segundo se produce un movimiento centrípeto que protege a los peces de los depredadores que atacan individuos más débiles en la periferia del grupo. Aunque el primer tipo de movimiento colectivo es digno de estudio para la mejora de las ventas o la prevención de accidentes, aquí nos centraremos en los fenómenos colectivos del segundo tipo, que proporcionan una funcionalidad adaptativa a los individuos participantes.
