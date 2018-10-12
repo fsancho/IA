@@ -19,8 +19,8 @@ La resolución de problemas con restricciones puede dividirse en dos ramas clara
 Aquí nos centraremos principalmente en los problemas de satisfacción de restricciones, que básicamente consisten en un conjunto finito de variables, un dominio de valores finito para cada variable y un conjunto de restricciones que acotan las posibles combinaciones de valores que estas variables pueden tomar en su dominio.
 
 !! **Ejemplo.** El **problema de coloración de mapas** es un problema clásico que se puede formular como un PSR. En este problema hay un conjunto de colores y un mapa dividido en regiones. El objetivo es colorear cada región del mapa de manera que regiones adyacentes tengan distintos colores. Una forma de modelar este problema dentro del PSR sería asociando una variable por cada región del mapa (el dominio de cada variable es el conjunto de posibles colores disponibles), y para cada par de regiones contiguas añadir una restricción sobre los valores de las variables correspondientes que impida asignarles el mismo valor (color). Como suele ser habitual, este mapa puede ser representado mediante un grafo donde los nodos representan las diversas regiones del mapa y cada par de regiones adyacentes están unidas por una arista. Veremos que esta representación en forma de grafo, que en este problema es natural, será usada como metodología general para dar una estructura a las restricciones de cualquier problema PSR.
+! <img src="http://www.cs.us.es/~fsancho/images/2016-09/screen-shot-2013-05-20-at-3.57.27-pm.png">
 
-<img src="http://www.cs.us.es/~fsancho/images/2016-09/screen-shot-2013-05-20-at-3.57.27-pm.png">
 
 
 
