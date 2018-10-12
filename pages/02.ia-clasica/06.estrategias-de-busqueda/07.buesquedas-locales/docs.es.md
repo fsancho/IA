@@ -43,18 +43,18 @@ De los algoritmos de ramificación y poda, unos de los más utilizados son los q
 
 *   **Ascenso de colinas por máxima pendiente** (**steepest ascent hill climbing**): expande todos los posibles descendientes de un nodo y elige el que suponga la máxima mejora respecto al nodo actual. Este algoritmo supone que la mejor solución la encontraremos a través del sucesor que mayor diferencia tenga respecto a la solución actual, siguiendo una política avariciosa. La utilización de memoria para mantener la búsqueda es nula, ya que solo tenemos en cuenta el nodo mejor. Se pueden hacer versiones que guarden caminos alternativos que permitan una vuelta atrás en el caso de que consideremos que la solución a la que hemos llegado no es suficientemente buena, pero en este caso han de imponerse ciertas restricciones de memoria para no tener un coste en espacio demasiado elevado.
 
-    Algoritmo: Ascenso de colinas por máxima pendiente
-    Actual ← Estado_inicial
-    seguir? ← verdad
-    mientras seguir? hacer
-      Hijos ← generar_sucesores(Actual)
-      Hijos ← ordenar_y_eliminar_peores(Hijos, Actual)
-      si no vacio?(Hijos) entonces
-        Actual ← Escoger_mejor(Hijos)
-      si no
-        seguir? ← falso
-      fin
-    fin
+     Algoritmo: Ascenso de colinas por máxima pendiente
+     Actual ← Estado_inicial
+     seguir? ← verdad
+     mientras seguir? hacer
+       Hijos ← generar_sucesores(Actual)
+       Hijos ← ordenar_y_eliminar_peores(Hijos, Actual)
+       si no vacio?(Hijos) entonces
+         Actual ← Escoger_mejor(Hijos)
+       si no
+         seguir? ← falso
+       fin
+     fin
 
 La estrategia que se usa en este algoritmo hace que sus problemas vengan principalmente derivados por las características de las funciones heurísticas que se utilizan. Por un lado, hemos de considerar que el algoritmo dejará de explorar cuando no encuentra ningún nodo accesible mejor que el actual, pero como no mantiene memoria del camino recorrido, le será imposible reconsiderar su decisión de modo que, si se ha equivocado, puede ocurrir que la solución a la que llegue no sea un óptimo global, sino solo un óptimo local. Esta posibilidad, muy común al atacar problemas reales, se puede presentar cuando la función heurística que se utilice tenga óptimos locales, de forma que, dependiendo de por donde se comience la búsqueda, se acaba encontrando un óptimo distinto.
 
