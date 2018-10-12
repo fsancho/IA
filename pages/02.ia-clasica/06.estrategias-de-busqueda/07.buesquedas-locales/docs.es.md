@@ -6,7 +6,8 @@ visible: true
 ---
 
 [TOC]
-<img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-07/052c3a86-25dc-11e2-bb76-001e670c2818.jpg"/> Hasta ahora hemos visto métodos de resolución de problemas en los que el objetivo era buscar un camino en un espacio de estados (ya sea porque estamos interesados en cómo alcanzar un estado final, o porque es el propio camino el que nos interesa), pero podemos encontrarnos que no siempre es factible esta aproximación, algo que puede ocurrir por dos razones principalmente:
+## Introducción
+<img  style="float:left;margin:0 10px 10px 0;width:300px" src="http://www.cs.us.es/~fsancho/images/2015-07/052c3a86-25dc-11e2-bb76-001e670c2818.jpg"/> Hasta ahora hemos visto métodos de resolución de problemas en los que el objetivo era buscar un camino en un espacio de estados (ya sea porque estamos interesados en cómo alcanzar un estado final, o porque es el propio camino el que nos interesa), pero podemos encontrarnos que no siempre es factible esta aproximación, algo que puede ocurrir por dos razones principalmente:
 
 *   porque este **planteamiento resulte demasiado artificial** y lejano al problema porque **no haya operadores de transición**, o porque no sea natural asociar una función de coste a dichos estados,
 *   o porque no hay posibilidad de hallar una solución óptima debido a que el **tamaño del espacio de búsqueda es demasiado grande**, y en este caso nos conformamos con una solución que podamos considerar **suficientemente** buena.
@@ -28,8 +29,7 @@ Debido a que puede no ser posible encontrar la mejor solución, saber cuándo he
 
 En cierta forma, es similar al proceso de encontrar óptimos (máximos o mínimos) de funciones... en este caso la función a optimizar es la función de calidad de la solución. Lo normal es que se calculen estos óptimos por medios analíticos aprovechando la expresión de la función y sus propiedades de continuidad y diferenciabilidad, pero en los casos que a menudo nos encontramos en problemas de Inteligencia Artificial las funciones con las que se trabaja no tienen una expresión analítica conocida, o no verifican las condiciones de diferenciabilidad o continuidad necesarias para aplicar loas algoritmos de búsqueda de óptimos en funciones. Por ello, tenemoss que explorar la función de calidad utilizando únicamente lo que podamos obtener de los vecinos de la solución que hemos encontrado... es decir, haciendo uso únicamente de **información local** durante el proceso.
 
-## Subiendo la colina
-
+## Ascenso de la colina
   
 <img style="float:left;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-07/cfd285b4-25a1-11e2-bb76-001e670c2818.png"/> Debido a que en muchos problemas el tamaño del espacio de búsqueda hace que sea inabordable de manera exhaustiva, se deben buscar estrategias diferentes a las utilizadas hasta ahora. En primer lugar, puede haber pocas posibilidades de guardar información para recuperar caminos alternativos dado el gran número de alternativas que se presentan, lo que obliga a imponer restricciones de espacio decidiendo qué nodos deben ser explorados y cuáles deben ser descartados sin volver a considerarlos.
 
