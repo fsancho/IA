@@ -53,7 +53,7 @@ $E_2=(\bigcup_{i=1}^n D_i)\times X$
 
 Es decir, las aristas de $E_1$ conectan las variables con los posibles valores que pueden tomar (los elementos de su dominio), mientras que las aristas de $E_2$ conectan todos los valores de todos los dominios de nuevo con todas las variables del problema.
 
-<img  src="http://www.cs.us.es/~fsancho/images/2017-11/psr-aco.jpg"/>
+<img  src="http://www.cs.us.es/~fsancho/images/2017-11/psr-aco.jpg" width=500px />
 
 **Nota:** Observa que en la figura anterior se han añadido nodos auxiliares (en color amarillo) para facilitar la representación de las aristas de $E_2$.
 
