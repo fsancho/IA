@@ -36,8 +36,7 @@ Este proceso de elegir adecuadamente la información que almacenamos en un estad
 ! Modelar computacional de un problema: proceso de transformar el problema original ("mundo real") en un espacio de estados que es manipulable por medios automáticos.
 
 ## Problema de búsqueda básico
-
-<img src="http://www.cs.us.es/~fsancho/images/2016-11/GraphStateSpace.png" align="left" width=300px> Si nos imaginamos este espacio de estados como un terreno por el cual nos podemos mover, donde partimos de un punto concreto del terreno (**estado inicial**) y podemos aplicar las reglas válidas para ir saltando de un estado a otro, podemos identificar la resolución del problema (llegar hasta un **estado final** válido) con el problema de **buscar un camino** adecuado entre un estado inicial y un estado final. Es por ello que muy habitualmente se habla del **Problema de Búsqueda en el Espacio de Estados**. Pasemos pues a dar una definición formal de esta idea: 
+<img style="float:left;margin:0 10px 10px 0;width:300px" src="http://www.cs.us.es/~fsancho/images/2016-11/GraphStateSpace.png" /> Si nos imaginamos este espacio de estados como un terreno por el cual nos podemos mover, donde partimos de un punto concreto del terreno (**estado inicial**) y podemos aplicar las reglas válidas para ir saltando de un estado a otro, podemos identificar la resolución del problema (llegar hasta un **estado final** válido) con el problema de **buscar un camino** adecuado entre un estado inicial y un estado final. Es por ello que muy habitualmente se habla del **Problema de Búsqueda en el Espacio de Estados**. Pasemos pues a dar una definición formal de esta idea: 
 
 Un **problema de búqueda básico** es una 4-tupla \((X,S,G,d)\), donde 
 
@@ -73,6 +72,7 @@ Una vez fijado este primer marco de representación, podemos dar los pasos gener
 !!! **Ejercicio**: Formaliza la siguiente versión del puzle "_Todos los dígitos del Rey_" explicitando una representación de sus estados y la función de transición entre ellos: Dado el conjunto de dígitos \(0123456789\), inserta los símbolos de los operadores aritméticos (\(\times + - /,\)) entre ellos para que la expresión resultante se evalúe como 100. Por ejemplo:
 !!  $0+1+2+3+4+5+6+7+(8\times 9) =100$
 !! ¿Puedes encontrar otros?
+
 
 
 
