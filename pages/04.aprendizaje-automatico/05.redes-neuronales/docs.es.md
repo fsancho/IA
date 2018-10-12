@@ -35,7 +35,7 @@ La siguiente figura muestra un ejemplo de modelo neuronal con \(n\) entradas, qu
 *   Una función de activación, \(f\).
 *   Una salida, \(Y\).
 
-<img src="http://www.cs.us.eshttp://www.um.es/LEQ/Atmosferas/Ch-VI-3/6-3-8.GIF"/>
+<img src="http://www.um.es/LEQ/Atmosferas/Ch-VI-3/6-3-8.GIF"/>
 
 Las entradas son el estímulo que la neurona artificial recibe del entorno que la rodea, y la salida es la respuesta a tal estímulo. La neurona puede adaptarse al medio circundante y aprender de él modificando el valor de sus pesos sinápticos, y por ello son conocidos como los **parámetros libres** del modelo, ya que pueden ser modificados y adaptados para realizar una tarea determinada.
 
@@ -45,7 +45,7 @@ $Y = f(\sum_{i=1}^n w_i x_i)$
 
 La función de activación se elige de acuerdo a la tarea realizada por la neurona. Entre las más comunes dentro del campo de las RNAs podemos destacar:
 
-<img src="http://www.cs.us.eshttp://jarroba.com/wp-content/uploads/2013/09/funciones-de-activaci%C3%B3n.png"/>
+<img src="http://jarroba.com/wp-content/uploads/2013/09/funciones-de-activaci%C3%B3n.png"/>
 
 ## Usando el Perceptron para clasificar clases en el plano
 
