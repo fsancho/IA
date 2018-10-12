@@ -57,7 +57,8 @@ Dado que nuestro objetivo no es solo llegar lo mas rápidamente a la solución, 
 Para poder introducir el siguiente algoritmo y establecer sus propiedades es necesario conocer las siguientes definiciones:
 
 *   El **coste de una arista** entre dos nodos \(n_i\) y \(n_j\) es el coste del operador que nos permite pasar de un nodo al otro, y lo denotaremos como \(c(n_i,n_j)\). Este coste siempre será positivo.
-*   El **coste de un camino** entre dos nodos \(n_i\) y \(n_j\) es la suma de los costes de todos los arcos que llevan desde un nodo al otro y lo denotaremos como: $ C(n_i,n_j) =\sum_{x=i}^{j-1}  c(n_x,n_{x+1})$
+*   El **coste de un camino** entre dos nodos \(n_i\) y \(n_j\) es la suma de los costes de todos los arcos que llevan desde un nodo al otro y lo denotaremos como: 
+<p style="center">$C(n_i,n_j) =\sum_{x=i}^{j-1}  c(n_x,n_{x+1})$</p>
 *   El **coste del camino mínimo** entre dos nodos \(n_i\) y \(n_j\) (el del camino de menor coste de aquellos que llevan desde un nodo al otro) se denotará por:$ K(n_i,n_j) = min_{k} C_k(n_i,n_j)$
 *   Si \(n_j\) es un nodo terminal, para cada nodo \(n_i\) notaremos \(h^∗(n_i) = K(n_i,n_j)\), es decir, el coste del camino mínimo desde ese estado a un estado solución.
 *   Si \(n_i\) es un nodo inicial, para cada nodo \(n_j\) notaremos \(g^∗(n_j) = K(n_i,n_j)\), es decir, el coste del camino mínimo desde un estado inicial a ese estado.
