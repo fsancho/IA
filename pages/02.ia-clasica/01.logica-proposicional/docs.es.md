@@ -69,17 +69,22 @@ Por ejemplo, la fórmula $p\vee \neg p$ es una tautología, mientras que la fór
 
 Además, **tenemos un método automático para saber si una fórmula es satisfactible**, **tautología** o **insatisfactible**, basta hacer la tabla de verdad de la fórmula y verificar si en el resultado hay algún $1$, si todos son $1$, o si todos son $0$ (respectivamente). El problema evidente es que es un proceso muy laborioso hacer la tabla de verdad de la fórmula cuando el número de variables que intervienen es alto (algo que suele ocurrir en los problemas del mundo real que son interesantes), ya que si tenemos $n$ variables en la fórmula, necesitaremos una tabla de verdad con $2^n$ casos distintos.
 
-! <img style="float:right;margin:0 10px 10px 0; width:200px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Clases_de_complejidad.svg/414px-Clases_de_complejidad.svg.png" /> Aunque esta no es la entrada adecuada para exponer este problema, es obligatorio decir aquí que el problema de saber si una fórmula es satisfactible (que se denomina **SAT**) cae dentro de los que se denominan problemas **NP**... esencialmente, aquellos problemas para los que se conoce solución, pero es tan mala desde el punto de vista de los recursos que necesitamos para resolverlos (en tiempo o en espacio) que son **intratables** desde un punto de vista práctico cuando el tamaño del problema (el tamaño de la fórmula) es grande. Es más, no solo es NP, sino que además es **NP-completo**, lo que significa que está entre los más complejos de los más complejos. Cuidado que no estamos diciendo que no tengan solución más sencilla, sino que ahora mismo no se conoce una solución sencilla, solo soluciones malas (la idea general es que no existen esas soluciones buenas para este tipo de problemas, aunque todavía no hemos sido capaces de probarlo). Por ello, las soluciones que veremos más adelante relacionadas con SAT conseguirán facilitar la solución en algunos casos, pero nunca serán suficientemente buenas en todos los casos como para considerarlas óptimas.
+! <img style="float:right;margin:0 10px 10px 0; width:300px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Clases_de_complejidad.svg/414px-Clases_de_complejidad.svg.png" /> Aunque esta no es la entrada adecuada para exponer este problema, es obligatorio decir aquí que el problema de saber si una fórmula es satisfactible (que se denomina **SAT**) cae dentro de los que se denominan problemas **NP**... esencialmente, aquellos problemas para los que se conoce solución, pero es tan mala desde el punto de vista de los recursos que necesitamos para resolverlos (en tiempo o en espacio) que son **intratables** desde un punto de vista práctico cuando el tamaño del problema (el tamaño de la fórmula) es grande. Es más, no solo es NP, sino que además es **NP-completo**, lo que significa que está entre los más complejos de los más complejos. Cuidado que no estamos diciendo que no tengan solución más sencilla, sino que ahora mismo no se conoce una solución sencilla, solo soluciones malas (la idea general es que no existen esas soluciones buenas para este tipo de problemas, aunque todavía no hemos sido capaces de probarlo). Por ello, las soluciones que veremos más adelante relacionadas con SAT conseguirán facilitar la solución en algunos casos, pero nunca serán suficientemente buenas en todos los casos como para considerarlas óptimas.
 
 Ahora ya podemos decir qué entendemos por **consecuencia lógica** que, como veremos, y la intuición dice, está intimamente relacionado con la idea de implicación:
 
 >Diremos que una fórmula, $F$, es **consecuencia lógica** de un conjunto de fórmulas, $U=\{F_1,\dots,F_n\}$, y lo  notaremos por $U\models F$, si se verifica que la fórmula $F\_1\wedge \dots \wedge F\_n \rightarrow F$ es una tautología.
 
-![](http://images.slideplayer.es/16/5213355/slides/slide_25.jpg)
-
+<img style="float:center;width:500px" src="http://images.slideplayer.es/16/5213355/slides/slide_25.jpg" />
 Como hemos dicho, la idea fundamental es la intuición de que la consecuencia lógica se relaciona, obviamente, con la implicación. Pero además, se puede probar (aunque no lo haremos) que _la definición anterior es equivalente a decir que el conjunto $\{F_1,\dots,F_n,\neg F\}$ es insatisfactible (una contradicción)_, que viene a reflejar el método habitual de probar que algo es consecuencia lógica por medio de la **reducción al absurdo** (si suponemos lo contrario, llegamos a una contradicción).
 
 Al reducir la consecuencia lógica a comprobar una tautología o una satisfactibilidad, los métodos que tengamos para estos problemas podrán ser aplicados directamente para poder resolver el problema de la inferencia. Por tanto, ya tenemos un método, el de las tablas de verdad, para resolverlo... pero es un método demasiado primitivo e ineficiente para lo que buscamos, así que en lo que sigue nos orientaremos a buscar algunos otros métodos más elegantes, y sobre todo que nos proporcionen un mayor control para adaptarnos a las características particulares de la fórmula.
+
+
+
+
+
+
 
 
 
@@ -110,8 +115,7 @@ Las leyes habituales que nos permiten transformar una fórmula cualquiera en una
 
 
 ## Un algoritmo sencillo para SAT: DPLL
-<img src="http://www.cs.us.es/~fsancho/images/2017-10/fredputm.jpg" align="left" width=300px/> DPLL es un algoritmo para decidir la satisfactibilidad de una fórmula (o conjunto de fórmulas) a partir de su forma clausal. Fue propuesto en 1960 por Davis y Putnam, y posteriormente refinado en 1962 por Davis, Logemann y Loveland (de ahí el nombre completo del algoritmo, DPLL). Este algoritmo es la base de la mayoría de los programas que resuelven el problema SAT y que se usan en entornos profesionales.
-
+<img style="float:left;margin:0 10px 10px 0; width:300px" src="http://www.cs.us.es/~fsancho/images/2017-10/fredputm.jpg" /> DPLL es un algoritmo para decidir la satisfactibilidad de una fórmula (o conjunto de fórmulas) a partir de su forma clausal. Fue propuesto en 1960 por Davis y Putnam, y posteriormente refinado en 1962 por Davis, Logemann y Loveland (de ahí el nombre completo del algoritmo, DPLL). Este algoritmo es la base de la mayoría de los programas que resuelven el problema SAT y que se usan en entornos profesionales.
 El algoritmo consta de dos partes bien diferenciadas que se van alternando en caso de necesidad:
 
 1.  **Propagación de unidades,** simplifica el conjunto de claúsulas sobre el que se trabaja. Se elige una claúsula unitaria $L$ y se aplican consecutivamente las dos reglas siguientes (y se repite mientras queden claúsulas unitarias):
@@ -128,6 +132,7 @@ Veamos un ejemplo de cómo aplicar este algoritmo:
 En el ejemplo anterior, la rama derecha proporciona un modelo ($p=0,\ q=0,\ r=1$), por lo que dice que la fórmula es satisfactible; mientras que las ramas izquierdas llegan a contradicción (ya que requiere que sean simultáneamente ciertas $r$ y $\neg r$) y no proporcionan modelos.
 
 En cierta forma, este algoritmo es como el método habitual para resolver un sudoku, si tenemos ya algunos números seguros, su conocimiento se propaga a través del sudoku y nos permite asegurar más posiciones, y si llegamos a un callejón sin salida lo más normal es hacer suposiciones acerca de alguna de las casillas, valorando cómo evoluciona el juego para cada uno de sus posibles valores.
+
 
 
 ## Algoritmo de Resolución
