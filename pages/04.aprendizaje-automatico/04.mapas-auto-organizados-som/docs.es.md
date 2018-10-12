@@ -51,7 +51,7 @@ $\lambda= \frac{Tiempo\_de\_Entrenamiento}{\ln r_0}$
 
 La siguiente figura muestra el efecto de ir reduciendo paulatinamente el radio del entorno, donde se marcan los nodos que se verían afectados si el nodo BMU es el nodo amarillo:
 
-<img src="http://www.cs.us.eshttp://www.ai-junkie.com/ann/som/images/Figure5.jpg"/>
+<img src="http://www.ai-junkie.com/ann/som/images/Figure5.jpg"/>
 
 Para aproximar los pesos (\(W\)) de los nodos del entorno al vector de entrenamiento (\(V\)) usamos la modificación que sugiere la fórmula siguiente:
 
@@ -79,11 +79,11 @@ Los SOM se usan habitualente para proporcionar ayudas visuales, ya que permiten 
 
 Según los diversos factores que se usan para medir la calidad de vida de los países, podemos usar SOM para representar las agrupaciones que forman los diversos países en una red 2D.
 
-<img src="http://www.cs.us.eshttp://www.ai-junkie.com/ann/som/images/povertymap.jpg"/>
+<img src="http://www.ai-junkie.com/ann/som/images/povertymap.jpg"/>
 
 Junto a la representacion anterior, una vez extraídos los colores, podemos volver a proyectar los países en un mapa estándar, de forma que visualmente podamos interpretar simultáneamente la información geográfica con la procedente de los datos anteriores:
 
-<img src="http://www.cs.us.eshttp://www.ai-junkie.com/ann/som/images/worldpovertymap.jpg"/>
+<img src="http://www.ai-junkie.com/ann/som/images/worldpovertymap.jpg"/>
 
 En general, los SOM se pueden usar para representar datos complejos de una forma muy visual, ya que las relaciones abstractas se destacan como relaciones de carcanía y por colores... desde relaciones semánticas hasta estructuras topológicas.
 
