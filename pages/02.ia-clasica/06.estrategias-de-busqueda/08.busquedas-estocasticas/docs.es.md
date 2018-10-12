@@ -40,12 +40,12 @@ El último elemento es la **estrategia de enfriamiento**. El algoritmo realiza 
     mientras T > 0 hacer
       // Paseo aleatorio por el espacio de soluciones
       para un numero prefijado de iteraciones hacer
-        Enuevo ← Genera\_sucesor\_al\_azar(Eactual)
+        Enuevo ← Genera_sucesor_al_azar(Eactual)
         ∆E ← f(Eactual) − f(Enuevo)
         si ∆E > 0 entonces
           Eactual ← Enuevo
         si no
-          con probabilidad e∆E/T: Eactual ← Enuevo
+          con probabilidad e^∆E/T: Eactual ← Enuevo
         fin
       fin
       Disminuir T
