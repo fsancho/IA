@@ -15,16 +15,11 @@ __includes [ "BSS.nls" "LayoutSpace.nls"]
 ; and "representation" is a string to identify the rule. We will use tasks in
 ; order to store the transition functions.
 
-to-report applicable-transitions
+to-report applicable-transitions ; [ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
   report (list
-           (list "*3" ([ ?1 -> ?1 * 3 ]))
-           (list "+7" ([ ?1 -> ?1 + 7 ]))
-           (list "-2" ([ ?1 -> ?1 - 2 ])))
-end
-
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report (x > 0)
+           (list "*3" ([ x -> x * 3 ]))
+           (list "+7" ([ x -> x + 7 ]))
+           (list "-2" ([ x -> x - 2 ])))
 end
 
 ; children-states is an agent report that returns the children for the current state.
@@ -33,11 +28,32 @@ end
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
+; First approach:
+
 to-report AI:children-states
+  let res []
+  foreach applicable-transitions [
+    regla ->
+    let app last regla
+    let r (run-result app content)
+    if r > 0 [set res lput (list r regla) res]
+  ]
+  report res
+end
+
+; Second approach:
+
+; valid? is a boolean report to say which states are valid
+to-report valid? [x]
+  report (x > 0)
+end
+
+to-report AI:children-states1
   report filter [ ?1 -> valid? (first ?1) ]
                 (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
                      applicable-transitions)
 end
+
 
 ;--------------------- State Explorer Print -----------------------------------------
 
@@ -114,7 +130,7 @@ INPUTBOX
 180
 70
 Initial_State
-0
+5
 1
 0
 String
