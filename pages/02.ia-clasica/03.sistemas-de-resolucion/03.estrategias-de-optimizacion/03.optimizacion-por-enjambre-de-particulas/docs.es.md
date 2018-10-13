@@ -32,7 +32,8 @@ La fuerza con que las partículas son empujadas en cada una de estas direcciones
 
 En el modelo que puedes encontrar en los [recursos del curso de IA](https://github.com/fsancho/IA), y solo a modo de ejemplo, se intenta optimizar una función que viene determinada por los valores sobre una malla. El **paisaje** se obtiene asignando aleatoriamente valores a cada uno de los puntos de la malla, para posteriormente aplicar un proceso de difusión que suaviza los valores obtenidos, lo que proporciona un espacio con numerosos mínimos locales (valles) y máximos locales (colinas), por lo que su optimización por medios más clásicos (como el ascenso de la colina) es dificultosa. Esta función ha sido creada así solo con fines ilustrativos, ya que habitualmente en aplicaciones reales del PSO la posición de las partículas pueden corresponderse con parámetros diversos del problema (por ejemplo, de predicción de un mercado de valores), y la función no tendrá las restricciones ni características que aquí se imponen (en el mismo ejemplo, podría evaluarse por medio de los datos históricos).
 
-[![Particle Swarm Optimization](http://i2.ytimg.com/vi/3LdgzUIwvXU/default.jpg)](#entry-256158369)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/JhgDMAm-imI" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/gkGa6WZpcQg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 El algoritmo que sigue PSO se esboza a grandes rasgos en el siguente código. Si quieres ver cómo funciona con más detalle, puedes mirar la ayuda y código de los modelos referenciados anteriormente:
 
