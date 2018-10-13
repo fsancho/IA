@@ -43,7 +43,7 @@ Veamos ahora algunos ejemplos de autoorganización que han inspirado modelos com
 
 ## Agregación
 
-<img style="float:right;margin:0 10px 10px 0;width:300px" src="http://www.cs.us.es/~fsancho/images/2015-07/968692a6-30b3-11e2-bb76-001e670c2818.jpg"/> La **agregación **es un ejemplo típico de la auto-organización que se puede explicar por retroalimentación positiva y negativa. Por ejemplo, en los bancos de pesca gran número de individuos nadan en formaciones cerradas que pueden cambiar rápidamente de dirección, dispersarse o reunirse. El movimiento coordinado, homogéneo y rápido del banco da la apariencia de un superorganismo único. Huth y Wissel (1992) propusieron un modelo simple para este proceso basado en la retroalimentación negativa y positiva. En su versión simplificada, un pez muestra cuatro reacciones de comportamiento que dependen de la posición y orientación de otros peces:
+<img style="float:right;margin:0 10px 10px 0;width:300px" src="http://www.cs.us.es/~fsancho/images/2015-07/968692a6-30b3-11e2-bb76-001e670c2818.jpg"/> La **agregación** es un ejemplo típico de la auto-organización que se puede explicar por retroalimentación positiva y negativa. Por ejemplo, en los bancos de pesca gran número de individuos nadan en formaciones cerradas que pueden cambiar rápidamente de dirección, dispersarse o reunirse. El movimiento coordinado, homogéneo y rápido del banco da la apariencia de un superorganismo único. Huth y Wissel (1992) propusieron un modelo simple para este proceso basado en la retroalimentación negativa y positiva. En su versión simplificada, un pez muestra cuatro reacciones de comportamiento que dependen de la posición y orientación de otros peces:
 
 *   si hay otro pez en su vecindad inmediata, el individuo se alejará para evitar la colisión (retroalimentación negativa),
 *   si hay otro pez a una distancia intermedia, el individuo tenderá a alinearse con él;
@@ -52,8 +52,8 @@ Veamos ahora algunos ejemplos de autoorganización que han inspirado modelos com
 
 Aunque el modelo hace supuestos fuertes acerca de las capacidades perceptivas de los peces y no considera otras fuentes de perturbación, se puede capturar varios comportamientos observados en estos animales.
 
-[![Comportamiento colectivo de peces](http://i2.ytimg.com/vi/cIgHEhziUxU/default.jpg)](#entry-171174561)
-[![Sincronización de luciérnagas](http://i2.ytimg.com/vi/sROKYelaWbo/default.jpg)](#entry-1934632785)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/7TOuNeeCtXM" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/0yJJv3CkNss" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 ## Agrupación y Clasificación
 
