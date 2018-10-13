@@ -115,6 +115,11 @@ Al igual que en el caso anterior, se normalizan las componentes de los vectores 
 
 Puede observarse que la clasificación tiene sentido, ya que agrupa de forma coherente animales que consideramos similares por causas diversas.
 
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/ipH_Df2MbPI" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/b3nG4c2NECI" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/sBK89IpyVdE" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/8tnxgfE6glI" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
 ## Preprocesado de Datos
 
 <img style="float:left;margin:0 10px 10px 0;width:400px" src="http://www.datapreparator.com/_Media/kddpicture-3.jpeg"/> Rara vez los conjuntos de datos sirven tal como nos los dan, ya que es habitual encontrar que vienen dados en escalas muy diferentes, con altos grados de variabilidad (y diferente para cada atributo almacenado), e incluso con distintos tipos de datos, donde algunos son numéricos y otros categóricos. Por eso, normalmente, y antes de realizar el entrenamiento, hay que realizar algún tipo de _preprocesamiento_ que tiene como objetivo conseguir que todas las variables tengan aproximadamente el mismo rango y la misma desviación estándar. Una de las formas para conseguir esto es el siguiente:
