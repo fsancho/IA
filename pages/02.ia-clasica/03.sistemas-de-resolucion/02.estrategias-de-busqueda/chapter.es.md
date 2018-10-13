@@ -4,4 +4,4 @@ taxonomy:
     category: docs
 ---
 
-# Estrategias de Búsqueda
+## Estrategias de Búsqueda
