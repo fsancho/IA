@@ -52,6 +52,8 @@ $\sum_i \sum_j d(x_j^i,c_i)^2$
 
 El algoritmo anterior es relativamente eficiente, y normalmente se requieren pocos pasos para que el proceso se estabilice. Pero en contra, es necesario determinar el número de agrupaciones a priori, y el sistema es sensible a la posición inicial de los K centros, haciendo que no consigan un mínimo global, sino que se sitúe en un mínimo local. Por desgracia, no existe un método teórico global que permita encontrar el valor óptimo de grupos iniciales ni las posiciones en las que debemos situar los centros, por lo que se suele hacer una aproximación experimental repitiendo el algoritmo con diversos valores y posiciones de centros. En general, un valor elevado de K hace que el error disminuya, pero a cambio se tiene un sobre entrenamiento que disminuye la cantidad de información que la agrupación resultante nos da.
 
+<iframe width="360"  height="240" src="https://www.youtube.com/embed/_aWzGGNrcic" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
 ## Medir la eficiencia de un aprendizaje
 
 Una vez que tenemos una máquina de aprendizaje que es capaz de desempeñar su tarea hemos de pasar a medir la eficiencia de la máquina, es decir, intentar extraer alguna medida que nos informe de lo bien (o mal) que lo está haciendo. Como en los casos de aprendizaje supervisado y no supervisado los objetivos que se buscan son muy distintos, la eficiencia de unos u otros algoritmos suelen definirse también de formas muy distintas.
