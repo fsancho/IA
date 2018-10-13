@@ -4,6 +4,5 @@ taxonomy:
     category: docs
 ---
 
-
-# Estrategias de Optimización
+## Estrategias de Optimización
 
