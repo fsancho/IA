@@ -7,8 +7,7 @@ visible: true
 
 [TOC]
 ## Introducción
-
-<img style="float:left;margin:0 10px 10px 0; width:300px" src="./ia-imagen.png" /> El campo de la **Inteligencia Artificial (IA)** es un campo de investigación transdisciplinar que generalmente se relaciona con el desarrollo e investigación de sistemas que operan o actúan inteligentemente. Está considerada una disciplina de las ciencias de la computación ya que tiene un enfoque principalmente computacional, aunque cada día hay más aportaciones desde otras áreas (como neurociencia, estadística, psicología, etc.). La IA clásica aparece en los años 50 como resultado de la comprensión del cerebro por medio de la neurociencia, las nuevas teorías matemáticas de la información, la teoría de control que surge desde la cibernética y la aparición del ordenador digital. 
+<img style="float:left;margin:0 10px 10px 0; width:200px" src="http://www.cs.us.es/~fsancho/images/2017-09/ia-imagen.png" /> El campo de la **Inteligencia Artificial (IA)** es un campo de investigación transdisciplinar que generalmente se relaciona con el desarrollo e investigación de sistemas que operan o actúan inteligentemente. Está considerada una disciplina de las ciencias de la computación ya que tiene un enfoque principalmente computacional, aunque cada día hay más aportaciones desde otras áreas (como neurociencia, estadística, psicología, etc.). La IA clásica aparece en los años 50 como resultado de la comprensión del cerebro por medio de la neurociencia, las nuevas teorías matemáticas de la información, la teoría de control que surge desde la cibernética y la aparición del ordenador digital. 
 
 <iframe width="180"  height="120" src="https://www.youtube.com/embed/Ut6gDw_Onwk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 <iframe width="180"  height="120" src="https://www.youtube.com/embed/kprlS_xVdsM" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -17,7 +16,7 @@ visible: true
 
 <img style="float: right;" src="https://yt3.ggpht.com/a-/AN66SAzIPtc5nxMnxMMxH7Z2pf9dZcHReiymkVhBKw=s288-mo-c-c0xffffffff-rj-k-no"  width=75px>
 
-! Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
+!  Como medio de recopilar un poc de cultura en las últimas novedades relacionadas con la IA es recomendable seguir el canal [DOT CSV de youtube](https://www.youtube.com/channel/UCy5znSnfMsDwaLlROnZ7Qbg/featured), donde se van colgando videos divulgativos muy interesantes del tema.
 
 ## Diversas aproximaciones
 
