@@ -58,7 +58,7 @@ En consecuencia, este método de optimización es especialmente adecuado cuando 
 
 Una primera posibilidad, que se implementa en algunos de los algoritmos que se engloban dentro de los PSO, y que es fácil de implementar en el modelo anterior, consiste en añadir una **fuerza repulsiva entre las partículas** para intentar prevenir que todas ellas converjan prematuramente a una pequeña zona del espacio de búsqueda (lo que supone acabar prematuramente en un máximo local, y con pocas opciones de escapar de él para encontrar mejores optimizaciones). Realmente, se puede enriquecer el modelo añadiendo comportamientos diversos a los individuos-partículas, ya sea inspirándose en comportamientos observados en la naturaleza o puramente abstractos.
 
-[![Multi-swarm Particle Swarm Optimization](http://i2.ytimg.com/vi/KL52OBS53lY/default.jpg)](#entry-167389211)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/KL52OBS53lY" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 Otra opción es no considerar el máximo global que se va encontrando, sino **dividir las partículas en familias** y considerar máximos globales por familias. De esta forma, cada familia puede trabajar en paralelo y cada partícula solo ha de tener conocimiento acerca de lo que "sucede" en su familia, no en el conjunto global de individuos. Además, existen variantes en las que estas familias son dinámicas, de forma que las partículas pueden is cambiando de familia a medida que el algoritmo se ejecuta (o incluso pertenecer a más de una familia, lo que permite que haya comunicaciones a larga distancia entre muchas partículas aunque no pertenezcan a la misma familia).
 
