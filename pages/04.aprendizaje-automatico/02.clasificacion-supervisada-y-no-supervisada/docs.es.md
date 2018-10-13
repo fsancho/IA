@@ -20,7 +20,7 @@ Con el objetivo de resolver esta posible deficiencia surge la regla de los k vec
 
 En problemas prácticos donde se aplica esta regla de clasificación se acostumbra tomar un número k de vecinos impar para evitar posibles empates (aunque esta decisión solo resuelve el problema en clasificaciones binarias). En otras ocasiones, en caso de empate, se selecciona la clase que verifique que sus representantes tengan la menor distancia media al ejemplo que se está clasificando. En última instancia, si se produce un empate, siempre se puede decidir aleatoriamente entre las clases con mayor representación.
 
-<img src="http://perclass.com/doc/kb/images/16_knn_decisions.png"/>
+<iframe width="360"  height="240" src="https://www.youtube.com/embed/zBCcAtg3P4k" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 Una posible variante de este algoritmo consiste en **ponderar la contribución de cada vecino** de acuerdo a la distancia entre él y el ejemplar a ser clasificado, dando mayor peso a los vecinos más cercanos. Por ejemplo podemos ponderar el voto de cada vecino de acuerdo al cuadrado inverso de sus distancias:  
 Si \(x\) es el ejemplo que queremos clasificar enntre las clases \(V\), y \(\{x_i\}\) es el conjunto de los \(k\) ejemplos de entrenamiento más cercanos, definimos
