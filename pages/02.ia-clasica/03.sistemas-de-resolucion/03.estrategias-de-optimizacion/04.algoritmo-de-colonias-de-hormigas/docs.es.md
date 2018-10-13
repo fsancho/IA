@@ -39,7 +39,8 @@ Se debe recordar que las hormigas son prácticamente ciegas, y sin embargo, movi
 
 Las feromonas han sido más estudiadas en insectos, como las hormigas y las abejas, que en animales superiores como los mamíferos, aunque se encuentran a todos los niveles de la jerarquía animal. Existen muchos tipos de feromonas, algunas son volátiles y cuentan con poca estabilidad y persistencia, pero tienen una mayor dispersión y un tiempo corto de acción, como las que segregan las hormigas o termitas durante un ataque a su nido. Además, existe otro tipo de feromonas que tienen poca volatilidad y una mayor estabilidad y persistencia, pero cuya dispersión es menor y con un mayor tiempo de acción, como son los hilos de plata que dejan los caracoles para poder regresar a su guarida, o las feromonas segregadas por las hormigas para guiar a las demás en la búsqueda de alimentos.
 
-[![Optimización por colonias de hormigas](http://i2.ytimg.com/vi/SJM3er3L6P4/default.jpg)](#entry-1455103043)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/LjZd1OWKP6s" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/eVKAIufSrHs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 Los siguientes pasos explican, de forma intuitiva, porqué la forma de proceder de las hormigas hace aparecer caminos de distancia mínima entre los nidos y las fuentes de comida:
 
