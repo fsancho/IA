@@ -85,13 +85,9 @@ Este será el valor que utilizaremos para decidir en nuestro algoritmo de búsqu
       Actual ← Primero Est_abiertos
     fin
 
-[![Ejemplo de uso del algoritmo A*](http://i2.ytimg.com/vi/_CBhTubi-CU/default.jpg)](#entry-709546913 "Ejemplo de uso del algoritmo A*")
-
-[![A* pathfinding algorithm visualization](http://i2.ytimg.com/vi/19h1g22hby8/default.jpg)](#entry-494914850 "A* pathfinding algorithm visualization")
-
-[![Pathfinding con varias distancias](http://i2.ytimg.com/vi/DINCL5cd_w0/default.jpg)](#entry-1690577633 "Pathfinding con varias distancias")
-
-[![Pathfinding con patrullas](http://i2.ytimg.com/vi/nGC_kBCoHYc/default.jpg)](#entry-118257375 "Pathfinding con patrullas")
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/sAoBeujec74" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/cX1Zsi5kaEI" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/_CBhTubi-CU" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 Se puede observar que el algoritmo es prácticamente el mismo que el algoritmo voraz visto anterioremnte, pero ahora la ordenación de los nodos se realiza utilizando el valor de la función heurística \(f\) general, y no el caso particular del coste inmediato. Por convención, suele considerarse que, a igual valor de \(f\) los nodos con \(h\) más pequeña se explorarán antes (simplemente, porque si la \(h\) es más pequeña es porque esos nodos parecen estar más cerca de la solución), y a igual \(h\) se consideran en cualquier orden (por ejemplo, el orden en el que se introdujeron en la cola), ya que no tenemos criterios para tomar una decisión.
 
