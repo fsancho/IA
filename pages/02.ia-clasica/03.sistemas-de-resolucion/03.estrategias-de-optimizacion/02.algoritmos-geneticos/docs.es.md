@@ -33,9 +33,9 @@ Aunque a algunos les puede parecer asombroso y antiintuitivo, los algoritmos gen
 
 A continuación podemos ver algunos ejemplos de uso:
 
-[![Evolución de caras con Algoritmos Genéticos](http://i2.ytimg.com/vi/qS5HWBNvf9U/default.jpg)](#entry-573424223)
-[![Introducción a Algoritmos Genéticos (inglés)](http://i2.ytimg.com/vi/zwYV11a__HQ/default.jpg)](#entry-610424882)
-[![Optimización con Algoritmos Genéticos](http://i2.ytimg.com/vi/Fp9kzoAxsA4/default.jpg)](#entry-1733413608)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/rxGSe2ROX4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/tEemwmbPXDg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/iV-hah6xs2A" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 ## Métodos de representación
 
