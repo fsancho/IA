@@ -6,3 +6,4 @@ taxonomy:
 
 ## Sistemas de Resolución
 
+![](http://timewiser.com/wp-content/uploads/2015/05/questions-to-ask-when-solving-problems.jpg)
