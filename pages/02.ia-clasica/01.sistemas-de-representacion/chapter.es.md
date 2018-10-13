@@ -4,6 +4,5 @@ taxonomy:
     category: docs
 ---
 
-
 # Sistemas de Representación
 
