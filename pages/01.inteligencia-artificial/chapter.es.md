@@ -2,7 +2,6 @@
 title: 'Inteligencia Artificial'
 taxonomy:
     category: docs
-menu: IA
 ---
 
 # Inteligencia Artificial
