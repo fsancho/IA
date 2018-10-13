@@ -125,6 +125,10 @@ Uno de los aspectos más interesantes que nos ofrecen los árboles de decisión 
 
 <img  src="http://www.cs.us.es/~fsancho/images/2015-07/id311.jpg"/>
 
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/ioX_DlrgOLA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/PxPKZA87EXU" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/q_ZFEtZdyF4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
 ## Extensiones de ID3
 Como hemos visto, la heurística del ID3 es de búsqueda y consiste en preferir árboles que tengan atributos con mayor información más cerca de la raíz, y árboles más cortos, siguiendo la hipótesis de la **navaja de Occam** (preferir siempre las hipótesis más sencillas que describan los datos). También, por la heurística que emplea, favorece atributos con muchos valores.
 
