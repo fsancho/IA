@@ -77,8 +77,6 @@ Todos ellos se basan en la **comunicación estigmérgica** (Grassé 1959) por 
 
 <img style="float:left;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-07/fa961834-30d6-11e2-bb76-001e670c2818.gif"/><img style="float:right;margin:0 10px 10px 0;" src="http://www.cs.us.es/~fsancho/images/2015-07/fad31900-30d6-11e2-bb76-001e670c2818.gif"/> Deneubourg y su equipos también han mostrado que esta retroalimentación positiva mediada por la deposición de feromona puede ayudar a ejercitos ciegos de hormigas realizar ataques a través de un extenso territorio en busca de presas, manteniendo una ruta de acceso al nido. Estos autores mostraron que los diferentes patrones que muestran diferentes especies de hormigas guerreras no se deben a la presencia de diferentes reglas, sino a los diferentes patrones de dispersión que siguen las presas a las que persiguen.
 
-[![Colonia de hormigas](http://i2.ytimg.com/vi/rsqsZCH36Hk/default.jpg)](#entry-1223929555)
-
 ## División del trabajo
 
 En los ejemplos de autoorganización descritos hasta el momento, todos los individuos tienen el mismo conjunto de reglas de comportamiento o realizan la misma actividad. Sin embargo, varias sociedades de insectos muestran división del trabajo y especialización en las diferentes actividades que se realizan simultáneamente por individuos especializados. Esta especialización puede suave o fuerte:
