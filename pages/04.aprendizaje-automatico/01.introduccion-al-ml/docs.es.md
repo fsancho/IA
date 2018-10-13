@@ -1,8 +1,7 @@
 ---
 title: 'Introducción al ML'
 taxonomy:
-    category:
-        - docs
+    category: docs
 visible: true
 ---
 
