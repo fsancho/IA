@@ -101,10 +101,6 @@ $d = =\left\{ \begin{array}{cl}   1  & \mbox{si } Y=-1 \mbox{ y } (x_0,y_0)
 
 Este procedimiento converge, es decir, en un número finito de pasos es posible obtener los parámetros finales que separan entre sí los conjuntos.
 
-[![Aplicación de las Redes Neuronales a la Identificación de Patrones](http://i2.ytimg.com/vi/8whBwcIo3iI/default.jpg)](#entry-492287739)
-
-[![Redes Neuronales](http://i2.ytimg.com/vi/5rq6VBJ0aII/default.jpg)](#entry-615876423)
-
 Un modelo neuronal utilizado para clasificación, cuya salida está dada de la forma anterior y que utiliza el **método de error-corrección** para modificar sus parámetros libres se conoce como **Perceptron** (el nombre deriva de la palabra en inglés “perception”). Estas neuronas pueden agruparse formando una RNA conocida como **Perceptron múltiple**.
 
 ## El Perceptron multicapa
@@ -114,6 +110,10 @@ Un caso particular de perceptron múltiple se puede formar organizando sus neuro
 <img src="http://www.cs.us.es/~fsancho/images/2015-07/be9db638-25fb-11e2-bb76-001e670c2818.gif"/>
 
 El problema habitual con este tipo de redes multicapa es el de, dados un conjunto de datos ya clasificados, de los que se conoce la salida deseada, proporcionar los pesos adecuados de la red para que se obtenga una aproximación correcta de las salidas si la red recibe únicamente los datos de entrada.
+
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/MRIv2IwFTPg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/uwbHOpp9xkc" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/eNIqz_noix8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 A mediados de los años 80 se ofreció un algoritmo, llamado de **Propagación hacia atrás**, que aproxima en muchos casos los pesos a partir de los datos objetivo. Este algoritmo de **entrenamiento de la red** se puede resumir muy brevemente en los siguiente puntos:
 
@@ -128,9 +128,7 @@ A mediados de los años 80 se ofreció un algoritmo, llamado de **Propagación h
 
 Entre las diversas tareas en las que una RNA puede aplicarse podemos mencionar la clasificación lineal y no lineal de una cantidad arbitraria \(C_1,\dots,C_m\) de clases, regresión lineal y no lineal, análisis de series temporales, control de procesos, robótica, optimización de funciones, procesamiento de señales, etc...
 
-[![RNP](http://i2.ytimg.com/vi/0rsNVrA_Kxo/default.jpg)](#entry-321076640)
-
-[![Back Propagation](http://i2.ytimg.com/vi/GlcnxUlrtek/default.jpg)](#entry-1829153924)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/FVozZVUNOOA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 ! ### Para saber más...
 ! [Universidad Carlos III: Redes Neuronales](http://ocw.uc3m.es/ingenieria-informatica/redes-de-neuronas-artificiales)
