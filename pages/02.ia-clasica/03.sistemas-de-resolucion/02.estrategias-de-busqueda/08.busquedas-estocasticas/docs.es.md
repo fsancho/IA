@@ -59,6 +59,6 @@ Este algoritmo es especialmente bueno para problemas con un espacio de búsqued
 
 El mayor problema de este algoritmo es determinar los valores de los parámetros, y requiere una importante labor de experimentación que depende de cada problema. Los valores óptimos de estos parámetros varían con el dominio e incluso con el tamaño de la instancia concreta del problema.
 
-[![Templado Simulado aplicado al Problema del Viajante](http://i2.ytimg.com/vi/rsGOB80v0-k/default.jpg)](#entry-735051427)
-[![Templado Simulado aplicado a la disposición ideal de un nudo](http://i2.ytimg.com/vi/0WZQGB7ZZSE/default.jpg)](#entry-298537695)
-[![Clase de Templado Simulado de la Universidad Politécnica de Valencia](http://i2.ytimg.com/vi/wtw_B_3lrjE/default.jpg)](#entry-228668414)
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/6gmnP90C0Bw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/E8tkpzDne7I" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+<iframe width="180"  height="120" src="https://www.youtube.com/embed/NPE3zncXA5s" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
