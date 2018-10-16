@@ -195,7 +195,7 @@ INPUTBOX
 180
 70
 Initial_State
-[[\"c\" \"o\" \"l\"][] \"R\"]
+[[\"c\" \"o\" \"l\"][] \"L\"]
 1
 0
 String

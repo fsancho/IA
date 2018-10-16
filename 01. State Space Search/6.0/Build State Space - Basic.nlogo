@@ -34,9 +34,9 @@ to-report AI:children-states
   let res []
   foreach applicable-transitions [
     regla ->
-    let app last regla
-    let r (run-result app content)
-    if r > 0 [set res lput (list r regla) res]
+       let app last regla
+       let s1 (run-result app content)
+       if s1 > 0 [set res lput (list s1 regla) res]
   ]
   report res
 end
@@ -49,8 +49,8 @@ to-report valid? [x]
 end
 
 to-report AI:children-states1
-  report filter [ ?1 -> valid? (first ?1) ]
-                (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
+  report filter [ s -> valid? (first s) ]
+                (map [ regla -> (list (run-result (last regla) content) regla) ]
                      applicable-transitions)
 end
 
@@ -130,7 +130,7 @@ INPUTBOX
 180
 70
 Initial_State
-5
+3
 1
 0
 String
@@ -161,7 +161,7 @@ Depth-level
 Depth-level
 0
 10
-3.0
+2.0
 1
 1
 NIL
@@ -199,7 +199,7 @@ CHOOSER
 layout
 layout
 "→" "↓" "o" "*"
-0
+3
 
 CHOOSER
 10
@@ -209,7 +209,7 @@ CHOOSER
 Space-Type
 Space-Type
 [0 "Simple Tree"] [1 "Tree with repetitions"] [2 "Graph"]
-0
+2
 
 @#$#@#$#@
 ## WHAT IS IT?

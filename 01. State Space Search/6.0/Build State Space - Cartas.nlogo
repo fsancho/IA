@@ -18,9 +18,20 @@ __includes [ "BSS.nls" "LayoutSpace.nls"]
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
+; Se da la representación de los estados como dos conjuntos (listas) que representan el
+; contenido de los dos montones
+
+; S = [ [c ... c] [c ... c] ]
+
+; En los dos montones no habrá cartas repetidas y estarán todas las cartas de la baraja.
+; En general, hay que ver que los estados son válidos. En este caso, si a una transición
+; le pasas un estado válido, devuelve un estado válido.
+; También es fácil probar que con las transiciones definidas el espacio de estados es
+; conexo (es decir, se puede llegar de cualquier estado a cualquier otro estado).
+
 ; Un posible movimiento consiste en cambiar una carta de montón:
 to-report AI:children-states
-  let cartas (n-values 10 [x -> x + 1])
+  let cartas (range 1 11)
   report map  [ i -> (list (change i) (list i))] cartas
 end
 

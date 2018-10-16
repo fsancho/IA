@@ -8,4 +8,6 @@ taxonomy:
 
 # Aprendizaje Automático
 
-Chapter description.
+El renacer de la IA.
+
+![](http://odintext.com/wp-content/uploads/2017/01/Machine-Learning-Artificial-Intelligence-text-analytics-softwaere.png)
