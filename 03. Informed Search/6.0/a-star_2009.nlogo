@@ -466,7 +466,7 @@ to-report get-path
    if not is-turtle? n
    [ set n current ]
    if not is-turtle? n
-   [ stop ]
+   [ report false ]
 
    let p (list n )
    while [ [location] of n != start ]
@@ -731,16 +731,14 @@ end
    ;;
    ;;  3) Save the path. Working backwards from the target square, go from each square to its parent square until you reach the starting square. That is your path.
 
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 255
 10
-691
-467
-35
-35
+689
+445
+-1
+-1
 6.0
 1
 20
@@ -815,7 +813,7 @@ density
 density
 0
 100
-29
+21.0
 1
 1
 NIL
@@ -846,7 +844,7 @@ CHOOSER
 senario
 senario
 "blank" "bars" "blobs" "maze" "looped maze" "random"
-5
+4
 
 BUTTON
 130
@@ -874,7 +872,7 @@ directions
 directions
 4
 8
-4
+4.0
 4
 1
 NIL
@@ -898,7 +896,7 @@ SWITCH
 113
 terrain?
 terrain?
-1
+0
 1
 -1000
 
@@ -973,7 +971,7 @@ straightness
 straightness
 0
 100
-89
+8.0
 1
 1
 NIL
@@ -1040,9 +1038,8 @@ true
 6
 Rectangle -16777216 true false 75 -195 225 225
 Polygon -13840069 true true 75 0 75 -195 225 -195 225 -60 150 -165 75 -60 105 -60 150 -120 195 -60 225 -60 225 60 150 -45 75 60 105 60 150 0 195 60 225 60 225 195 150 90 75 195 105 195 150 135 195 195 225 195 225 225 75 225
-
 @#$#@#$#@
-NetLogo 5.3.1
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -1058,7 +1055,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@

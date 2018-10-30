@@ -7,6 +7,9 @@ Lista de ficheros asociados a Búquedas no Informadas:
 + `A-star Problem Solver - Numerical Puzzle.nlogo`:	Modelo de solución A* del problema del _puzle numérico_.
 + `A-star Problem Solver - Sorting Lists.nlogo`:	Modelo de solución A* del problema de ordenación de listas.
 + `A-star Problem Solver - 8 puzzle.nlogo`:	Modelo de solución A* del _problema del 8 puzle_.
++ `A-star Problem Solver - Hanoi Towers.nlogo`: Modelo de solución A* del _problema de las Torres de Hanoi_.
++ `A-star Problem Solver - Cifras y Letras.nlogo`: Modelo de solución A* del _problema de Cifras y Letras (Cifras)_.
++ `A-star Problem Solver - Cartas.nlogo`: Modelo de solución A* del _problema de la baraja de cartas_.
 + `A-star Turtles Geometric Network.nlogo`:	Modelo de uso del algoritmo A* en la búsqueda de caminos mínimos de grafos geométricos. No hace uso de la librería A-star.
 + `A-star patches.nlogo`:	Modelo de uso del algoritmo A* en la búsqueda de caminos mínimos sobre patches. No hace uso de la librería A-star.
 + `a-star_2009.nlogo`:	Modelo de uso del algoritmo A* en la búsqueda de caminos mínimos sobre patches. No hace uso de la librería A-star. Muestra distintas heurísticas de distancias para poder comparar resultados.
