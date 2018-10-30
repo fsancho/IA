@@ -35,10 +35,10 @@ to go
     set size size * .9
   ]
   ; Label the BMUs of TSet element with their names
-  (foreach TSet Header [ [?1 ?2] ->
-    let V ?1
+  (foreach TSet Header [ [t h] ->
+    let V t
     let W SOM:BMU V
-    ask W [set label ifelse-value (label = "") [?2][(word label "/" ?2)]]
+    ask W [set label ifelse-value (label = "") [h][(word label "/" h)]]
   ])
 end
 
@@ -67,10 +67,9 @@ to read-data
   ]
   file-close-all
   set TSet []
-  foreach (n-values length Header [ ?1 -> ?1 ])
-  [ ?1 ->
-    let i ?1
-    set Tset lput (map [ ??1 -> item i ??1 ] att) TSet
+  foreach (range (length Header))
+  [ i ->
+    set Tset lput (map [ at -> item i at ] att) TSet
   ]
 end
 
@@ -339,7 +338,7 @@ false
 0
 Polygon -7500403 true true 0 150 75 30 225 30 300 150 225 270 75 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

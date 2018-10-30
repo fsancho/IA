@@ -32,13 +32,13 @@ to-report all-states-from [s]
     ; If Boat is in the Left, we can move any object from LeftSide to RightSide
     ; or only move the boat
     report fput (list (list LeftSide RightSide "R") ["->"])
-                (map [ ?1 -> move-to-right s ?1 ] LeftSide)
+                (map [ L -> move-to-right s L ] LeftSide)
   ]
   [
     ; If Boat is in the Right, we can move any object from RightSide to LeftSide
     ; or only move the boat
     report fput (list (list LeftSide RightSide "L") ["<-"])
-                (map [ ?1 -> move-to-left s ?1 ] RightSide)
+                (map [ L -> move-to-left s L ] RightSide)
   ]
 end
 
@@ -78,7 +78,7 @@ end
 ;          [[["c"] ["l" "o"] "R"] ["o->"]] ]
 
 to-report valid-states-from [s]
-  report filter [ ?1 -> valid? (first ?1) ] (all-states-from s)
+  report filter [ ns -> valid? (first ns) ] (all-states-from s)
 end
 
 ; valid? is a boolean report to say which states are valid. In this case we
@@ -136,15 +136,16 @@ to test
     ask p [
       set color red
       foreach extract-transitions-from-path
-      [ ?1 ->
-        ask ?1 [
+      [ t ->
+        ask t [
           set color red
           set thickness .3
         ]
       ]
       output-print "The solution is: "
-      foreach (map [ ?1 -> [first rule] of ?1 ] extract-transitions-from-path) [ ?1 ->
-        output-print ?1
+      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path) [
+        t ->
+        output-print t
       ]
     ]
     style
@@ -594,7 +595,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

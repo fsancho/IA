@@ -88,14 +88,14 @@ to test
     ask p [
       set color red
       foreach extract-transitions-from-path
-      [ ?1 ->
-        ask ?1 [
+      [ t ->
+        ask t [
           set color red
           set thickness .3
         ]
       ]
       output-print "The solution is: "
-      output-print map [ ?1 -> [first rule] of ?1 ] extract-transitions-from-path
+      output-print map [ t -> [first rule] of t ] extract-transitions-from-path
     ]
     style
   ]
@@ -544,7 +544,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

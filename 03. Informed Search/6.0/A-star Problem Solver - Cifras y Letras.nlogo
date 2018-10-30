@@ -99,7 +99,7 @@ to test
   [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
-    print (word "Actions to sort it: " (map [x -> first [rule] of x] path))
+    print (word "Actions to sort it: " (map [t -> first [rule] of t] path))
   ]
   print (word (max [who] of turtles - count AI:states) " searchers used")
   print (word (count AI:states) " states created")
@@ -110,8 +110,8 @@ end
 ; highlight report
 to highlight-path [path]
   foreach path [
-    x ->
-    ask x [
+    t ->
+    ask t [
       set color red set thickness .4
     ]
   ]
@@ -173,7 +173,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

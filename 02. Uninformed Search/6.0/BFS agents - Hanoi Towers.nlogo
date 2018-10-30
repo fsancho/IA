@@ -23,11 +23,9 @@ __includes [ "BFS.nls" "LayoutSpace.nls"]
 
 to-report applicable-transitions [c]
   let t-a []
-  let lista (n-values (length c) [ ?1 -> ?1 ])
-  foreach lista [ ?1 ->
-    let i ?1
-    foreach lista [ ??1 ->
-      let j ??1
+  let lista (range (length c))
+  foreach lista [ i ->
+    foreach lista [ j ->
       let t (list (word i "->" j) (list i j))
       if valid-transition? t c [set t-a lput t t-a]
     ]
@@ -66,7 +64,7 @@ end
 ; states that are valid.
 
 to-report AI:children-states
-  report (map [ ?1 -> apply-transition ?1 content ] (applicable-transitions content))
+  report (map [ t -> apply-transition t content ] (applicable-transitions content))
 end
 
 ; estado-final? ofrece un report de agente que identifica los estados finales
@@ -96,15 +94,16 @@ to test
     ask p [
       set color red
       foreach extract-transitions-from-path
-      [ ?1 ->
-        ask ?1 [
+      [ t ->
+        ask t [
           set color red
           set thickness .3
         ]
       ]
       output-print "The solution is: "
-      foreach (map [ ?1 -> [first rule] of ?1 ] extract-transitions-from-path)[ ?1 ->
-        output-print ?1
+      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path)[
+        t ->
+        output-print t
       ]
     ]
     style
@@ -554,7 +553,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

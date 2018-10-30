@@ -17,8 +17,8 @@ globals [
 
 ; Report to decide if a resolution is able betwen the clauses
 to-report resolubles? [c1 c2]
-  foreach c1 [ ?1 ->
-    if member? (neg ?1) c2 [report true]
+  foreach c1 [ l ->
+    if member? (neg l) c2 [report true]
   ]
   report false
 end
@@ -26,21 +26,21 @@ end
 ; Returns the literlas that allow to make resolution (only with one sign)
 to-report lit-resolvents [c1 c2]
   let res []
-  foreach c1 [ ?1 ->
-    if member? (neg ?1) c2 [set res lput ?1 res]
+  foreach c1 [ l ->
+    if member? (neg l) c2 [set res lput l res]
   ]
   report res
 end
 
 ; Clean and sort a clause
 to-report clean [c1]
-  report sort-by [ [?1 ?2] -> (abs ?1 < abs ?2) or ((abs ?1 = abs ?2) and ?1 > ?2) ] remove-duplicates c1
+  report sort-by [ [l1 l2] -> (abs l1 < abs l2) or ((abs l1 = abs l2) and l1 > l2) ] remove-duplicates c1
 end
 
 ; Decide if is a tautology (to remove it)
 to-report tautology? [c1]
-  foreach c1 [ ?1 ->
-    if member? (neg ?1) c1 [report true]
+  foreach c1 [ l ->
+    if member? (neg l) c1 [report true]
   ]
   report false
 end
@@ -75,8 +75,8 @@ end
 ; Create the clause agents for a set of clauses
 to load-set [cls]
   ask clauses [die]
-  foreach cls [ ?1 ->
-    let c ?1
+  foreach cls [
+    c ->
     create-clauses 1 [
       set content clean c
       set shape "square"
@@ -93,7 +93,7 @@ end
 ; Returns the clause representation of a set
 to-report print-set [c]
   report (word "{ { "
-               (reduce [ [?1 ?2] -> word ?1 (word " }, { " ?2) ] (map print-clause c))
+               (reduce [ [c1 c2] -> word c1 (word " }, { " c2) ] (map print-clause c))
                " } }")
 end
 
@@ -101,7 +101,7 @@ end
 to-report print-clause [c]
   ifelse c = []
   [report ""]
-  [report reduce [ [?1 ?2] -> word ?1 (word " v " ?2) ] (map [ ?1 -> literal ?1 ] c)]
+  [report reduce [ [l1 l2] -> word l1 (word " v " l2) ] (map [ l -> literal l ] c)]
 end
 
 ; Returns the Propositional Variable associated to a number
@@ -589,7 +589,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

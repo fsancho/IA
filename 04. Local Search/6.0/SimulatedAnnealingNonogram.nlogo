@@ -105,8 +105,8 @@ end
 ; Procedure to compute the Global ENergy of the system as the sum of energies
 ; of rows and columns
 to Compute-Global-Energy
-  let rows-error sum map [ ?1 -> Energy-Row    ?1 ] (n-values world-height [ ?1 -> ?1 ])
-  let cols-error sum map [ ?1 -> Energy-Column ?1 ] (n-values world-width  [ ?1 -> ?1 ])
+  let rows-error sum map [ r -> Energy-Row    r ] (range world-height)
+  let cols-error sum map [ c -> Energy-Column c ] (range world-width)
   set Global-Energy ( rows-error + cols-error )
 end
 
@@ -114,7 +114,7 @@ end
 ; of the goal row and the current row
 to-report Energy-Row [row]
   if row < 0 or row > max-pycor [report 0]
-  let Row-states map [ ?1 -> [state] of ?1 ] (sort patches with [pycor = row])
+  let Row-states map [ p -> [state] of p ] (sort patches with [pycor = row])
   let Row-Pattern group Row-states
   let Row-Error Compute-Error Row-Pattern (item row rows-dist)
   report Row-Error
@@ -124,7 +124,7 @@ end
 ; of the goal column and the current column
 to-report Energy-Column [col]
   if col < 0 or col > max-pxcor [report 0]
-  let Col-States map [ ?1 -> [state] of ?1 ] (sort patches with [pxcor = col])
+  let Col-States map [ p -> [state] of p ] (sort patches with [pxcor = col])
   let Col-Pattern group Col-States
   set Col-Pattern reverse Col-Pattern
   let Col-Error Compute-Error Col-Pattern (item col cols-dist)
@@ -141,7 +141,7 @@ to-report Compute-Error [ v1 v2 ]
   if (length v2) < (length v1)
     [ set v2 sentence v2 (n-values dif [0]) ]
   ; Compute the euclidean distance between patterns
-  let er sum (map [ [?1 ?2] -> (?1 - ?2) ^ 2 ] v1 v2)
+  let er sum (map [ [x y] -> (x - y) ^ 2 ] v1 v2)
   ; Adding a penalty for the diference of lengths
   set er er + ( dif * Weight-Dif)
   report er
@@ -321,8 +321,8 @@ end
 GRAPHICS-WINDOW
 190
 10
-597
-418
+598
+419
 -1
 -1
 57.142857142857146
@@ -772,7 +772,7 @@ Polygon -6459832 true true 38 138 66 149
 Polygon -6459832 true true 46 128 33 120 21 118 11 123 3 138 5 160 13 178 9 192 0 199 20 196 25 179 24 161 25 148 45 140
 Polygon -6459832 true true 67 122 96 126 63 144
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

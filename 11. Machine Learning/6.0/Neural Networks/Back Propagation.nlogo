@@ -63,21 +63,24 @@ to setup-neurons
 
   ; Create Input neurons. A 6x8 Matrix
   foreach sort patches with [pxcor >= -9 and pxcor <= -4 and pycor >= -3 and pycor <= 4]
-  [ ?1 -> ask ?1 [
+  [ p ->
+    ask p [
       sprout-input-neurons 1 [
         set activation random-float 0.1]] ]
 
   ; Create Hidden neurons
-  foreach (n-values Neurons-Hidden-Layer [ ?1 -> ?1 ]) [ ?1 ->
+  foreach (range Neurons-Hidden-Layer) [
+    i ->
     create-hidden-neurons 1 [
-      setxy 2 (- int (neurons-Hidden-Layer / 2) + 1 + ?1)
+      setxy 2 (- int (neurons-Hidden-Layer / 2) + 1 + i)
       set activation random-float 0.1 ] ]
 
   ; Create Output neurons
-  foreach (reverse n-values 10 [ ?1 -> ?1 ]) [ ?1 ->
-    ask patch 8 (- 4 + ?1) [set pcolor (5 + ?1 / 2)]
+  foreach (reverse range 10) [
+    i  ->
+    ask patch 8 (- 4 + i) [set pcolor (5 + i / 2)]
     create-output-neurons 1 [
-      setxy 7 (- 4 + ?1)
+      setxy 7 (- 4 + i)
       set activation random-float 0.1] ]
 end
 
@@ -117,7 +120,8 @@ to train
   ; Repeat the Number of iterations
   repeat Number-of-epochs [
     ; For every trainig data
-    foreach (shuffle data-list) [ datum ->
+    foreach (shuffle data-list) [
+      datum ->
 
       ; Take the input and correct output
       set inputs first datum
@@ -242,8 +246,9 @@ to draw-datum [i x y]
     setxy x y
     while [not empty? i][
       let line (sublist i 0 6)
-      foreach line [ ?1 ->
-        if ?1 = 1 [stamp]
+      foreach line [
+        b ->
+        if b = 1 [stamp]
         set xcor xcor + 1 / 9
       ]
       setxy x (ycor - 1 / 9)
@@ -262,8 +267,9 @@ to load [f]
   set data-list read-from-string file-read-line
   file-close-all
   set data-counter 0
-  foreach data-list [ ?1 ->
-    set inputs first ?1
+  foreach data-list [
+    d ->
+    set inputs first d
     draw-datum inputs 7.7 (5.4 - data-counter)
     set data-counter data-counter + 1
   ]
@@ -357,15 +363,17 @@ to inverse-hidden [n]
     ask my-in-links [
       let p weight
       ask end1 [
-        set p2 p
-        ifelse p2 > 0 [set color scale-color blue p2 -1 2] [set color scale-color red p2 -3 0 ]
+        ;set p2 p
+        ;ifelse p2 > 0 [set color scale-color blue p2 -1 2] [set color scale-color red p2 -3 0 ]
+        ifelse p > 0 [set color scale-color blue p -1 2] [set color scale-color red p -3 0 ]
       ]
     ]
     ask my-out-links [
       let p weight
       ask end2 [
-        set p2 p
-        ifelse p2 > 0 [set color scale-color blue p2 -1 2] [set color scale-color red p2 -3 0 ]
+        ;set p2 p
+        ;ifelse p2 > 0 [set color scale-color blue p2 -1 2] [set color scale-color red p2 -3 0 ]
+        ifelse p > 0 [set color scale-color blue p -1 2] [set color scale-color red p -3 0 ]
       ]
     ]
   ]
@@ -954,7 +962,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 setup repeat 100 [ train ]
 @#$#@#$#@

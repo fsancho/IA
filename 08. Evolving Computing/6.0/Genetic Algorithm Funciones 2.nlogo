@@ -57,7 +57,7 @@ end
 ; It depends on the problem to be solved as it uses a concrete representation
 to AI:Initial-Population [#population]
   create-AI:individuals #population [
-    set content map [una-f] (n-values 10 [ ?1 -> ?1 ])
+    set content map [una-f] (range 10)
     ;show map first content
     AI:Compute-fitness
     hide-turtle
@@ -89,7 +89,7 @@ end
 ; Random mutation of units of the content.
 ; Individual procedure
 to AI:mutate [#mutation-ratio]
-  set content map [ ?1 -> ifelse-value (random-float 100.0 < #mutation-ratio) [una-f] [?1] ] content
+  set content map [ f -> ifelse-value (random-float 100.0 < #mutation-ratio) [una-f] [f] ] content
 end
 
 to-report una-f
@@ -114,12 +114,13 @@ to AI:ExternalUpdate
   set-current-plot "f(x)"
   clear-plot
   set-plot-x-range a b
-  foreach I [ ?1 ->
+  foreach I [
+    x ->
     set-current-plot-pen "approx"
-    let res apply f ?1
-    plotxy ?1 res
+    let res apply f x
+    plotxy x res
     set-current-plot-pen "f(x)"
-    plotxy ?1 (ftest ?1)
+    plotxy x (ftest x)
   ]
   plots
   ; show changes
@@ -133,11 +134,11 @@ end
 
 
 to-report apply [f x]
-  report sum map [ ?1 -> (first ?1) * x ^ (last ?1) ] f
+  report sum map [ t -> (first t) * x ^ (last t) ] f
 end
 
 to-report  intervalo [a1 b1 ptos]
-  report (n-values (1 + ptos) [ ?1 -> a1 + ?1 * (b1 - a1) / ptos ])
+  report (n-values (1 + ptos) [ x -> a1 + x * (b1 - a1) / ptos ])
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -622,7 +623,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@

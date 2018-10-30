@@ -61,17 +61,17 @@ to experiment
   ca
   let v []
   let v2 []
-  foreach (n-values 100 [ ?1 -> ?1 + 1 ]) [ ?1 ->
+  foreach (range 1 101) [ i ->
     set v []
     set v2 []
     repeat 100 [
-      set num-climbers ?1
+      set num-climbers i
       setup
       repeat 50 [ go ]
       set v lput success? v
       set v2 lput num-states v2
     ]
-    plotxy ?1 (mean v)
+    plotxy i (mean v)
   ]
 end
 
@@ -149,7 +149,7 @@ Num-climbers
 Num-climbers
 0
 1000
-6.0
+35.0
 1
 1
 NIL
@@ -496,7 +496,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

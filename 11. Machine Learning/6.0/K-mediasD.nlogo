@@ -67,13 +67,13 @@ end
 
 ; Report de distancia entre dos puntos D-dimensionales
 to-report distancia [p1 p2]
-  report sqrt sum (map [ [?1 ?2] -> (?1 - ?2) ^ 2 ] p1 p2)
+  report sqrt sum (map [ [x y] -> (x - y) ^ 2 ] p1 p2)
 end
 
 ; Report del centro geométrico de una lista de posiciones
 to-report centro [lista-pos]
   let d length first lista-pos
-  let indices (n-values d [ ?1 -> ?1 ])
+  let indices (range d)
   report map [ x -> mean (coords x lista-pos) ] indices
 end
 
@@ -451,7 +451,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

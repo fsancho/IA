@@ -171,9 +171,9 @@ to Look-for-Goal
     ; Take a random color to the drawer turtle
     ask turtle 0 [set color (lput 150 (n-values 3 [100 + random 155]))]
     ; Move the turtle on the path stamping its shape in every patch
-    foreach path [ ?1 ->
+    foreach path [ p ->
       ask turtle 0 [
-        move-to ?1
+        move-to p
         stamp] ]
     ; Set the Goal and the new Start point
     set Start Goal
@@ -288,7 +288,7 @@ true
 0
 Rectangle -7500403 true true 0 0 300 300
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

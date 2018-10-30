@@ -15,12 +15,12 @@ __includes [ "BFS.nls" "LayoutSpace.nls"]
 
 to-report applicable-transitions
   report (list
-           (list "Empty(1)" ([ ?1 -> (list 0 (last ?1)) ]))
-           (list "Empty(2)" ([ ?1 -> (list (first ?1) 0) ]))
-           (list "Pour 1 to 2" ([ ?1 -> pour1-2 (first ?1) (last ?1) ]))
-           (list "Pour 2 to 1" ([ ?1 -> pour2-1 (first ?1) (last ?1) ]))
-           (list "Fill(1)" ([ ?1 -> (list 3 (last ?1)) ]))
-           (list "Fill(2)" ([ ?1 -> (list (first ?1) 4) ]))
+           (list "Empty(1)" ([ s -> (list 0 (last s)) ]))
+           (list "Empty(2)" ([ s -> (list (first s) 0) ]))
+           (list "Pour 1 to 2" ([ s -> pour1-2 (first s) (last s) ]))
+           (list "Pour 2 to 1" ([ s -> pour2-1 (first s) (last s) ]))
+           (list "Fill(1)" ([ s -> (list 3 (last s)) ]))
+           (list "Fill(2)" ([ s -> (list (first s) 4) ]))
   )
 end
 
@@ -50,8 +50,8 @@ end
 ; states that are valid.
 
 to-report AI:children-states
-  report filter [ ?1 -> valid? (first ?1) ]
-                (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
+  report filter [ s -> valid? (first s) ]
+                (map [ t -> (list (run-result (last t) content) t) ]
                      applicable-transitions)
 end
 
@@ -73,15 +73,16 @@ to test
     ask p [
       set color red
       foreach extract-transitions-from-path
-      [ ?1 ->
-        ask ?1 [
+      [ t ->
+        ask t [
           set color red
           set thickness .3
         ]
       ]
       output-print "The solution is: "
-      foreach (map [ ?1 -> [first rule] of ?1 ] extract-transitions-from-path)[ ?1 ->
-        output-print ?1
+      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path)[
+        t ->
+        output-print t
       ]
     ]
     style
@@ -531,7 +532,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

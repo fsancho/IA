@@ -91,17 +91,17 @@ end
 ; Auxiliary reports to compute the different constraints
 to-report same-in-row
   let x pxcor
-  report -1 + length filter [ ?1 -> ?1 = value ] ([value] of patches with [pxcor = x])
+  report -1 + length filter [ v -> v = value ] ([value] of patches with [pxcor = x])
 end
 
 to-report same-in-column
   let y pycor
-  report -1 + length filter [ ?1 -> ?1 = value ] ([value] of patches with [pycor = y])
+  report -1 + length filter [ v -> v = value ] ([value] of patches with [pycor = y])
 end
 
 to-report same-in-block
   let b block
-  report -1 + length filter [ ?1 -> ?1 = value ] ([value] of patches with [block = b])
+  report -1 + length filter [ v -> v = value ] ([value] of patches with [block = b])
 end
 
 ; Swap procedure between cells p1 and p2
@@ -555,7 +555,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

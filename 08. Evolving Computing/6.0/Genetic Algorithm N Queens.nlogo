@@ -58,11 +58,11 @@ end
 ; Individual report to compute its fitness
 to AI:Compute-fitness
   let res 0
-  let lis (n-values (length content) [ ?1 -> ?1 ])
-  foreach lis [ ?1 ->
-    let i ?1
-    foreach (filter [ ??1 -> ??1 > i ] lis) [ ??1 ->
-      let j ??1
+  let lis (range (length content))
+  foreach lis [
+    i ->
+    foreach (filter [ j -> j > i ] lis) [
+      j ->
       set res res + threat i j content
     ]
   ]
@@ -109,8 +109,9 @@ to AI:ExternalUpdate
   ; remove previous queens from board
   ask queens [die]
   ; put queen on board following the content of the best
-  (foreach c (n-values N [ ?1 -> ?1 ]) [ [?1 ?2] ->
-    ask patch ?1 ?2 [
+  (foreach c (range N) [
+    [x y] ->
+    ask patch x y [
       sprout-queens 1 [
         set shape "chess queen"
         set color yellow
@@ -599,7 +600,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.3
+NetLogo 6.0.4
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@

@@ -26,21 +26,21 @@ end
 ; Devuelve los literales con los que se puede hacer resolventes (solo de un signo)
 to-report lit-resolventes [c1 c2]
   let res []
-  foreach c1 [ ?1 ->
-    if member? (op ?1) c2 [set res lput ?1 res]
+  foreach c1 [ l ->
+    if member? (op l) c2 [set res lput l res]
   ]
   report res
 end
 
 ; Limpia y ordena una claúsula
 to-report limpia [c1]
-  report sort-by [ [?1 ?2] -> (abs ?1 < abs ?2) or ((abs ?1 = abs ?2) and ?1 > ?2) ] remove-duplicates c1
+  report sort-by [ [l1 l2] -> (abs l1 < abs l2) or ((abs l1 = abs l2) and l1 > l2) ] remove-duplicates c1
 end
 
 ; Decide si es tautología (para eliminarlas)
 to-report tautologia? [c1]
-  foreach c1 [ ?1 ->
-    if member? (op ?1) c1 [report true]
+  foreach c1 [ l ->
+    if member? (op l) c1 [report true]
   ]
   report false
 end
@@ -75,8 +75,8 @@ end
 ; Crea los agentes de un conjunto de claúsulas
 to carga-conjunto [cls]
   ask clausulas [die]
-  foreach cls [ ?1 ->
-    let c ?1
+  foreach cls [
+    c ->
     create-clausulas 1 [
       set contenido limpia c
       set shape "square"
@@ -93,7 +93,7 @@ end
 ; Devuelve la expresión clausal de un conjunto
 to-report escribe-conjunto [c]
   report (word "{ { "
-               (reduce [ [?1 ?2] -> word ?1 (word " }, { " ?2) ] (map escribe-clausula c))
+               (reduce [ [c1 c2] -> word c1 (word " }, { " c2) ] (map escribe-clausula c))
                " } }")
 end
 
@@ -101,7 +101,7 @@ end
 to-report escribe-clausula [c]
   ifelse c = []
   [report ""]
-  [report reduce [ [?1 ?2] -> word ?1 (word " v " ?2) ] (map [ ?1 -> literal ?1 ] c)]
+  [report reduce [ [v1 v2] -> word v1 (word " v " v2) ] (map [ l -> literal l ] c)]
 end
 
 ; Devuelve la VP asociada al número
@@ -121,8 +121,8 @@ to procesa
     let nc1 self
     ; con las otras claúsulas con las que puede hacer resolventes
     ask other Clausulas-Actual with [resolubles? c1 contenido] [
-      foreach lit-resolventes c1 contenido [ ?1 ->
-        let nuevaClausula limpia (resolvente c1 contenido ?1)
+      foreach lit-resolventes c1 contenido [ l ->
+        let nuevaClausula limpia (resolvente c1 contenido l)
         ; y si no estaba y no es tautología, la añadimos
         if not any? clausulas with [contenido = nuevaClausula] and not tautologia? nuevaClausula[
           hatch-clausulas 1 [
@@ -625,7 +625,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

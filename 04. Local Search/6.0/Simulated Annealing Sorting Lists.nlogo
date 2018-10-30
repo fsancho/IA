@@ -24,14 +24,14 @@ end
 
 ; The energy of a state is the sum of energies of its members
 to-report AI:EnergyState [#state]
-  report sum map [ ?1 -> local-energy ?1 #state ] (n-values (length #state) [ ?1 -> ?1 ])
+  report sum map [ i -> local-energy i #state ] (range (length #state))
 end
 
 ; Local energy that a position will apport to the full state
 to-report local-energy [i #state]
   let el item i #state
   let sb sublist #state (i + 1) (length #state)
-  report length filter [ ?1 -> ?1 < el ] sb
+  report length filter [ j -> j < el ] sb
 end
 
 to AI:SimAnnExternalUpdates [params]
@@ -544,7 +544,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -185,10 +185,10 @@ to banco
              ;; Si no está tan cerca, se gira a cada uno de los compañeros, por turno, un ángulo que
              ;; decrece exponencialmente con la distancia, para que afecten más los más cercanos.
              ;; Posteriormente, se intentan alinear con ellos de nuevo.
-             [ foreach sort banco-en-mi-campo [ ?1 ->
-                  let adjusted-turn-angle Angulo-Giro * exp( ((distance mas-cercano) - (distance ?1) ) )
-                  aproxima ?1 adjusted-turn-angle
-                  alinea ?1 adjusted-turn-angle ]]
+             [ foreach sort banco-en-mi-campo [ p ->
+                  let adjusted-turn-angle Angulo-Giro * exp( ((distance mas-cercano) - (distance p) ) )
+                  aproxima p adjusted-turn-angle
+                  alinea p adjusted-turn-angle ]]
          navega]
         [navega]
 end
@@ -980,7 +980,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

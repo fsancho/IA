@@ -22,8 +22,8 @@ to launch
                     (10 ^ -6)
                     cooling-rate
                     accept-equal-changes?
-  (foreach res (n-values N [ ?1 -> ?1 ]) [ [?1 ?2] ->
-    ask patch ?1 ?2 [
+  (foreach res (range N) [ [x y] ->
+    ask patch x y [
       sprout 1 [
         set shape "chess queen"
         set color yellow
@@ -60,11 +60,10 @@ end
 ; in the board
 to-report AI:EnergyState [#state]
   let res 0
-  let lis (n-values (length #state) [ ?1 -> ?1 ])
-  foreach lis [ ?1 ->
-    let i ?1
-    foreach (filter [ ??1 -> ??1 > i ] lis) [ ??1 ->
-      let j ??1
+  let lis (range (length #state))
+  foreach lis [ i ->
+    foreach (filter [ j -> j > i ] lis) [
+      j ->
       set res res + threat i j #state
     ]
   ]
@@ -621,7 +620,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

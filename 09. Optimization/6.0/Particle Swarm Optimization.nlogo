@@ -113,7 +113,7 @@ to go
 
     ; los límites de velocidad son necesarios porque estamos trabajando sobre un toro, lo que podría
     ; implicar que las partículas podrían girar alrededor del mundo a velocidades excesivamente altas.
-    set v map [ ?1 -> ifelse-value (abs ?1 > lim-vel-particulas) [sg ?1 * lim-vel-particulas][?1] ] v
+    set v map [ x -> ifelse-value (abs x > lim-vel-particulas) [sg x * lim-vel-particulas][x] ] v
 
     ; orientarse en la dirección de mi velocidad
     facexy (xcor + first v) (ycor + last v)
@@ -141,11 +141,11 @@ to actualiza-objeto-destacado
 end
 
 to-report *v [lambda v1]
-  report map [ ?1 -> lambda * ?1 ] v1
+  report map [ x -> lambda * x ] v1
 end
 
 to-report +v [v1 v2]
-  report (map [ [?1 ?2] -> ?1 + ?2 ] v1 v2)
+  report (map + v1 v2)
 end
 
 to-report sg [x]
@@ -153,7 +153,7 @@ to-report sg [x]
 end
 
 to-report norma [v1]
-  report sqrt sum map [ ?1 -> ?1 * ?1 ] v1
+  report sqrt sum map [ x -> x * x ] v1
 end
 ; Copyright 2008 Uri Wilensky. All rights reserved.
 ; The full copyright notice is in the Information tab.
@@ -804,7 +804,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

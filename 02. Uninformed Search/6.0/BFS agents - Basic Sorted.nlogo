@@ -35,9 +35,9 @@ AI:transitions-own
 
 to-report applicable-transitions
   report (list
-           (list "*3" ([ ?1 -> ?1 * 3 ]))
-           (list "+7" ([ ?1 -> ?1 + 7 ]))
-           (list "-2" ([ ?1 -> ?1 - 2 ])))
+           (list "*3" ([ x -> x * 3 ]))
+           (list "+7" ([ x -> x + 7 ]))
+           (list "-2" ([ x -> x - 2 ])))
 end
 
 ; valid? is a boolean report to say which states are valid
@@ -52,8 +52,8 @@ end
 ; states that are valid.
 
 to-report children-states
-  report filter [ ?1 -> valid? (first ?1) ]
-                (map [ ?1 -> (list (run-result (last ?1) content) ?1) ]
+  report filter [ s -> valid? (first s) ]
+                (map [ t -> (list (run-result (last t) content) t) ]
                      applicable-transitions)
 end
 
@@ -94,15 +94,15 @@ to BFS [#initial-state #final-state]
   while [any? AI:states with [not explored?]]
   [
     foreach sort (AI:states with [not explored?])
-    [ ?1 ->
-      ask ?1
+    [ s ->
+      ask s
       [
         ; Compute the children states by applying every rule to the current state
         foreach children-states
-        [ ??1 ->
+        [ ns ->
           ; We separate the contents and transitions from each children
-          let new-state first ??1
-          let applied-rule last ??1
+          let new-state first ns
+          let applied-rule last ns
           ; We consider only new states (states that have not been visited previously)
           if not any? AI:states with [content = new-state]
           [
@@ -186,8 +186,8 @@ to show-output
   output-print (word "Go from " Initial_State " to " Final_State)
   output-print (word "using the transitions:")
   foreach applicable-transitions
-  [ ?1 ->
-    output-print (first ?1)
+  [ t ->
+    output-print (first t)
   ]
 end
 @#$#@#$#@
@@ -672,7 +672,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

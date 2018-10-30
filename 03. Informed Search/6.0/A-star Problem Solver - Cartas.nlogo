@@ -74,7 +74,7 @@ to test
   if path != false [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
-    print (word "Actions to get it: " (map [ ?1 -> first [rule] of ?1 ] path))
+    print (word "Actions to get it: " (map [ t -> first [rule] of t ] path))
     print (word "Current State: " [content] of ([end2] of last path))
   ]
   print (word (max [who] of turtles - count AI:states) " searchers used")
@@ -85,8 +85,9 @@ end
 ; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
 ; highlight report
 to highlight-path [path]
-  foreach path [ ?1 ->
-    ask ?1 [
+  foreach path [
+    t ->
+    ask t [
       set color red set thickness .4
     ]
   ]
@@ -148,7 +149,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

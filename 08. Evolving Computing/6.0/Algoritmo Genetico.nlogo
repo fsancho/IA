@@ -124,7 +124,7 @@ end
 ;; soluci�n. La probabilidad de modificar cada bit se controla por medio del
 ;; slider RAZON-MUTACION.
 to mutar   ;; procedimiento de tortuga
-  set bits map [ ?1 -> ifelse-value (random-float 100.0 < razon-mutacion) [1 - ?1] [?1] ]
+  set bits map [ b -> ifelse-value (random-float 100.0 < razon-mutacion) [1 - b] [b] ]
                bits
 end
 
@@ -161,7 +161,7 @@ end
 ;; posteriormente REMOVE para quitar los resultados de igualdad, y LENGTH
 ;; para contar los que quedan (las diferencias).
 to-report distancia-hamming [bits1 bits2]
-  report (length remove true (map [ [?1 ?2] -> ?1 = ?2 ] bits1 bits2)) / world-width
+  report (length remove true (map [ [b1 b2] -> b1 = b2 ] bits1 bits2)) / world-width
 end
 
 ;; ====== Plotting
@@ -751,7 +751,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@

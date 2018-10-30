@@ -33,10 +33,8 @@ globals [
 to-report transiciones-aplicables [c]
   let t-a []
   let lista (n-values M [ ?1 -> ?1 ])
-  foreach lista [ ?1 ->
-    let i ?1
-    foreach lista [ ??1 ->
-      let j ??1
+  foreach lista [ i ->
+    foreach lista [ j ->
       let t (list (word i "->" j) (list i j))
       if transicion-valida? t c [set t-a lput t t-a]
     ]
@@ -103,8 +101,8 @@ to grafo-completo [estado-inicial]
     [
       ; Calculamos los estados sucesores aplicando cada regla al estado actual
       foreach transiciones-aplicables contenido
-      [ ?1 ->
-        let estado-aplicado aplica-transicion ?1 contenido
+      [ t ->
+        let estado-aplicado aplica-transicion t contenido
         ; Solo consideramos los estados nuevos
         ifelse not any? estados with [contenido = estado-aplicado]
         [
@@ -115,7 +113,7 @@ to grafo-completo [estado-inicial]
             set label contenido
             set explorado? false
             ; y lo enlazamos con su padre por medio de un link etiquetado
-            create-transicion-from myself [set regla ?1 set label first ?1 set label-color black]
+            create-transicion-from myself [set regla t set label first t set label-color black]
             set color white
             ; Formamos el camino desde el inicio hasta él
             set camino lput self camino
@@ -123,7 +121,7 @@ to grafo-completo [estado-inicial]
         ]
         [
           let pasado one-of estados with [contenido = estado-aplicado]
-          create-transicion-to pasado [set regla ?1 set label first ?1 set label-color black]
+          create-transicion-to pasado [set regla t set label first t set label-color black]
         ]
         ; Actualizamos la representación
         if layout? [repeat 10 [layout]]
@@ -223,7 +221,6 @@ to Q-ejecuta
     ]
   ;print ""
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -838,7 +835,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

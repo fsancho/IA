@@ -135,11 +135,11 @@ to explore-BFS [#start]
   while [any? nodes with [in-development?]]
   [
     ; We take to be developed nodes sorted by index
-    let successors sort-by [ [?1 ?2] -> [index] of ?1 <= [index] of ?2 ] nodes with [in-development?];
+    let successors sort-by [ [n1 n2] -> [index] of n1 <= [index] of n2 ] nodes with [in-development?];
     ; And each of them is expanded enumerating their children
     foreach successors
-    [ ?1 ->
-      ask ?1
+    [ s ->
+      ask s
       [
         ; After that, they are visited but not in development
         set in-development? false
@@ -771,7 +771,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

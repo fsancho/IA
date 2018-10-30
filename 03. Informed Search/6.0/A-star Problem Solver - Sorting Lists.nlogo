@@ -29,7 +29,7 @@ end
 
 to-report AI:children-states
   let indexes [0 1 2]
-  report (map [ ?1 -> (list (transp ?1 content) (list (word "T-" ?1) 1 ?1)) ] indexes)
+  report (map [ i -> (list (transp i content) (list (word "T-" i) 1 i)) ] indexes)
 end
 
 ; final-state? is a state report that identifies the final states for the problem.
@@ -37,7 +37,7 @@ end
 ; equal to the Final State). It allows the use of parameters because maybe the
 ; verification of reaching the goal depends on some extra information from the problem.
 to-report AI:final-state? [params]
-  report ( reduce and (map [ ?1 -> (item ?1 content) <= (item (?1 + 1) content) ] [0 1 2]))
+  report ( reduce and (map [ i -> (item i content) <= (item (i + 1) content) ] [0 1 2]))
 end
 
 
@@ -45,7 +45,7 @@ end
 to-report AI:heuristic [#Goal]
   let indexes [0 1 2]
   let c [content] of current-state
-  report length filter [ ?1 -> ?1 ] (map [ ?1 -> (item ?1 c) > (item (?1 + 1) c) ] indexes)
+  report length filter [ v -> v ] (map [ i -> (item i c) > (item (i + 1) c) ] indexes)
 end
 
 ;--------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ to test
   if path != false [
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
-    print (word "Actions to sort it: " (map [ ?1 -> first [rule] of ?1 ] path))
+    print (word "Actions to sort it: " (map [ t -> first [rule] of t ] path))
   ]
   print (word (max [who] of turtles - count AI:states) " searchers used")
   print (word (count AI:states) " states created")
@@ -77,8 +77,9 @@ end
 ; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
 ; highlight report
 to highlight-path [path]
-  foreach path [ ?1 ->
-    ask ?1 [
+  foreach path [
+    t ->
+    ask t [
       set color red set thickness .4
     ]
   ]
@@ -140,7 +141,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
