@@ -35,7 +35,7 @@ La función principal de la librería **BFS** es el procedimiento `BFS`, que con
 Esencialmente, el algoritmo calcula recursivamente los estados sucesores de los estados actuales (_AI:states_) y los conecta por medio de links (_AI:transitions_). Este proceso se repite hasta alcanzar el estado objetivo o si se ha terminado de recorrer el espacio completo y no se ha alcanzado el objetivo. `BFS` es por tanto un report, que devolverá:
 
 + `False` si no ha habido éxito en la búsqueda.
-+ El **estado final* alcanzado, si dicho estado es un estado final válido que resuelve el problema.
++ El *estado final* alcanzado, si dicho estado es un estado final válido que resuelve el problema.
 
 Ha de tenerse en cuenta que la búsqueda podría dar como resultado un proceso infinito, lo que en NetLogo puede provocar problemas de estabilidad en el motor de ejecución.
 
