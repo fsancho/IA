@@ -95,7 +95,7 @@ to-report A* [#Start #Goal #debug? #visible?]
     ;             any? searchers with [active?]]
     if any? AI:searchers with [final-searcher? #Goal] [
       let c min [cost] of (AI:searchers with [final-searcher? #Goal])
-      ask AI:searchers with [active? and cost > c] [set active? false]
+      ask AI:searchers with [active? and cost >= c] [set active? false]
     ]
   ]
   ; When the loop has finished, we have two options: no path, or a searcher has reached the goal
