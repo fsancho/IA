@@ -12,7 +12,7 @@ to setup
 end
 
 to launch
-  let M1 (n-values 10 [x -> x + 1])
+  let M1 (range 1 11)
   let M2 n-of 4 M1
   foreach M2 [ x -> set M1 remove x M1]
   Let Initial_State (list M1 M2)
@@ -563,7 +563,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

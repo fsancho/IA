@@ -17,7 +17,7 @@ end
 ; Launch the Simulated Annealing search, and after having the solution,
 ; put the queens following that solution
 to launch
-  let res AI:SimAnn (shuffle (n-values N [random N]))
+  let res AI:SimAnn (n-values N [random N])
                     tries-by-cycle
                     (10 ^ -6)
                     cooling-rate
@@ -41,8 +41,8 @@ end
 
 ; Move one of the queens randomly in its column
 to-report AI:get-new-state [#state]
-  let i random (length #state)
-  let ai random (length #state)
+  let i random N
+  let ai random N
   report replace-item i #state ai
 end
 
@@ -59,15 +59,7 @@ end
 ; The energy of the system is the number of threats (only counted once)
 ; in the board
 to-report AI:EnergyState [#state]
-  let res 0
-  let lis (range (length #state))
-  foreach lis [ i ->
-    foreach (filter [ j -> j > i ] lis) [
-      j ->
-      set res res + threat i j #state
-    ]
-  ]
-  report res
+  report sum map [i -> sum map [j -> threat i j #state] (range (i + 1) N)] (range N)
 end
 
 ; External Update to be executed in every cycle main loop
