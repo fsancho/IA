@@ -17,7 +17,7 @@ Además, en la versión 5.3.1 se puede encontrar la extensión `rnd`, de la que 
 
 Esta librería permite aplicar el algoritmo de Templado Simulado general sobre problemas representados de forma abstracta que verifiquen algunas ligeras restricciones. Para ello, la librería trabaja con las siguientes variables globales reservadas:
 
-Los estados se representan por medio de la familia de tortugas _AI:states_, que deben contener (al menos) las siguientes propiedades:
+Como solo se mantiene un estado que va modificándose aleatoriamente, no es necesario el uso de una familia de agentes para almacenarlo, pero se debe mantener un conjunto de valores globales que indiquen la evolución y configuración del proceso en cada iteración. Para ello, se hará uso de las siguientes variables globales:
 
 + `AI:SimAnnGlobalEnergy`: Almacena la energia del estado actual.
 + `AI:SimAnnTemperature`: Almacena la temperatura actual del sistema.
