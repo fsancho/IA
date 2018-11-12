@@ -167,10 +167,10 @@ NIL
 1
 
 MONITOR
-90
-475
-152
-520
+10
+210
+72
+255
 # States
 count AI:states
 17

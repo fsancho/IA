@@ -77,6 +77,7 @@ to-report AI:try-changes [tries #state]
     ; ... or being greater, the current Temp probably accepts it
     if (new-energy < old-energy) or
        (AI:accept-equal-changes? and new-energy = old-energy) or
+;       ((random-float 1.0 < exp ((old-energy - new-energy) / AI:SimAnnTemperature)))
        ((random-float 1.0) < AI:SimAnnTemperature)
        [
          ; ... then we take the new state as current state

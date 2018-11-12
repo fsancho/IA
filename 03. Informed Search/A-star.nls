@@ -95,7 +95,12 @@ to-report A* [#Start #Goal #debug? #visible?]
     ;             any? searchers with [active?]]
     if any? AI:searchers with [final-searcher? #Goal] [
       let c min [cost] of (AI:searchers with [final-searcher? #Goal])
-      ask AI:searchers with [active? and cost >= c] [set active? false]
+      ; If the heuristic is optimistinc, then we can remove all the searchers
+      ; with an estimated cots over the real cost of the final-searcher, because
+      ; the real cost will be higher
+      ask AI:searchers with [active? and total-expected-cost >= c] [set active? false]
+      ; If the neuristic is not optimistic, then we shoud use:
+      ;ask AI:searchers with [active? and cost >= c] [set active? false]
     ]
   ]
   ; When the loop has finished, we have two options: no path, or a searcher has reached the goal

@@ -1,17 +1,14 @@
-extensions [rnd]
+__includes ["SimulatedAnnealing.nls"]
+
+extensions [rnd matrix]
 
 ; Global Variables
 globals [
+  nrows
+  ncols
   rows-dist     ; Distribution of cells in rows, for example: [3] or [2 5 2]
   cols-dist     ; Distribution of cells in columns
-  Global-Energy ; Global Energy of the system
-  Temperature   ; Temperature of the system
-]
-
-; Variables for patches: Patches = Cells
-patches-own [
-  state           ; False/True = deactivated/active
-  previous-state  ; Previous state when we try changes
+  Initial-state
 ]
 
 ; Setup procedure prepares the data for the Simulated Annealing Algorithm
@@ -20,105 +17,58 @@ to setup
   ; Load Selected Figure (it simply fill rows-dist and cols-dist variables)
   run Figure
   ; Resize the world to fit the figure
-  resize-world 0 (length cols-dist - 1) 0 (length rows-dist - 1)
-  set-patch-size (25 * 16) / (max (list world-width world-height))
+  set nrows length rows-dist
+  set ncols length cols-dist
+  resize-world 0 (ncols - 1) 0 (nrows - 1)
+  set-patch-size (25 * 16) / (max (list ncols nrows))
 
   ; Starts cell randomly (in the interface we choose the % of initially
   ;   activated cells)
-  ask patches [
-    set state (random 100 < %-initial)
-    set previous-state true
-  ]
+  set Initial-state matrix:make-constant nrows ncols 0
+  set Initial-state matrix:map [x -> (ifelse-value (random 100 < %-initial) [1][0])] Initial-state
+  ;print matrix:pretty-print-text Initial-state
 
   ; Show the current states of the cells
-  show-states
-  ; Compute the current Energy of the system
-  Compute-Global-Energy
-  ; Update plot
-  Update-Plot
-  ; Reset the Temperature
-  set Temperature 1
-  reset-ticks
+  update-view Initial-state
 end
 
 ; Main Algorithm prodecure
 ;   Associated to a forever button, hence we define one only step
-to go
-  ; Make a change on one cell
-  repeat 100 [
-  ask one-of patches [
-    ; We compute the part of the energy depending on this cell
-    let old-energy Compute-Context-Energy pxcor pycor
-    ; and store the previous states
-    Store-Previous-States
-    ; Apply the change following one of the strategies. It will
-    ;   affect only to the neighbors of the cell
-    If Strategy = "Change-me" [strategy1]
-    if Strategy = "Probabilistic" [strategy2]
-    ; Compute the new energy after the change
-    let current-energy Compute-Context-Energy pxcor pycor
-    ; If the change is not accepted, we reverse the changes made
-    if not Accept-Change? current-energy old-energy [ Reverse-changes ]
-  ]
-  ]
-  ; Update the view of the cells
-  show-states
-  ; Compute and plot the energy of the system
-  Compute-Global-Energy
-  Update-Plot
-  ; Stop if the process has reached the goal
-  if Global-Energy = 0 [stop]
-  ; Cooling process
-  set Temperature Temperature * .999
-
-  tick
+to launch
+  let res AI:SimAnn Initial-state
+                    10;tries-by-cycle
+                    (10 ^ -6)
+                    1;cooling-rate
+                    false
+  update-view res
 end
 
-; Procedure to store (and reverse) states before any change
-to Store-Previous-States
-  ask neighbors4 [ set previous-state state ]
-  set previous-state state
+to AI:SimAnnExternalUpdates [params]
+  update-view params
+  plot AI:SimAnnGlobalEnergy
+  display
 end
 
-to Reverse-changes
-  ask neighbors4 [ set state previous-state ]
-  set state previous-state
-end
-
-; Report to accept or not the changes. It is the usual method
-to-report Accept-Change? [ new old ]
-  ifelse new < old
-    [ report true ]
-    [
-      let prob exp ( ( old - new ) / Temperature )
-      report random-float 1.0 < prob
-    ]
-end
-
-; Report to evaluate the energy in the context (row and column) of the
-; cell at (x,y)
-to-report Compute-Context-Energy [ x y ]
-  report sum map Energy-Row (Context y) + sum map Energy-Column (Context x)
-end
-
-; Auxiliary report to take the context of a location
-to-report Context [x]
-  report (list (x - 1) x (x + 1))
+to-report AI:get-new-state [#state]
+  let i random nrows
+  let j random ncols
+  If Strategy = "Change-me"     [report (strategy1 #state i j)]
+  if Strategy = "Probabilistic" [report (strategy2 #state i j)]
 end
 
 ; Procedure to compute the Global ENergy of the system as the sum of energies
 ; of rows and columns
-to Compute-Global-Energy
-  let rows-error sum map Energy-Row (range world-height)
-  let cols-error sum map Energy-Column (range world-width)
-  set Global-Energy ( rows-error + cols-error )
+to-report AI:EnergyState [#state]
+  let rows-error sum map [r -> Energy-Row    #state r] (range nrows)
+  let cols-error sum map [c -> Energy-Column #state c] (range ncols)
+  report ( rows-error + cols-error )
 end
 
 ; The energy of a row is computed from the error between the pattern
 ; of the goal row and the current row
-to-report Energy-Row [row]
-  if row < 0 or row > max-pycor [report 0]
-  let Row-states map [ p -> [state] of p ] (sort patches with [pycor = row])
+to-report Energy-Row [#state row]
+;  if row < 0 or row > max-pycor [report 0]
+  let Row-states matrix:get-row #state row
   let Row-Pattern group Row-states
   let Row-Error Compute-Error Row-Pattern (item row rows-dist)
   report Row-Error
@@ -126,9 +76,9 @@ end
 
 ; The energy of a column is computed from the error between the pattern
 ; of the goal column and the current column
-to-report Energy-Column [col]
-  if col < 0 or col > max-pxcor [report 0]
-  let Col-States map [ p -> [state] of p ] (sort patches with [pxcor = col])
+to-report Energy-Column [#state col]
+;  if col < 0 or col > max-pxcor [report 0]
+  let Col-States matrix:get-column #state col
   let Col-Pattern group Col-States
   set Col-Pattern reverse Col-Pattern
   let Col-Error Compute-Error Col-Pattern (item col cols-dist)
@@ -152,32 +102,22 @@ to-report Compute-Error [ v1 v2 ]
 end
 
 ; Report to get the groups of a row/column of states:
-;   [true true true false false true true false] -> [3 2]
+;   [0 1 1 1 0 0 1 1 0] -> [3 2]
 ; It works with reduce, leaving the false's and counting consecutive
 ;   true's with the help of an auxiliary report. After that, we must
 ;   remover the false's
-to-report group [states]
-  let res filter is-number? (reduce auxiliary-group (fput [false] states))
-  report ifelse-value (empty? res) [[0]] [res]
+to-report group [L]
+  report aux-group [] L
 end
 
-to-report auxiliary-group [L x]
-  ; false's are added directly
-  ifelse x = false
-  [report lput x L]
-  [
-    ; if x is a true, we must see if the last one was a true too or not.
-    ; We recognize this because L ends in a number that we must increment
-    let a last L
-    ifelse is-number? a
-    [
-      report lput (a + 1) (bl L)
-    ]
-    [
-      ; Otherwise, x is the first true of a serie... and we count it as 1
-      report lput 1 L
-    ]
-  ]
+to-report aux-group [ac L]
+  ifelse empty? L
+  [ report map abs ac]
+  [ ifelse first L = 0
+    [ report aux-group (map abs ac) (bf L)]
+    [ ifelse (not empty? ac) and (last ac < 0)
+      [ report aux-group (lput (last ac - 1) butlast ac) (bf L)]
+      [ report aux-group (lput -1 ac) (bf L)]]]
 end
 
 ;============================
@@ -187,8 +127,9 @@ end
 ; Two Strategis to decide the change
 
 ; The first one is simply change the state of the cell
-to strategy1
-  set state not state
+to-report strategy1 [#state i j]
+  let v matrix:get #state i j
+  report matrix:set-and-report #state i j (1 - v)
 end
 
 ; The second one applies one legal operator with different probabilities
@@ -196,29 +137,30 @@ end
 ;      Remove the cell (deactivate it)
 ;      Add a cell    (activate one neighbor)
 ;      Swap the content with a neighbor
-to strategy2
-  let operators (list [ -> Remove-Cell] [ -> Add-Cell] [ -> Swap-Cell])
+to-report strategy2 [#state i j]
   let probs (list Prob-Remove Prob-Add Prob-Swap)
-  let choice-list (map [ [o p] -> (list o p)] operators probs)
-  run first (rnd:weighted-one-of-list choice-list last)
+  let choice-list (map [ [o p] -> (list o p)] [1 2 3] probs)
+  let op (first (rnd:weighted-one-of-list choice-list last))
+  if op = 1 [report Remove-cell #state i j ]
+  if op = 2 [report Add-cell #state i j ]
+  if op = 3 [report swap-cell #state i j ]
 end
 
-to Remove-Cell
-  set state false
+to-report Remove-Cell [#state i j]
+  report matrix:set-and-report #state i j 0
 end
 
-to Add-Cell
-  set state true
+to-report Add-Cell [#state i j]
+  report matrix:set-and-report #state i j 1
 end
 
-to Swap-Cell
-  let s1 state
-  let s2 0
-  ask one-of neighbors4 [
-    set s2 state
-    set state s1
-  ]
-  set state s2
+to-report Swap-Cell [#state i j]
+  let s1 matrix:get #state i j
+  let movs (list (list (i - 1) j) (list (i + 1) j) (list i (j - 1)) (list i (j + 1)))
+  let p2 one-of filter [p -> ((first p) >= 0 and (first p) < nrows and (last p) >= 0 and (last p) < ncols)] movs
+  let s2 matrix:get #state (first p2) (last p2)
+  let M matrix:set-and-report #state i j s2
+  report matrix:set-and-report M (first p2) (last p2) s1
 end
 
 ;==================
@@ -226,16 +168,11 @@ end
 ;==================
 
 ; Update the visual representation of cells
-to show-states
+to update-view [#state]
   ask patches [
-    set pcolor ifelse-value state [black][white]
+    let s matrix:get #state pycor pxcor
+    set pcolor item s [white black]
   ]
-end
-
-; Plot the Global Energy of the system
-to Update-Plot
-    set-current-plot "Global Energy"
-    plot Global-Energy
 end
 
 ;; ;;;;;;;;;;;;;;;;;;;;;
@@ -298,8 +235,8 @@ end
 GRAPHICS-WINDOW
 190
 10
-591
-412
+579
+400
 -1
 -1
 57.142857142857146
@@ -359,9 +296,9 @@ BUTTON
 90
 180
 135
-go
-go
-T
+NIL
+Launch
+NIL
 1
 T
 OBSERVER
@@ -395,7 +332,7 @@ MONITOR
 97
 500
 Global Energy
-Global-Energy
+AI:SimAnnGlobalEnergy
 3
 1
 11
@@ -454,7 +391,7 @@ Weight-Dif
 Weight-Dif
 0
 50
-2.0
+9.0
 1
 1
 NIL
@@ -475,8 +412,8 @@ MONITOR
 135
 180
 180
-NIL
-Temperature
+Temp
+AI:SimAnnTemperature
 17
 1
 11
@@ -489,7 +426,7 @@ CHOOSER
 Strategy
 Strategy
 "Change-me" "Probabilistic"
-1
+0
 
 @#$#@#$#@
 ## ¿QUÉ ES?

@@ -48,7 +48,7 @@ to-report AI:heuristic [#Goal]
   let M2 last [content] of current-state
   let suma ifelse-value (M1 = []) [0][sum M1]
   let prod ifelse-value (M2 = []) [0] [reduce * M2]
-  report abs (suma - 36) + abs (prod - 360) / 10
+  report abs (suma - 36) + abs (prod - 360)
 end
 
 ;--------------------------------------------------------------------------------
@@ -75,10 +75,18 @@ to test
     ;repeat 1000 [layout-spring states links 1 3 .3]
     highlight-path path
     print (word "Actions to get it: " (map [ t -> first [rule] of t ] path))
-    print (word "Current State: " [content] of ([end2] of last path))
+    let c [content] of ([end2] of last path)
+    print (word "Current State: " c)
+    set M1 first c
+    set M2 last c
+    let suma ifelse-value (M1 = []) [0][sum M1]
+    let prod ifelse-value (M2 = []) [0] [reduce * M2]
+    show suma
+    show prod
   ]
   print (word (max [who] of turtles - count AI:states) " searchers used")
   print (word (count AI:states) " states created")
+
 end
 
 

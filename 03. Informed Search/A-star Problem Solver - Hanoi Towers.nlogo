@@ -176,10 +176,10 @@ NIL
 1
 
 MONITOR
-90
-475
-152
-520
+15
+125
+77
+170
 # States
 count AI:states
 17
@@ -195,7 +195,7 @@ N-discs
 N-discs
 1
 10
-3.0
+5.0
 1
 1
 NIL
