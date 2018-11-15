@@ -12,6 +12,7 @@ globals [
 
 to-report ftest [x]
   report sin (180 * e ^ x)
+  ;report x ^ 3
 end
 
 
@@ -28,7 +29,8 @@ end
 to Launch
   let best AI:GeneticAlgorithm 200 Population crossover-ratio mutation-ratio
   plots
-  show [content] of best
+  let pol sort-by [[x y] -> (last x) < (last y)] [content] of best
+  show reduce [[x y] -> (word x " + " y)]  map [x -> (word (precision (first x) 2) " x^" (last x))] pol
 end
 
 to plots
@@ -246,7 +248,7 @@ mutation-ratio
 mutation-ratio
 0
 50
-6.5
+5.0
 0.1
 1
 NIL
@@ -277,7 +279,7 @@ SWITCH
 183
 plot-diversity?
 plot-diversity?
-1
+0
 1
 -1000
 
@@ -304,11 +306,11 @@ PLOT
 f(x)
 NIL
 NIL
-0.0
+-1.0
 1.0
-0.0
-1.0
-true
+-2.0
+2.0
+false
 false
 "" ""
 PENS
