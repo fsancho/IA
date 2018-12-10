@@ -13,6 +13,7 @@ AI:particles-own [
   pos
   personal-best-value
   personal-best-pos
+  evaluation
 ]
 
 ;------------------------------------------------------------------------------------------
@@ -41,11 +42,13 @@ to AI:Create-particles [#population #dimension]
     set pos n-values #dimension [random-float 1]
         ; proporcionar a las partículas velocidades iniciales (vx y vy) con una distribución normal
     set velocity n-values #dimension  [(random-normal 0 1)]
+    set evaluation AI:evaluation
     ; el punto de partida es la mejor localización actual de la partícula
-    set personal-best-value AI:evaluation
+    
+    set personal-best-value evaluation
     set personal-best-pos pos
   ]
-  let best max-one-of AI:particles [AI:evaluation]
+  let best min-one-of (AI:particles with-max [evaluation]) [who]
   set global-best-value [personal-best-value] of best
   set global-best-pos [personal-best-pos] of best
 end
@@ -67,18 +70,21 @@ end
 to AI:PSO-step [#inertia-particle #atraction-best-personal #atraction-best-global #lim-vel-particles]
   ; First, check if the best values mus be updated (personals and global)
   ask AI:particles [
-    let eval AI:evaluation
-    if eval > personal-best-value
+    if evaluation > personal-best-value
     [
-      set personal-best-value eval
+      set personal-best-value evaluation
       set personal-best-pos pos
     ]
-    if global-best-value < personal-best-value
-    [
-      set global-best-value personal-best-value
-      set global-best-pos personal-best-pos
-    ]
+;    if global-best-value < personal-best-value
+;    [
+;      set global-best-value personal-best-value
+;      set global-best-pos personal-best-pos
+;    ]
   ]
+  let best min-one-of (AI:particles with-max [personal-best-value]) [who]
+  set global-best-value [personal-best-value] of best
+  set global-best-pos [personal-best-pos] of best
+
   ; Then, update velocities and positions of every particle
   ask AI:particles
   [
@@ -99,6 +105,7 @@ to AI:PSO-step [#inertia-particle #atraction-best-personal #atraction-best-globa
     
     ; Update the position of the particle
     set pos map cut01 (+v pos velocity)
+    set evaluation AI:evaluation
   ]
 end
 
