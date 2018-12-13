@@ -8,3 +8,4 @@ Contenido aproximado de los ficheros de esta carpeta:
 + `Carpeta SOM`: Librería con el algoritmo **Self-Organizing Maps** con algunos ejemplos de demostración.
 + `Carpeta Redes Neuronales`: Carpeta con algunos algoritmos de aprendizaje relacionados con el uso de **Redes Neuronales**. Tiene también un ejemplo práctico que hace uso de **Back Propagation** para aprender caracteres. viene con algunos ejemplos de demostración que se pueden precargar (dígitos, letras mayúsculas y letras minúsculas) 
 + `Q-Learning.nlogo`: Ejemplo del algoritmo por refuerzo **Q-Learning** para aprender busquedas en espacios de estado. Se ejemplifica con la búsqueda de la solución óptima en el problema de las Torres de Hanoi.
++ **Presentaciones** varias para diversos conceptos relacionados con ML.
