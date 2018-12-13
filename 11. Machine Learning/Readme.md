@@ -2,13 +2,9 @@
   
 Contenido aproximado de los ficheros de esta carpeta:
 
-+ `K-vecinos.nlogo`: Ejemplo de cómo implementar un algoritmo básico de los K vecinos más cercanos para clasificar puntos de un espacio 2D.
-+ `K-Medias.nlogo`: Ejemplo de cómo implementar el algoritmo de K-medias en dimensión 2. Además, presenta una primera aproximación a encontrar el número de clusters óptimo.
-+ `ID3.zip`: Paquete ZIP con el algoritmo ID3 y algunos ejemplos de demostración. Solo trabaja sobre variables categóricas, no considera variables numéricas continuas.
-+ `Carpeta SOM`: Librería con el algoritmo Self-Organized Maps con algunos ejemplos de demostración.
-+ `Redes Neuronales.zip`: Paquete ZIP con un algoritmo de aprendizaje que hace uso de Back Propagation para aprender caracteres. viene con algunos ejemplos de demostración que se pueden precargar (dígitos, letras mayúsculas y letras minúsculas) 
-+ `Q-Learning.nlogo`: Ejemplo del algoritmo por refuerzo Q-Learning para aprender busquedas en espacios de estado. Se ejemplifica con la búsqueda de la solución óptima en el problema de las Torres de Hanoi.
-
-## Desactualizado
-
-+ `SOM2015.ZIP` : En su lugar deben usarse las librerías y ejemplos que están en la carpeta `SOM`.
++ `K-vecinos.nlogo`: Ejemplo de cómo implementar un algoritmo básico de los **K vecinos más cercanos** para clasificar puntos de un espacio 2D.
++ `K-Medias.nlogo`: Ejemplo de cómo implementar el algoritmo de **K-medias** en dimensión 2. Además, presenta una primera aproximación a encontrar el número de clusters óptimo. Se proporciona una versión similar para dimensión genérica.
++ `ID3.zip`: Paquete ZIP con el algoritmo **ID3** y algunos ejemplos de demostración. Solo trabaja sobre variables categóricas, no considera variables numéricas continuas.
++ `Carpeta SOM`: Librería con el algoritmo **Self-Organizing Maps** con algunos ejemplos de demostración.
++ `Carpeta Redes Neuronales`: Paquete ZIP con un algoritmo de aprendizaje que hace uso de **Back Propagation** para aprender caracteres. viene con algunos ejemplos de demostración que se pueden precargar (dígitos, letras mayúsculas y letras minúsculas) 
++ `Q-Learning.nlogo`: Ejemplo del algoritmo por refuerzo **Q-Learning** para aprender busquedas en espacios de estado. Se ejemplifica con la búsqueda de la solución óptima en el problema de las Torres de Hanoi.
