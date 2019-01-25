@@ -2,14 +2,10 @@
   
 Contenido aproximado de los ficheros de esta carpeta:
 
-+ `K-vecinos.nlogo`: Ejemplo de cómo implementar un algoritmo básico de los K vecinos más cercanos para clasificar puntos de un espacio 2D.
-+ `K-Medias.nlogo`: Ejemplo de cómo implementar el algoritmo de K-medias en dimensión 2. Además, presenta una primera aproximación a encontrar el número de clusters óptimo.
-+ `ID3.zip`: Paquete ZIP con el algoritmo ID3 y algunos ejemplos de demostración. Solo trabaja sobre variables categóricas, no considera variables numéricas continuas.
-+ `Carpeta SOM`: Librería con el algoritmo Self-Optimization Maps con algunos ejemplos de demostración.
-+ `Redes Neuronales.zip`: Paquete ZIP con un algoritmo de aprendizaje que hace uso de Back Propagation para aprender caracteres. viene con algunos ejemplos de demostración que se pueden precargar (dígitos, letras mayúsculas y letras minúsculas) 
-+ `Smart Sweepers.zip`: Paquete ZIP con una demostración de cómo aplicar algoritmos genéticos para optimizar redes neuronales con un fin prefijado. En este caso, se intenta aprender el movimiento de un par de motores de un robot para alcanzar comida en el entorno. 
-+ `Q-Learning.nlogo`: Ejemplo del algoritmo por refuerzo Q-Learning para aprender busquedas en espacios de estado. Se ejemplifica con la búsqueda de la solución óptima en el problema de las Torres de Hanoi.
-
-## Desactualizado
-
-+ `SOM2015.ZIP` : En su lugar deben usarse las librerías y ejemplos que están en la carpeta `SOM`.
++ `K-vecinos.nlogo`: Ejemplo de cómo implementar un algoritmo básico de los **K vecinos más cercanos** para clasificar puntos de un espacio 2D.
++ `K-Medias.nlogo`: Ejemplo de cómo implementar el algoritmo de **K-medias** en dimensión 2. Además, presenta una primera aproximación a encontrar el número de clusters óptimo. Se proporciona una versión similar para dimensión genérica.
++ `Carpeta ID3`: Carpeta con el algoritmo **ID3** y algunos ejemplos de demostración. Solo trabaja sobre variables categóricas, no considera variables numéricas continuas.
++ `Carpeta SOM`: Librería con el algoritmo **Self-Organizing Maps** con algunos ejemplos de demostración.
++ `Carpeta Redes Neuronales`: Carpeta con algunos algoritmos de aprendizaje relacionados con el uso de **Redes Neuronales**. Tiene también un ejemplo práctico que hace uso de **Back Propagation** para aprender caracteres. viene con algunos ejemplos de demostración que se pueden precargar (dígitos, letras mayúsculas y letras minúsculas) 
++ `Q-Learning.nlogo`: Ejemplo del algoritmo por refuerzo **Q-Learning** para aprender busquedas en espacios de estado. Se ejemplifica con la búsqueda de la solución óptima en el problema de las Torres de Hanoi.
++ **Presentaciones** varias para diversos conceptos relacionados con ML.
