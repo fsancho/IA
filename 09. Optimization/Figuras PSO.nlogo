@@ -32,7 +32,7 @@ to-report calcula-evaluacion
       [ set penalizacion penalizacion + (r1 + r2 - distx) ^ 2 * (r1 + r2 - disty) ^ 2]
     ]
   ]
-  report area + 10 * penalizacion
+  report area + 2 * penalizacion
 end
 
 ; Tansforma una lista de tamaño 2n en una lista de n pares
@@ -58,7 +58,7 @@ to Launch
   ;#atraction-best-personal
   ;#atraction-best-global
   ;#lim-vel-particles
-  let best AI:PSO 500 .5 1 .5 .01
+  let best AI:PSO 500 .5 .5 .5 .01
   let pos-best last best
   let lista map convert-a-mundo (lista-a-pares pos-best)
   (foreach (sort figuras) lista [
@@ -163,7 +163,7 @@ num-figuras
 num-figuras
 1
 10
-10.0
+4.0
 1
 1
 NIL
@@ -212,7 +212,7 @@ num-particulas
 num-particulas
 0
 500
-500.0
+200.0
 10
 1
 NIL

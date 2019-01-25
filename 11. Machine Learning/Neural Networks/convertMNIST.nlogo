@@ -1,138 +1,76 @@
-globals [
-  clases
-]
+extensions [csv]
 
-to setup
-  ca
-  crt 1 [set shape "circle 2"]
-  let colores n-of N_clases base-colors
-  ask n-of poblacion_inicial patches
-  [
-    set pcolor one-of colores
-    ask turtle 0 [move-to myself set color pcolor stamp]
-  ]
-  set clases patches with [pcolor != black]
+globals [data]
+
+patches-own [pcolor-new]
+
+to load-file
+  set data csv:from-file "mnist_train_100.csv"
 end
 
-to k-vecinos
-  ask patches with [not member? self clases]
-  [
-    let distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
-    set distancias map [ x -> last x ] toma k distancias
-    let c first modes distancias
-    set pcolor c
-  ]
+to show-digit [idx]
+  let datum item idx data
+  let val first datum
+  (foreach (sort patches) (bf datum) [
+    [p i] ->
+    ask p [
+      set pcolor (scale-color white i 0 255)
+    ]
+  ])
 end
 
-to-report toma [n l]
-  report sublist l 0 n
+to-report bpxcor
+  report (int (pxcor / 2)) * 2
+end
+
+to-report bpycor
+  report (int (pycor / 2)) * 2
+end
+
+
+to-report bloque
+  let x bpxcor
+  let y bpycor
+  report patches with [bpxcor = x and bpycor = y ]
+end
+
+to test
+  foreach (range 0 100) [
+    i ->
+    show-digit i
+    ask patches [
+      set pcolor-new max [pcolor] of bloque
+    ]
+    ask patches [set pcolor pcolor-new]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
-622
-423
+582
+383
 -1
 -1
-4.0
+13.0
 1
 10
 1
 1
 1
 0
-0
-0
 1
--50
-50
--50
-50
+1
+1
+0
+27
+0
+27
 0
 0
 1
 ticks
 30.0
-
-SLIDER
-11
-76
-145
-109
-K
-K
-1
-Poblacion_inicial
-1.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-11
-10
-145
-43
-Poblacion_inicial
-Poblacion_inicial
-0
-100
-100.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-11
-43
-145
-76
-N_Clases
-N_Clases
-0
-13
-2.0
-1
-1
-NIL
-HORIZONTAL
-
-BUTTON
-145
-10
-208
-76
-NIL
-setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-145
-76
-208
-109
-NIL
-k-vecinos
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -234,9 +172,9 @@ Circle -7500403 true true 0 0 300
 
 circle 2
 false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 30 30 240
+0
+Circle -7500403 true true 0 0 300
+Circle -16777216 true false 30 30 240
 
 cow
 false

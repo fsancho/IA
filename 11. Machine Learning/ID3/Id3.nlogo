@@ -30,12 +30,11 @@ to-report entropia-rel [ds atr]
   ; Para cada posible valor del atributo:
   foreach remove-duplicates val
   [ x ->
-    let v x
     ; Calculamos su frecuencia relativa
-    let f frec v val
+    let f frec x val
     ; Filtramos solo aquellas filas que tienen ese valor en el atributo, y
     ; formamos un nuevo dataset, con cabecera, con esas filas
-    let ds2 (fput (first ds) filter [ y -> (item p y) = v ] (bf ds))
+    let ds2 (fput (first ds) filter [ y -> (item p y) = x ] (bf ds))
     ;show-dataset ds2
     ; Calculamos la entropia de la última columna en el dataset filtrado
     let ex entropia  bf (columna (last atrs) ds2)
@@ -680,7 +679,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
