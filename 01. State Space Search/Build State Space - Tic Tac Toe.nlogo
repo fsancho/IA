@@ -17,11 +17,11 @@ __includes [ "BSS.nls" "LayoutSpace.nls"]
 ; Rules are simple, whereve there is a 0 in the board, the player can put a piece.
 
 to-report free-slots [board]
-  report map [ ?1 -> free-slots-row ?1 ] board
+  report map [ i -> free-slots-row i ] board
 end
 
 to-report free-slots-row [row]
-  report filter [ ?1 -> item ?1 row = " " ] [0 1 2]
+  report filter [ i -> item i row = " " ] [0 1 2]
 end
 
 ; Put the piece p in the position (i,j) of the board
@@ -45,10 +45,8 @@ to-report AI:children-states
   let player last c
   let new-player ifelse-value ("X" = player) ["O"]["X"]
   let resp []
-  foreach [0 1 2] [ ?1 ->
-    let i ?1
-    foreach (item i free) [ ??1 ->
-      let j ??1
+  foreach [0 1 2] [ i ->
+    foreach (item i free) [ j ->
       set resp fput (list (list (put-piece player i j board)
                                 new-player)
                           [""])
@@ -589,7 +587,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

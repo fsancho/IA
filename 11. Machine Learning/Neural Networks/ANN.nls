@@ -1,0 +1,244 @@
+; Family of neurons
+breed [ANN:neurons ANN:neuron]
+ANN:neurons-own [
+  ANN:activation   ; Activation value (output) of the neuron
+  ANN:grad         ; Gradient vlue of the neuron (back-propagation)
+  ANN:layer        ; Layer neuron belongs to
+  ANN:neuron-type  ; Neuron Type (input, output, hidden, bias). Only informative.
+]
+
+; Family of connections in the ANN
+directed-link-breed [ANN:links ANN:link]
+ANN:links-own [ANN:weight]
+
+; Global variables for the library
+globals [
+  ANN:Depth          ; Number of layers
+  ANN:output-neurons ; Size of output layer
+  ANN:input-neurons  ; Size of input layer
+  ANN:epoch-error    ; Current epoch error during training
+  ANN:learning-rate  ; Ratio of Learning rate (back-propagation)
+]
+
+;; ---------------------------- Creation of the ANN -------------------------------
+;; 
+;; Procedure to create the ANN:
+;;   It receives a list of int values
+;;        architecture = [N-IL N-HL1 ... N-HLk N-OL]
+;;   where every item is the size (number of neurons) of every layer, from imput to output
+
+to ANN:create [architecture]
+  set ANN:Depth length architecture
+  ; Create every layer in the network (no bias)
+  (foreach architecture (range ANN:Depth)
+    [ [layer-size idx] ->
+      create-ANN:neurons layer-size  [
+        set shape "circle"
+        set ANN:layer idx
+        set ANN:activation random-float 0.1
+        ifelse idx = 0 
+        [set ANN:neuron-type "input"]
+        [ifelse idx = ANN:Depth - 1 
+          [set ANN:neuron-type "output"]
+          [set ANN:neuron-type "hidden"]
+        ]
+       ht 
+      ]
+    ])
+  ; Full connect every layer with the next one
+  foreach (range (ANN:Depth - 1))
+  [ lay ->
+    ANN:connect (ANN:neurons-layer lay) (ANN:neurons-layer (lay + 1))
+    ; If it is a hidden layer, we create bias and connet them
+    if lay > 0 [
+      create-ANN:neurons 1 [ 
+        set ANN:activation 1 
+        set ANN:neuron-type "bias"
+        set shape "circle"
+        set color yellow
+        ANN:connect self (ANN:neurons-layer lay)
+        set ANN:layer lay
+        ht
+      ]
+    ]
+  ]
+  ; Store the input and output layers to optimize some processes
+  set ANN:output-neurons ANN:neurons-layer (ANN:Depth - 1)
+  set ANN:input-neurons ANN:neurons-layer 0
+end
+
+;; Auxiliary procedure to connect two groups of neurons
+to ANN:connect [neurons1 neurons2]
+  ask neurons1 [
+    create-ANN:links-to neurons2 [
+      set ANN:weight random-float 0.2 - 0.1
+      hide-link
+    ]
+  ]
+end
+
+;; Report the neurons of a layer (by index, 0: input, ...)
+to-report ANN:neurons-layer [n]
+  report ANN:neurons with [ANN:layer = n]
+end
+
+;; Function that the ANN computes. 
+;;   Receives a list of input values [x1...xn]
+;;   Reports the activations of the output layer   
+to-report ANN:compute [xs]
+  ANN:set-input xs
+  ANN:Forward-Propagation
+  report map [n -> [ANN:activation] of n] (sort ANN:output-neurons)
+end
+
+;; Pass the inputs values to the input layer
+to ANN:set-input [xs]
+  (foreach (sort ANN:input-neurons) xs
+    [ [n_i x_i] -> ask n_i [set ANN:activation x_i] ])
+end
+
+;; Forward Propagation of the signal along the network
+to ANN:Forward-Propagation
+  foreach (range 1 ANN:Depth)
+  [ n ->
+    ask (ANN:neurons-layer n) [ set ANN:activation ANN:compute-neuron-activation ]
+  ]
+end
+
+;;  Activation of one neuron
+to-report ANN:compute-neuron-activation
+  report sigmoid sum [[ANN:activation] of end1 * ANN:weight] of my-in-ANN:links
+end
+
+; Sigmoid Function
+to-report sigmoid [x]
+  report 1 / (1 + e ^ (- x))
+end
+
+; Step Function
+to-report step [x]
+  ifelse x > 0.5
+    [ report 1 ]
+    [ report 0 ]
+end
+
+;; Training Procedure
+;;    Receives the number of epochs for training, the data to be used and learning rate
+to ANN:train [num-epochs data lr]
+  set ANN:learning-rate lr
+  let t 0
+  set ANN:epoch-error 0
+
+  ; Loop for num-epochs iteration
+  repeat num-epochs [
+    ; For every trainig data
+    foreach (shuffle data) [ 
+      datum ->
+      
+      ; Take the input and correct output
+      let input first datum
+      let output last datum
+      
+      ; Set inputs on input layer
+      ANN:set-input input
+      
+      ; Forward step
+      ANN:Forward-Propagation
+
+      ; Back Propagation from the output error
+      ANN:Back-propagation output
+    ]
+    set ANN:epoch-error ANN:epoch-error / (length data)
+    ANN:external-update (list t ANN:epoch-error)
+
+    set t t + 1
+  ]
+end
+
+
+
+; Back Propagation from the output error
+to ANN:Back-propagation [output]
+  let error-sample 0
+  ; Compute error and gradient of every output neurons
+  (foreach (sort ANN:output-neurons) output [
+    [n_i o_i] ->
+    ask n_i [ set ANN:grad ANN:activation * (1 - ANN:activation) * (o_i - ANN:activation) ]
+    set error-sample error-sample + ( (o_i - [ANN:activation] of n_i) ^ 2 )
+  ])
+  ; Average error of the output neurons in this epoch
+  set ANN:epoch-error ANN:epoch-error + (error-sample / count ANN:output-neurons)
+  ; Compute gradient of hidden layer neurons
+  foreach (reverse (range 1 (ANN:Depth - 1)))
+  [
+    n -> 
+    ask ANN:neurons-layer n [
+      set ANN:grad ANN:activation * (1 - ANN:activation) * sum [ANN:weight * [ANN:grad] of end2] of my-out-ANN:links
+    ]
+  ]
+  ; Update link weights
+  ask ANN:links [
+    set ANN:weight ANN:weight + ANN:Learning-rate * [ANN:grad] of end2 * [ANN:activation] of end1
+  ]
+  ;set ANN:epoch-error ANN:epoch-error / 2
+end
+
+;; Procedures to load/save weights of the network
+;; Weights will be stored as a big vector of values (sorted)
+
+to ANN:load-weights [W]
+  ; Sort the links (Netlogo will do it lexically by end1 end2
+  ; and then charge the wieghts following this order
+  (foreach W (sort ANN:links) [
+    [wij c] -> ask c [set ANN:weight wij]
+  ])
+;  (foreach W (range length W) [
+;    [wi i] ->
+;    foreach (sort ANN:neurons-layer i) [
+;      ni ->
+;      (foreach wi (sort ANN:neurons-layer (i + 1)) [
+;        [wij  nj] -> 
+;        ask ANN:link ni nj [set ANN:weight wij]
+;      ])
+;    ]
+;  ])
+end   
+
+to-report ANN:read-weights
+  report map [c -> [ANN:weight] of c] (sort ANN:links)
+end
+
+;; Procedure to pretty display the ANN
+to layout
+  no-display
+  let incx (world-width - 1) / (ANN:Depth - 1)
+  layout-spring ANN:neurons ANN:links .1 (.5 * incx) 3
+  ask ANN:neurons [
+    ifelse ANN:neuron-type = "bias" 
+    [ set xcor min-pxcor +  incx  * ANN:layer  + .5 * incx]
+    [ set xcor min-pxcor + incx  * ANN:layer ]
+  ]
+  display
+end
+
+to ANN:format
+  ask ANN:neurons [set shape "hidden-neuron" st set color white]
+  ask ANN:neurons with [ANN:neuron-type = "bias"] [set shape "bias-node" set color yellow]
+  ask ANN:input-neurons [set shape "input-neuron" set color green]
+  ask ANN:output-neurons [set shape "output-neuron" set color blue]
+  ask ANN:links [show-link]
+  repeat 100 [layout]
+end
+
+to ANN:recolor-links
+  ;ask ANN:neurons [
+  ;  set color item (step ANN:activation) [white yellow]
+  ;]
+  let MaxP max [abs ANN:weight] of ANN:links
+  ask ANN:links [
+    ;set thickness 0.05 * abs ANN:weight
+    ifelse ANN:weight > 0
+      [ set color lput (255 * abs ANN:weight / MaxP) [0 0 255]]
+      [ set color lput (255 * abs ANN:weight / MaxP) [255 0 0]]
+  ]
+end

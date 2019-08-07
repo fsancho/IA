@@ -4,7 +4,7 @@
 
 ; Minimax launch the evaluation of the current state... and reports the 
 ; successor that reaches the maximum.
-; #visible? (bool) will determine if the process produces visibal changes (colors and labels)
+; #visible? (bool) will determine if the process produces visible changes (colors and labels)
 ; or not
 to-report minimax [s #visible?]
   let res nobody
@@ -29,7 +29,7 @@ to-report eval [ #visible? ]
   ; If not, we compute maximum or minimum (it depends if the player will play or the opponent)
   ; of the evaluation of successors
   [ let selected nobody
-    ifelse player = "me"
+    ifelse player = 1
     [ set selected max-one-of legal-successors [last (eval #visible?)] ]
     [ set selected min-one-of legal-successors [last (eval #visible?)] ]
     if #visible? [

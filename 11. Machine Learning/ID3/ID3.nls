@@ -1,0 +1,195 @@
+;; Family of nodes that will build the Decision Tree
+breed [ID3:nodes ID3:node]
+ID3:nodes-own [
+  ID3:node-type ; Types: 0 (Start), 1 (Decision), 2 (Answer)
+  ID3:value     ; 0 -> Attribute to classify | 1 -> Splitting Attribute | 2 -> Classification 
+]
+
+;; Family of links that will build the Decision Tree
+directed-link-breed [ID3:links ID3:link]
+ID3:links-own [ID3:att_value]
+
+;; Dataframes ar data matrix where the first row is the head. For our ID3, last column is the attribute to 
+;; classify.
+
+; Entropy of a list (according to the frequency of their elements)
+to-report entropy [l]
+  ; Compute the relative frequency of the elements
+  let l2 map [ x -> frec x l ] (remove-duplicates l)
+  ; Apply entropy to the list of frequencies
+  report sum map [ x -> ifelse-value (x = 0)[0][(-1) * x * log x 2] ] l2
+end
+
+; Report for relative frequency of an element in a list
+to-report frec [el L]
+  report (length (filter [ x -> x = el ] L)) / (length L)
+end
+
+; Report Relative Entropy of an attribute in a dataframe
+to-report entropy-rel [df atr]
+  ; Extract the list of attributes from dataframe
+  let atrs first df
+  ; Extract values of the attribute
+  let val  bf (column atr df)
+  ; Take the index of the associated column
+  let p position atr atrs
+  ; Acumulador para calcular la entropia relativa
+  let ent-rel 0
+  ; Para cada posible valor del atributo:
+  foreach remove-duplicates val
+  [ x ->
+    ; Compute the relative frec of x
+    let f frec x val
+    ; Take only rows with x in this column, and build a new dataframe with those rows
+    let df2 (fput (first df) filter [ y -> (item p y) = x ] (bf df))
+    ; Compute the entropy of the last column in this new dataframe
+    let ex entropy  bf (column (last atrs) df2)
+    ; Accumulate it
+    set ent-rel ent-rel + f * ex
+  ]
+  report ent-rel
+end
+
+;; Gain Information in a dataframe for an attribute
+to-report GI [df atr]
+  let atrs first df
+  report (entropy bf (column (last atrs) df)) - (entropy-rel df atr)
+end
+
+; Report the attribute with max Gain Information in a dataframe
+to-report Max-GI [df]
+  let atr1 map [ x -> (list x (GI df x) ) ] (bl first df)
+  report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
+end
+
+; Report the attribute with max Ration Gain Information in a dataframe
+to-report Max-GR [df]
+  let atr1 map [ x -> (list x (ifelse-value ((entropy bf column x df) = 0) [0] [(GI df x) / (entropy bf column x df)])) ] (bl first df)
+  report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
+end
+
+;; Main procedure to create the Decision Tree with ID3
+;;       df : Dataframe
+
+to-report ID3:ID3 [df]
+  let rep nobody
+  create-ID3:nodes 1 [
+    set ID3:node-type 0
+    set ID3:value (last first df)
+    create-ID3:link-to (ID3:ID3_aux df) [set ID3:att_value ""]
+    set rep self
+  ]
+  report rep
+end
+
+; ID3 Algorithm recursive.
+;  Diferenciate between 
+;                   Answer-node (it is classified)
+;               and Decision-node (to be classified)
+;  Returns the node and, if it is Decision, then it generates the branches
+;  and resursively call itself with the new dataframes.
+to-report ID3:ID3_aux [df]
+  let r nobody
+  ifelse classified? df
+  [
+    hatch-ID3:nodes 1
+    [
+      set ID3:node-type 2
+      set ID3:value (word last last df)
+      set r self
+    ]
+  ]
+  [
+    let mx Max-GI df
+    hatch-ID3:nodes 1
+    [
+      set ID3:node-type 1
+      set ID3:value mx
+      set r self
+      foreach (remove-duplicates bf (column mx df))
+      [ x ->
+        create-ID3:link-to (ID3:ID3_aux filtra df mx x)
+        [
+          set ID3:att_value x
+        ]
+      ]
+    ]
+  ]
+  report r
+end
+
+; Report if a dataframe is classified or not
+to-report classified? [df]
+  let clas (last first df)
+  let val bf (column clas df)
+  let vals length remove-duplicates val
+  report ifelse-value (vals = 1) [true] [false]
+end
+
+
+; Reports the column of an attribute (with head)
+to-report column [at df]
+  let ats first df
+  let p position at ats
+  report map [ x -> item p x ] df
+end
+
+; Reports the dataframe filtering one attribute with one value
+to-report filtra [df atr val]
+  let atrs first df
+  let p position atr atrs
+  let df2 (fput (first df) filter [ x -> (item p x) = val ] (bf df))
+  report df2
+end
+
+; Format the ID3 network 
+to ID3:format
+  ask ID3:nodes [
+    set shape (item ID3:node-type ["circle" "decision" "square 2"])
+    set color (item ID3:node-type (list (red + 1) (blue + 2) red))
+    set size (item ID3:node-type [3 4 1])
+    set label ID3:value
+    set label-color black
+  ]
+  ask ID3:links [
+    set color gray - 2
+    set label ID3:att_value
+    set label-color gray - 2
+  ]
+end
+
+; Reports to evaluate a Decision Tree on new data
+to-report evaluate [datum]
+  ifelse ID3:node-type = 0
+  [report [evaluate datum] of one-of out-ID3:link-neighbors]
+  [ifelse ID3:node-type = 2
+    [report ID3:value]
+    [
+      let val value-of ID3:value datum
+      let next-branch my-out-ID3:links with [ID3:att_value = val]
+      show next-branch
+      ifelse any? next-branch 
+      [
+        let next-node [end2] of one-of next-branch
+        report [evaluate datum] of next-node
+      ]
+      [
+        report "ID3:Failure"
+      ]
+    ]
+  ]
+end
+
+; Take the value of attribute att in datum dat.
+; The structure of d must be: [[att1 v1] [att2 v2] ...]
+to-report value-of [att dat]
+  let fil filter [x -> first x = att] dat
+  ifelse not empty? fil
+  [
+    report last first fil
+  ]
+  [ 
+    report "ID3:Failure"
+  ]
+end
+

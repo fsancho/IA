@@ -1,74 +1,14 @@
-breed [nodos nodo]
+__includes ["ID3.nls"]
 
-;; Los datasets son matrices de datos. La primera línea es la cabecera de atributos
-;;  La última columna es el atributo que se va a clasificar.
-
-globals [
-  dataset
-  ]
-
-; Devuelve la entropia de una lista
-to-report entropia [l]
-  ; Calculamos la frecuencia relativa de cada uno de sus elementos
-  let l2 map [ x -> frec x l ] (remove-duplicates l)
-  ; Aplicamos la función de entropía a la lista de frecuencias relativas
-  report sum map [ x -> ifelse-value (x = 0)[0][(-1) * x * log x 2] ] l2
-end
-
-; Devuelve la entropía relativa de un atributo en un dataset
-to-report entropia-rel [ds atr]
-  ; Extraemos la lista de atributos del dataset
-  let atrs first ds
-  ; Extraemos los posibles valores del atributo
-  let val  bf (columna atr ds)
-  ;show val
-  ; Nº de columna asociada al atributo
-  let p position atr atrs
-  ;show p
-  ; Acumulador para calcular la entropia relativa
-  let s 0
-  ; Para cada posible valor del atributo:
-  foreach remove-duplicates val
-  [ x ->
-    ; Calculamos su frecuencia relativa
-    let f frec x val
-    ; Filtramos solo aquellas filas que tienen ese valor en el atributo, y
-    ; formamos un nuevo dataset, con cabecera, con esas filas
-    let ds2 (fput (first ds) filter [ y -> (item p y) = x ] (bf ds))
-    ;show-dataset ds2
-    ; Calculamos la entropia de la última columna en el dataset filtrado
-    let ex entropia  bf (columna (last atrs) ds2)
-    ; Lo acumulamos
-    set s s + f * ex
-  ]
-  report s
-end
-
-to-report GI [ds atr]
-  let atrs first ds
-  report (entropia bf (columna (last atrs) ds)) - (entropia-rel ds atr)
-end
-
-; Devuelve la frecuencia relativa de un elemento en una lista
-to-report frec [el lista]
-  report (length (filter [ x -> x = el ] lista)) / (length lista)
-end
-
-; Devuelve de un dataset la columna correspondiente a uno de sus atributos.
-; Importante: CON LA CABECERA
-to-report columna [at ds]
-  let ats first ds
-  let p position at ats
-  report map [ x -> item p x ] ds
-end
+globals [decision-tree]
 
 ; Muestra un dataset de forma ordenada
-to show-dataset [ds]
-  let m 1 + max map [ x -> max map [ y -> length (word y) ] x ] ds
-  output-print "Dataset:"
-  repeat 1 + (m + 1) * length (first ds) [output-type "-"]
+to show-dataframe [df]
+  let m 1 + max map [ x -> max map [ y -> length (word y) ] x ] df
+  output-print "Dataframe:"
+  repeat 1 + (m + 1) * length (first df) [output-type "-"]
   output-print ""
-  foreach ds
+  foreach df
   [ x ->
     output-type "|"
     foreach x
@@ -78,15 +18,15 @@ to show-dataset [ds]
       output-type "|"
     ]
     output-print ""
-    repeat 1 + (m + 1) * length (first ds) [output-type "-"]
+    repeat 1 + (m + 1) * length (first df) [output-type "-"]
     output-print ""
   ]
 end
 
-to-report output-dataset [ds]
-  let s "Dataset:\n"
-  let atrs first ds
-  let long map [ x -> 1 + max map [ y -> length (word y) ] (columna x ds) ] atrs
+to-report output-dataframe [df]
+  let s "Dataframe:\n"
+  let atrs first df
+  let long map [ x -> 1 + max map [ y -> length (word y) ] (column x df) ] atrs
   set s (word s "\n")
   ;; Lineas
   let lin "├"
@@ -98,7 +38,7 @@ to-report output-dataset [ds]
   set lin (word (bl lin) "┤\n")
   ;; Cabecera
   set s (word s "│ ")
-  (foreach (first ds) long
+  (foreach (first df) long
     [ [x y] ->
       set s (word s  x )
       repeat (y - length (word x)) [set s (word s " ")]
@@ -106,7 +46,7 @@ to-report output-dataset [ds]
     ])
   set s (word s "\n" lin)
   ; Cuerpo
-  foreach bf ds
+  foreach bf df
   [ x ->
     set s (word s lin)
     set s (word s "│ ")
@@ -133,123 +73,47 @@ to-report output-dataset [ds]
 end
 
 ; Carga un Dataset desde un fichero
-to-report load-Dataset
-  ca
+to-report load-Dataframe
   file-close-all
   let f user-file
+  let df []
   ;let f "Test3-ID3.txt"
   ifelse is-string? f
   [
-    set dataset []
     file-open f
     while [not file-at-end?]
     [
-      set dataset lput (read-from-string (word "[" file-read-line "]")) dataset
+      set df lput (read-from-string (word "[" file-read-line "]")) df
     ]
     file-close
-    report true
+    report df
   ]
   [report false]
 end
 
-; Devuelve el atributo de máxima ganancia de un dataset
-to-report Max-GI [ds]
-  let atr1 map [ x -> (list x (GI ds x) ) ] (bl first ds)
-  report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
-end
 
-; Devuelve el atributo de máxima ganancia de un dataset
-to-report Max-GR [ds]
-  let atr1 map [ x -> (list x (ifelse-value ((entropia bf columna x ds) = 0) [0] [(GI ds x) / (entropia bf columna x ds)])) ] (bl first ds)
-  report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
-end
 
-; Devuelve si un Dataset está ya calsificado
-to-report clasificado? [ds]
-  let clas (last first ds)
-  let val bf (columna clas ds)
-  let vals length remove-duplicates val
-  report ifelse-value (vals = 1) [true] [false]
-end
 
 ; Procedimiento principal q genera el árbol de decisión obtenido por ID3
-to ID3-main
+to main
   ca
-  if load-dataset
+  ask patches [set pcolor white]
+  set decision-tree nobody
+  let df load-dataframe
+  if df != false
   [
-    create-nodos 1 [
-      set size 3
-      set shape "circle"
-      set color red
-      set label (last first dataset)
-      create-link-to ID3 dataset
-    ]
-  layout-radial nodos links (nodo 0)
-  output-print output-dataset dataset
+    set decision-tree ID3:ID3 df
+    layout-radial ID3:nodes links (ID3:node 0)
+    output-print output-dataframe df
+    ID3:format
   ]
 end
-
-; Algoritmo ID3 recursivo.
-;  Diferencia entre un nodo-hoja (lo que queda ya está clasificado)
-;                 o un nodo-decisión (hay que clasificar más)
-;  Devuelve siempre el nodo correspondiente, y si hay que continuar
-;   con la clasificación, entonces genera las ramas correspondientes
-;   y llama recursivamente al procedimiento con los nuevos datasets.
-to-report ID3 [ds]
-  let r nobody
-  ifelse clasificado? ds
-  [
-    hatch-nodos 1
-    [
-      set shape "square"
-      set color red
-      set size 2
-      set r self
-      set label (word last last ds)
-      setxy random-pxcor random-pycor
-    ]
-  ]
-  [
-    let mx 0
-    ifelse Max.Metodo = "Ganancia Información"
-    [set mx Max-GI ds]
-    [set mx Max-GR ds]
-    hatch-nodos 1
-    [
-      set label mx
-      set r self
-      set color blue
-      set size 4
-      set shape "decision"
-      setxy random-pxcor random-pycor
-      foreach (remove-duplicates bf (columna mx ds))
-      [ x ->
-        create-link-to (ID3 filtra ds mx x)
-        [
-          set color green
-          set label x
-          set label-color green + 3
-        ]
-      ]
-    ]
-  ]
-  report r
-end
-
-; Devuelve el subdataset que se obtiene filtrando uno de sus atributos por un valor
-to-report filtra [ds atr val]
-  let atrs first ds
-  let p position atr atrs
-  let ds2 (fput (first ds) filter [ x -> (item p x) = val ] (bf ds))
-  report ds2
-end
-
 
 to layout
-  layout-spring nodos links .5 8 .3
-  let cx sum [xcor] of nodos / count nodos
-  let cy sum [ycor] of nodos / count nodos
-  ask nodos [
+  layout-spring ID3:nodes links .5 8 .3
+  let cx sum [xcor] of ID3:nodes / count ID3:nodes
+  let cy sum [ycor] of ID3:nodes / count ID3:nodes
+  ask ID3:nodes [
     setxy xcor - cx ycor - cy
     setxy xcor * .999 ycor * .999]
 end
@@ -263,7 +127,7 @@ GRAPHICS-WINDOW
 -1
 12.7
 1
-10
+12
 1
 1
 1
@@ -287,7 +151,7 @@ BUTTON
 206
 43
 ID3
-ID3-main
+main
 NIL
 1
 T
@@ -320,7 +184,7 @@ OUTPUT
 10
 1047
 460
-10
+11
 
 CHOOSER
 5
@@ -429,6 +293,7 @@ circle
 false
 0
 Circle -7500403 true true 0 0 300
+Circle -1 true false 29 29 242
 
 circle 2
 false
@@ -452,6 +317,7 @@ decision
 false
 0
 Polygon -7500403 true true 0 150 150 0 300 150 150 300 0 150
+Polygon -1 true false 30 150 150 30 270 150 150 270 30 150
 
 dot
 false
@@ -591,7 +457,7 @@ square 2
 false
 0
 Rectangle -7500403 true true 30 30 270 270
-Rectangle -16777216 true false 60 60 240 240
+Rectangle -1 true false 60 60 240 240
 
 star
 false

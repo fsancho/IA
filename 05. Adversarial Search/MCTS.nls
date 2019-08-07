@@ -1,0 +1,153 @@
+;---------------------------------------------------------------------------
+; Nodes to build de Tree Search
+;---------------------------------------------------------------------------
+
+breed [MCTSnodes MCTSnode]
+
+
+MCTSnodes-own [
+  state        ; state of the game stored in the node
+  wins         ; reward that simulations provide to the node
+  visits       ; number of simulations that use ths node
+  untriedRules ; list of rules to expand the node (not used before)
+]
+
+; Directed links that represent the transitions between nodes
+directed-link-breed [MCTSrules MCTSrule]
+
+MCTSrules-own [
+  rule        ; stores the rule that has been applied in this transition
+]
+
+;---------------------------------------------------------------------------
+; MCTS Nodes Procedures
+;---------------------------------------------------------------------------
+
+; Create a new node from state s. This node will be the root of the search (the current game state)
+to-report create-MCTSnode [s]
+  let rep nobody
+  create-MCTSnodes 1 [
+    set state s
+    set wins 0
+    set visits 0
+    set untriedRules get-rules s
+    set rep self
+    set shape "circle"
+    set color blue
+    set label (word state " W/V:" wins "/" visits)
+    ht
+  ]
+  report rep
+end
+
+
+; Use the UCB1 formula to return the child with highest UCB value (after the previous simulations)
+; The 2 summands try to balance between explotation and exploration
+to-report UCTSelectChild
+  let v visits
+  let child max-one-of out-link-neighbors [(wins / visits) + sqrt(2 * (ln v) / visits)]
+  report child
+end
+
+; Creates a new child from the current node by applying the rule r, then it removes this rule from 
+; untriedRules
+to-report AddChild [r]
+  let rep nobody
+  hatch-MCTSnodes 1 [
+    set state apply r state
+    set wins 0
+    set visits 0
+    set untriedRules get-rules state
+    create-MCTSrule-from myself [
+      set rule r
+      set label rule
+      hide-link
+    ]
+    set rep self
+    set label state
+  ]
+  set untriedRules remove r untriedRules
+  report rep
+end
+
+; Update the wins/visits values for the current node 
+to Update [result]
+  set visits visits + 1
+  set wins wins + result
+end
+
+; Auxiliary report to obtain the parent of the caller node
+to-report parent
+  report one-of in-MCTSrule-neighbors
+end
+
+;---------------------------------------------------------------------------
+; UCT Algorithm
+;---------------------------------------------------------------------------
+
+; Execute a UCT search for iter iterations starting from root-state.
+; Return the best move from the root-state. 
+; The games results is in the range [0.0, 1.0]
+to-report UCT [root-state iter]
+  ask MCTSnodes [die]
+  ; Create the root node (with the input state)
+  let rootnode create-MCTSnode root-state
+  
+  ;Main loop for iter iterations
+  repeat iter [
+    ; Start again from the root node
+    let cnode rootnode
+
+    ; Selection stage: 
+    ;   Using UCT selection. we go from the root node to a current leaf that 
+    ;   has to be expanded
+    
+    while [empty? [untriedRules] of cnode and any? [my-out-MCTSrules] of cnode]
+    [
+      set cnode [UCTSelectChild] of cnode
+    ]
+
+    ; Expand stage: 
+    ;   Expand the previous node with one child (any of them)
+    
+    ; if we can expand (i.e. state/node is non-terminal)
+    if not empty? [untriedRules] of cnode 
+    [
+      ask cnode [
+        let r one-of untriedRules
+        set cnode AddChild r
+      ]
+    ]
+
+    ; Simulation/Rollout stage: 
+    ;   From this new node we play a random complete game (we use only states, 
+    ;   not nodes, because we only need to know the final state and who is the 
+    ;   winnner)
+    
+    let s [state] of cnode
+    while [not empty? get-rules s]
+    [
+      let r one-of (get-rules s)
+      set s (apply r s)
+    ]
+    
+    ; Backpropagate stage: 
+    ;   Update the nodes from the expanded one to the root
+    
+    while [cnode != nobody] 
+    [
+      ask cnode [
+        Update get-result s (get-playerJustMoved state)
+        set label (word state " W/V:" wins "/" visits)
+        set cnode parent
+      ]
+    ]
+  ]
+  ; Return the best found rule
+  let rep nobody
+  ask rootnode [
+    ; return the move that was most visited
+    set rep max-one-of out-MCTSrule-neighbors [visits]
+  ]
+  report [rule] of MCTSrule [who] of rootnode [who] of rep
+end

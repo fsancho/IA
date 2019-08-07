@@ -1,141 +1,172 @@
-__includes ["ANN.nls"]
+__includes ["MCTS.nls"]
 
-globals [
-  data-list    ; List of pairs [Input Output] to train the network
+breed [pieces piece]
+
+patches-own [
+  value   ; to store the piece (0/1/2) of this place
 ]
 
-;;;
-;;; Setup Procedure
-;;;
+; state: [content player]
+;
+; In this case, the content is the number of chips, and the player will be 1 or 2.
 
-to setup
-  clear-all
-  ; Building the Front Panel
-  ask patches [ set pcolor 39 ]
-  ask patches with [pxcor > -8] [set pcolor 38]
-  ask patches with [pxcor > 7] [set pcolor 37]
-
-  ask patch -9 10 [ set plabel-color 32 set plabel "Input"]
-  ask patch  1 10 [ set plabel-color 32 set plabel "Hidden Layers"]
-  ask patch  10 10 [ set plabel-color 32 set plabel "Output"]
-
-  ; Building the network
-  ANN:create read-from-string layers
-  ANN:format
-  ; Recolor of neurons and links
-  ANN:recolor-links
-
-  ; Initializing global variables
-  set data-list []
-
-  create-samples
-
-  reset-ticks
+; Get the content of the state
+to-report get-content [s]
+  report first s
 end
 
-to ANN:external-update [params]
-  ANN:recolor-links
-  plotxy (first params) (last params)
+; Get the player that generates the state
+to-report get-playerJustMoved [s]
+  report last s
 end
 
-to create-samples
-  let inputs (n-values num-samples [ (n-values (first read-from-string layers) [one-of [0 1]])])
-  let outputs map [ x -> (list evaluate Function x)] inputs
-  set data-list (map [[x y] -> (list x y)] inputs outputs)
+; Create a state from the content and player
+to-report create-state [c p]
+  report (list c p)
 end
 
-
-; Test Procedures
-
-; The input neurons are read and the signal propagated with the current weights
-
-to-report  one-test
-  let inp n-values (first read-from-string layers) [one-of [0 1]]
-  let out (list evaluate Function inp)
-  let o ANN:compute inp
-  report (list out o)
+; Get the rules applicable to the state
+to-report get-rules [s]
+  let c get-content s
+  ; Filter the empty places in the board
+  report filter [x -> item x c = 0] (range 0 9)
 end
 
-to-report Multi-test [n]
-  let er 0
-  repeat n [
-    let t one-test
-    set er er + abs ((first first t) - (step first last t)) ;^ 2
-    ;show (word t " " abs ((first first t) - (step first last t)) )
-    ;show er
+; Apply the rule r to the state s
+to-report apply [r s]
+  let c get-content s
+  let p get-playerJustMoved s
+  ; Fill the r place with the number of the current player
+  report create-state (replace-item r c (3 - p)) (3 - p)
+end
+
+; Move the result from the last state to the current one
+to-report get-result [s p]
+  let pl get-playerJustMoved s
+  let c get-content s
+  ; L will have the lines of the board
+  let L [[0 1 2] [3 4 5] [6 7 8] [0 3 6] [1 4 7] [2 5 8] [0 4 8] [2 4 6]]
+  ; For every line, we see if it is filled with the same player
+  foreach L [
+    lin ->
+    let val map [x -> (item x c)] lin
+    if first val = last val and first val = (first bf val) [
+      ifelse first val = p [report 1] [report 0]
+    ]
   ]
-  report er ;/ n
-;  report (sqrt er) / n
+  ; if there is no winner lines, and the board is full, then it is a draw
+  if empty? get-rules s [report 0.5]
+  report [false]
 end
 
-; Recolor neurons using activation value in a continuous way
-to recolor-c
-  ask ANN:neurons with [ANN:layer > 0] [
-    set color scale-color yellow ANN:activation 0 .5
+;; Interface
+
+to start
+  ca
+  ask patches [set value 0]
+  ask patches with [(pxcor + pycor) mod 2 = 0] [set pcolor grey]
+end
+
+to go
+  let played? false
+  if mouse-down? [
+    ask patch mouse-xcor mouse-ycor [
+      if not any? pieces-here [
+        set value 1
+        sprout-pieces 1 [
+          set shape "o"
+          set color white]
+        set played? true
+      ]
+    ]
+    if get-result (list (board-to-state) 1) 1 = 1 [
+      user-message "You win!!!"
+      stop
+    ]
+    if get-result (list (board-to-state) 2) 2 = 0.5 [
+      user-message "Draw!!!"
+      stop
+    ]
+
+    wait .1
+    if played? [
+      let m UCT (list (board-to-state) 1) MAx_iterations
+      ;show m
+      ask (item m (sort patches)) [
+        set value 2
+        sprout-pieces 1 [
+          set shape "x"
+          set color white]
+      ]
+    ]
+    if get-result (list (board-to-state) 2) 2 = 1 [
+      user-message "I win!!!"
+      stop
+    ]
+    if get-result (list (board-to-state) 2) 2 = 0.5 [
+      user-message "Draw!!!"
+      stop
+    ]
   ]
 end
 
-; Test Functions
-
-to-report evaluate [f x]
-  report runresult (word f x)
-end
-
-to-report Majority [x]
-  let ones length filter [ y -> y = 1 ] x
-  let ceros length filter [ y -> y = 0 ] x
-  report ifelse-value (ones > ceros) [1] [0]
-end
-
-to-report Even [x]
-  let ones length filter [ y -> y = 1 ] x
-  report ifelse-value (ones mod 2 = 1) [1] [0]
-end
-
-to prueba-carga
-  let W ANN:read-weights
-  ct
-  ANN:create read-from-string layers
-  ; Recolor of neurons and links
-  ANN:recolor-links
-  ANN:load-weights W
+to-report board-to-state
+  let b map [x -> [value] of x] (sort patches)
+  report b
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-225
+163
 10
-708
-494
+535
+383
 -1
 -1
-22.62
+121.33333333333333
 1
-15
-1
-1
-1
-0
-0
-0
-1
--10
 10
--10
-10
+1
+1
+1
+0
+1
+1
+1
+0
+2
+0
+2
 0
 0
 1
-Ticks
+ticks
 30.0
 
 BUTTON
-15
-235
-80
-268
-setup
-setup
+21
+10
+84
+43
+Start
+start
 NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+91
+10
+154
+43
+Play!
+go
+T
 1
 T
 OBSERVER
@@ -146,186 +177,56 @@ NIL
 1
 
 SLIDER
-15
-115
-215
-148
-Learning-rate
-Learning-rate
-0.0
-1.0
-0.2
-1.0E-4
-1
-NIL
-HORIZONTAL
-
-PLOT
-15
-270
-215
-420
-Error vs. Epochs
-Epochs
-Error
-0.0
-10.0
-0.0
-0.5
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" ""
-
-BUTTON
-150
-235
-215
-268
-Train
-ANN:train 1000 data-list Learning-rate
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-715
-80
-785
-113
-One Test
-show one-test
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-715
-45
-785
-78
-See Weights
-recolor-c
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-CHOOSER
-15
-185
-215
-230
-Function
-Function
-"Majority" "Even"
-0
-
-SLIDER
-15
-150
-215
-183
-Num-samples
-Num-samples
+22
+52
+154
+85
+Max_iterations
+Max_iterations
 0
 1000
-100.0
-10
+1000.0
+100
 1
 NIL
 HORIZONTAL
-
-MONITOR
-40
-420
-190
-465
-NIL
-ANN:epoch-error
-17
-1
-11
-
-SLIDER
-785
-115
-877
-148
-Num-tests
-Num-tests
-1
-1000
-101.0
-10
-1
-NIL
-HORIZONTAL
-
-BUTTON
-715
-115
-785
-148
-Multi-Test
-show Multi-test Num-tests
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-725
-170
-787
-203
-NIL
-layout
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-INPUTBOX
-15
-10
-215
-70
-Layers
-[11 2  1]
-1
-0
-String
 
 @#$#@#$#@
+## WHAT IS IT?
+
+(a general understanding of what the model is trying to show or explain)
+
+## HOW IT WORKS
+
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -341,16 +242,6 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
-
-bias-node
-false
-0
-Circle -16777216 true false 0 0 300
-Circle -7500403 true true 30 30 240
-Circle -16777216 true false 90 120 120
-Circle -7500403 true true 105 135 90
-Polygon -16777216 true false 90 60 120 60 135 60 135 225 150 225 150 240 105 240 105 225 120 225 120 75 105 75 120 60
-Rectangle -7500403 true true 90 120 120 225
 
 box
 false
@@ -398,12 +289,6 @@ false
 0
 Circle -7500403 true true 0 0 300
 
-circle 2
-false
-0
-Circle -7500403 true true 0 0 300
-Circle -16777216 true false 30 30 240
-
 cow
 false
 0
@@ -420,11 +305,6 @@ dot
 false
 0
 Circle -7500403 true true 90 90 120
-
-drawer
-false
-0
-Rectangle -7500403 true true 0 0 300 300
 
 face happy
 false
@@ -484,14 +364,6 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
-hidden-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Polygon -16777216 true false 135 75 60 75 120 150 60 225 135 225 135 210 135 195 120 210 90 210 135 150 90 90 120 90 135 105 135 90
-Polygon -16777216 true false 255 75 210 75 180 210 150 210 150 225 195 225 225 90 240 90 255 90
-
 house
 false
 0
@@ -499,15 +371,6 @@ Rectangle -7500403 true true 45 120 255 285
 Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
-
-input-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Rectangle -16777216 true false 180 15 210 285
-Rectangle -16777216 true false 15 135 120 165
-Polygon -16777216 true false 120 105 120 195 180 150
 
 leaf
 false
@@ -525,21 +388,11 @@ true
 0
 Line -7500403 true 150 0 150 150
 
-link
-true
-0
-Line -7500403 true 150 0 150 300
-
-link direction
-true
-0
-
-output-neuron
+o
 false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Polygon -16777216 true false 195 75 90 75 150 150 90 225 195 225 195 210 195 195 180 210 120 210 165 150 120 90 180 90 195 105 195 75
+0
+Circle -7500403 true true 30 30 240
+Circle -16777216 true false 60 60 180
 
 pentagon
 false
@@ -567,11 +420,26 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
+sheep
+false
+15
+Circle -1 true true 203 65 88
+Circle -1 true true 70 65 162
+Circle -1 true true 150 105 120
+Polygon -7500403 true false 218 120 240 165 255 165 278 120
+Circle -7500403 true false 214 72 67
+Rectangle -1 true true 164 223 179 298
+Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
+Circle -1 true true 3 83 150
+Rectangle -1 true true 65 221 80 296
+Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
+Polygon -7500403 true false 276 85 285 105 302 99 294 83
+Polygon -7500403 true false 219 85 210 105 193 99 201 83
+
 square
 false
 0
-Rectangle -16777216 true false 0 0 300 300
-Rectangle -7500403 true true 15 15 285 285
+Rectangle -7500403 true true 30 30 270 270
 
 square 2
 false
@@ -652,15 +520,21 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
+wolf
+false
+0
+Polygon -16777216 true false 253 133 245 131 245 133
+Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
+Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
+
 x
 false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.0
 @#$#@#$#@
-setup repeat 100 [ train ]
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -673,6 +547,8 @@ default
 link direction
 true
 0
+Line -7500403 true 150 150 90 180
+Line -7500403 true 150 150 210 180
 @#$#@#$#@
-1
+0
 @#$#@#$#@

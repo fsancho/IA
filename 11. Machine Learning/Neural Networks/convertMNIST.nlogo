@@ -35,6 +35,7 @@ to-report bloque
 end
 
 to test
+  load-file
   foreach (range 0 100) [
     i ->
     show-digit i
@@ -43,6 +44,14 @@ to test
     ]
     ask patches [set pcolor pcolor-new]
   ]
+end
+
+to testi [i]
+  show-digit i
+  ask patches [
+    set pcolor-new mean [pcolor] of bloque
+  ]
+  ask patches [set pcolor pcolor-new]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW

@@ -29,7 +29,7 @@ to setup
   ask patches [set pcolor white]
   create-states 1 [
     set color green
-    set player "me"
+    set player 1
     set leaf? true
     set depth 0
   ]
@@ -37,7 +37,7 @@ to setup
     ask states with [leaf?] [
       hatch-states random Branching [
         set color red
-        set player "op"
+        set player 2
         set depth depth + 1
         create-transition-from myself]
       set leaf? false
@@ -45,7 +45,7 @@ to setup
     ask states with [leaf?] [
       hatch-states random Branching [
         set color green
-        set player "me"
+        set player 1
         set depth depth + 1
         create-transition-from myself]
       set leaf? false
@@ -513,7 +513,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
