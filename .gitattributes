@@ -16,5 +16,5 @@
 *.rtf	 diff=astextplain
 *.RTF	 diff=astextplain
 
-pages/* linguist-vendored
-06. Logic/Fuzzy Logic/* linguistic-vendored
+* linguist-vendored
+*.nlogo linguist-vendored=false
