@@ -18,3 +18,4 @@
 
 * linguist-vendored
 *.nlogo linguist-vendored=false
+*.nls linguist-vendored=false
