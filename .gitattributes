@@ -17,4 +17,4 @@
 *.RTF	 diff=astextplain
 
 pages/* linguist-vendored
-/06. Logic/Fuzzy Logic/* linguistic-vendored
+06. Logic/Fuzzy Logic/* linguistic-vendored
