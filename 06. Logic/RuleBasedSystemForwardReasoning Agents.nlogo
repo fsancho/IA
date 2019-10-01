@@ -8,7 +8,8 @@ to-report deduce [G Rs Fs]
   create-graph Rs Fs G
   ask ag-facts with [member? label Fs] [
     set color yellow
-    set active? true]
+    set active? true
+  ]
   while [any? ag-rules with [not active? and all? in-link-neighbors [active?]]][
     ask ag-rules with [not active? and all? in-link-neighbors [active?]] [
       ask my-links [set thickness 0.3]
@@ -41,7 +42,6 @@ to create-graph [Rs Fs G]
   foreach Rs [
     r ->
     create-ag-rules 1 [
-      ;set shape "circle 2"
       set shape "conj2"
       set size 2
       set color white
@@ -51,8 +51,6 @@ to create-graph [Rs Fs G]
       create-links-to (ag-facts with [label = (last r)])
     ]
   ]
-  ;layout-radial turtles links one-of ag-facts with [label = G]
-  ;layout-tutte ag-rules links max-pxcor - 1
   repeat 1000 [ lay]
 end
 

@@ -1,90 +1,32 @@
-__includes ["RBS.nls"]
+__includes ["ParseCNFLP.nls"]
 
-; -------------------------------------------------------------------------
-;;;; Examples
-; -------------------------------------------------------------------------
 
-; Un primer ejemplo
+; Pasa a FNC
 
-; 1. Los animales con pelo o que dan leche son mamíferos
-; 2. Los mamíferos con pezuñas o que rumian son ungulados
-; 3. Los ungulados de cuello largo son jirafas
-; 4. Los ungulados con rayas negras son cebras.
-
-; Tenemos un animal con pelo, con pezuñas y con rayas negras
-
-; Demostrar que es una cebra
-
-to test1
-  ca
-  let rules [["Con pelo" "Mamífero"]
-             ["Da leche" "Mamífero"]
-             ["Mamífero" "Con pezuñas" "Ungulado"]
-             ["Mamífero" "Rumia" "Ungulado"]
-             ["Ungulado" "De cuello largo" "Jirafa"]
-             ["Ungulado" "Con rayas negras" "Cebra"]
-  ]
-  let facts ["Con pelo" "Con pezuñas" "Con rayas negras"]
-  let goal "Cebra"
-  print (word "Answer: " RBS:deduce goal rules facts Debug?)
-end
-
-; -------------------------------------------------------------------------
-
-; One more example:
-
-; EGG = Engine is getting gas.
-; ETO = Engine turns over.
-; ETON = Engine does not turn over.
-; LW = The lights work.
-; LWN = The lights do not work
-; FT = Fuel in the tank.
-; FC = Fuel in the carburetor.
-; TL = Temperature is very low.
-; TLN = Temperature is not very low.
-; MW = Motor warmer in operation.
-; MWN = Motor warmer not in operation.
-; PBAT = Problem with the battery.
-; PSTM = Problem with the starter motor.
-; PIGN = Problem with the ignition.
-; PTMP = Problem with low temperature.
-
-; 1. EGG ∧ ETO → PIGN
-; 2. ETON ∧ LWN ∧ TL ∧ MWN → PTMP
-; 3. ETON ∧ LWN ∧ MW → PIGN
-; 4. ETON ∧ LWN ∧ TLN → PIGN
-; 5. ETON ∧ LW → PSTM
-; 6. FT ∧ FC → EGG
-
-; Suppose that the following facts are given:
-; FT, FC, TL, MW, ETO
-
-; Can we deduce PIGN ?
-
-to test2
-  ca
-  let rules [
-    ["EGG" "ETO" "PIGN"]
-    ["ETON" "LWN" "TL" "MWN" "PTMP"]
-    ["ETON" "LWN" "MW" "PIGN"]
-    ["ETON" "LWN" "TLN" "PIGN"]
-    ["ETON" "LW" "PSTM"]
-    ["FT" "FC" "EGG"]]
-  let facts ["FT" "FC" "TL" "MW" "ETO"]
-  let goal "PIGN"
-  print (word "Answer: " RBS:deduce goal rules facts Debug?)
+to test
+  let a ParseLP:to-tree "((a<->b)<->(-c))"
+  ParseLP:TreeLayout "((a<->b)<->(-c))"
+  show a
+  let b ParseLP:cnf a
+  show b
+  let b2 ParseLP:cnf2 a
+  show b2
+  let c ParseLP:clause-form b2
+  show c
+  let d ParseLP:CleanCF c
+  show d
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-763
-23
-804
-65
--1
--1
-1.0
-1
+210
 10
+647
+448
+-1
+-1
+13.0
+1
+12
 1
 1
 1
@@ -101,58 +43,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-OUTPUT
-6
-10
-843
-462
-11
-
-BUTTON
-761
-16
-824
-49
-NIL
-test1
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SWITCH
-659
-16
-762
-49
-Debug?
-Debug?
-0
-1
--1000
-
-BUTTON
-761
-49
-824
-82
-NIL
-test2
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -200,6 +90,13 @@ airplane
 true
 0
 Polygon -7500403 true true 150 0 135 15 120 60 120 105 15 165 15 195 120 180 135 240 105 270 120 285 150 270 180 285 210 270 165 240 180 180 285 195 285 165 180 105 180 60 165 15
+
+and
+false
+15
+Circle -1 true true 0 0 300
+Circle -16777216 false false -1 -1 301
+Polygon -7500403 true false 150 30 45 210 75 210 150 90 225 210 255 210
 
 arrow
 true
@@ -341,6 +238,23 @@ Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
 
+if
+false
+15
+Circle -1 true true 0 0 300
+Circle -16777216 false false 0 0 301
+Polygon -7500403 true false 285 150 150 225 150 195 225 150 150 105 150 75
+Rectangle -7500403 true false 30 135 225 165
+
+iff
+false
+15
+Circle -1 true true 0 0 300
+Circle -16777216 false false 0 0 301
+Polygon -7500403 true false 285 150 165 210 165 180 225 150 165 120 165 90
+Rectangle -7500403 true false 45 135 240 165
+Polygon -7500403 true false 15 150 120 90 120 120 75 150 120 180 120 210
+
 leaf
 false
 0
@@ -356,6 +270,21 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
+
+not
+false
+15
+Circle -1 true true 0 0 300
+Circle -16777216 false false 0 0 301
+Rectangle -7500403 true false 30 120 225 150
+Rectangle -7500403 true false 225 120 255 225
+
+or
+false
+15
+Circle -1 true true 0 0 300
+Circle -16777216 false false -1 0 301
+Polygon -7500403 true false 150 270 45 90 75 90 150 210 225 90 255 90
 
 pentagon
 false
@@ -401,8 +330,9 @@ Polygon -7500403 true false 219 85 210 105 193 99 201 83
 
 square
 false
-0
-Rectangle -7500403 true true 30 30 270 270
+15
+Rectangle -1 true true 30 30 270 270
+Rectangle -7500403 false false 30 30 270 270
 
 square 2
 false

@@ -1,0 +1,107 @@
+;; -------------------------------------------------------------------------
+;; Procedures to deduce facts from Knowledge Bases by using Forward Chaining
+;; (Forward Reasoning)
+;; It works only on Propositional Logic (not in First Order Logic)
+;; Some examples are show at the end of the file
+;; -------------------------------------------------------------------------
+
+; Data is represented as lists of strings:
+;  Rules  ; A1 ^ ... ^ An -> B  == [A1 ... An B]
+;  Facts  ; Facts (literals that are known to be true) == [A1 ... An]
+;  goal   ; string
+
+; -------------------------------------------------------------------------
+
+; Main report that takes a Goal and a KB (Rules+Facts), and returns if the
+; goal can be reached in the KB
+;   #debug: if true, allows to print the evolution of the system
+
+to-report RBS:deduce [G Rs Fs #debug]
+  ; Print the Knowledge Base
+  if #debug [RBS:printKB Rs Fs]
+
+  ; Compute the rules that are applicable with the current Facts
+  let applicable-rules filter [r -> RBS:applicable? r Fs] Rs
+
+  ; Print Applicable Rules (if #debug = true)
+  if #debug [
+    output-print (word "Applicable rules: ")
+    foreach applicable-rules [r -> output-print (word "   " (RBS:prettify-rule r))]
+    output-print " "
+  ]
+
+  ; If there is any applicable rule
+  ifelse not empty? applicable-rules
+  [
+    ; Apply it and add the new facts to the current facts
+    foreach applicable-rules [
+      r ->
+      set Fs RBS:add (last r) Fs
+      set Rs remove r Rs
+    ]
+    ; If the goal is reached
+    ifelse member? G Fs
+    [
+      ; Report true
+      if #debug [RBS:printKB Rs Fs]
+      report true ]
+    ; if not, repeat the process
+    [ report RBS:deduce G Rs Fs #debug ]
+  ]
+  ; if not any new applicable rule, report false
+  [ report false ]
+end
+; -------------------------------------------------------------------------
+
+; Report to decide if a rule r is applicable with a set of facts
+
+to-report RBS:applicable? [r Fs]
+  let premises bl r
+  report RBS:subset? premises Fs
+end
+; -------------------------------------------------------------------------
+
+; Auxiliary report for subset relation
+
+to-report RBS:subset? [A B]
+  report reduce and (map [x -> member? x B] A)
+end
+; -------------------------------------------------------------------------
+
+; Auxiliary report to add an element to a list (as a set, no duplicates)
+
+to-report RBS:add [x A]
+  ifelse member? x A
+  [ report A ]
+  [ report lput x A]
+end
+; -------------------------------------------------------------------------
+
+; Auxiliary procedure to print the KB
+
+to RBS:printKB [Rs Fs]
+  output-print (word "Current Rules: ")
+  foreach Rs [r -> output-print (word "   " (RBS:prettify-rule r))]
+  output-print (word "Current Facts: " (RBS:prettify-facts Fs))
+  output-print " "
+end
+; -------------------------------------------------------------------------
+
+; Auxiliary procedures to get pretty versions of rules and facts
+
+to-report RBS:prettify-rule [r]
+  let premises bl r
+  let consequence last r
+  let pretty first premises
+  foreach bf premises [
+    x -> set pretty (word pretty " ^ " x) ]
+  set pretty (word pretty " → " consequence)
+  report pretty
+end
+
+to-report RBS:prettify-facts [Fs]
+  let pretty first Fs
+  foreach bf Fs [
+    x -> set pretty (word pretty ", " x) ]
+  report pretty
+end

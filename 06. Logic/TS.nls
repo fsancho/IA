@@ -1,0 +1,223 @@
+breed [TS:formulas TS:formula]
+directed-link-breed [TS:links TS:link]
+
+TS:formulas-own [
+  TS:content ; Content of the box: set of formulas
+  TS:active? ; If active, we must process the node
+  depth      ; To be used by the LayoutSpace library
+]
+
+; Show the content as a set of formulas
+to-report prettify-set [l]
+  if length l <= 1 [report (word "{" (TS:rep prettify-formula (first l)) "}")]
+  report (word "{" (reduce [[a b] -> (word (TS:rep prettify-formula a) " , " (TS:rep prettify-formula b))] l) "}")
+end
+
+;Rewrite a single formula in infix way...
+to-report prettify-formula [l]
+  if empty? l [report ""]
+  if first l = "|" [report (word "(" (prettify-formula item 1 l) "v" (prettify-formula item 2 l) ")")]
+  if first l = "&" [report (word "(" (prettify-formula item 1 l) "^" (prettify-formula item 2 l) ")")]
+  if first l = "->" [report (word "(" (prettify-formula item 1 l) "→" (prettify-formula item 2 l) ")")]
+  if first l = "<->" [report (word "(" (prettify-formula item 1 l) "↔" (prettify-formula item 2 l) ")")]
+  if first l = "-" [report (word "¬" (prettify-formula item 1 l))]
+  report (word l)
+end  
+
+; remove external parenthesis: ARREGLAR
+to-report TS:rep [s]
+  report s
+  ifelse first s ="(" 
+  [report bf bl s]
+  [report s]
+end
+  
+
+; Semantic Tableau.
+; Builds the tree of transformations from a set of formulas to the models/contradictions.
+; Requires a list of formulas in tree format (tou can use ParseLP:to-tree
+to TS [l]
+  ; Create the initial box with the initial set
+  create-TS:formulas 1 [
+    set shape "box"
+    set size 3
+    set color yellow
+    set TS:content map TS:clean2Negs l
+    set label-color black
+    set TS:active? true
+    set depth 0
+  ]
+  ; Main loop: while there are active boxes
+  while [any? TS:formulas with [TS:active?]] [
+    ask TS:formulas with [TS:active?] [
+      TS:one-step
+    ]
+  ]
+end
+
+; One TS step procedure
+to TS:one-step
+  ; In some cases the transformations introduce ""... we remove it
+  set TS:content remove "" TS:content
+  ; Take formulas alpha and beta from the box
+  let TS:alphas filter [f -> TS:type f = "alpha"] TS:content
+  let TS:betas filter [f -> TS:type f = "beta"] TS:content
+  ; Start with alphas, if any...
+  ifelse not empty? TS:alphas
+  [TS:aprocess (first TS:alphas)]
+  [TS:bprocess (first TS:betas)]
+  ; Deactivate the box (it will not be processed anymore)
+  set TS:active? false
+end
+
+; Decides if a box contains a contradiction
+to-report TS:contradiction? [l]
+  let rep false
+  foreach l [ x -> if is-string? x [if member? (list "-" x) l [set rep true]]]
+  report rep
+end
+
+; Process alpha formulas (no division)
+to TS:aprocess [f]
+  ; Take the connective: & or <->
+  let con first f
+  if con = "&" or con = "<->"
+  [
+    let f1 ""
+    let f2 ""
+    ;and processes it
+    if con = "<->" [
+      set f1 (list "->" (item 1 f) (item 2 f))
+      set f2 (list "->" (item 2 f) (item 1 f))]
+    if con = "&" [
+      set f1 (item 1 f)
+      set f2 (item 2 f)]
+    ; It will create only one new box with both subformulas
+    hatch-TS:formulas 1 [
+      create-TS:link-from myself 
+      set depth depth + 1
+      ; remove original alpha-formula and add the new ones
+      set TS:content remove f TS:content
+      set TS:content lput f1 TS:content
+      set TS:content lput f2 TS:content
+      ; Clean double negations --f=f
+      set TS:content remove-duplicates map TS:clean2Negs TS:content
+      ; Decide if must be deactivated (only literals)
+      ifelse reduce and map [sf -> TS:type sf = "vp"] TS:content
+      [set TS:active? false]
+      [set TS:active? true]
+      ;if TS:contradiction? TS:content [set TS:active? false]
+    ]
+  ]
+  ; Alpha formulas starting with negation: -(.|.), -(.->.)
+  ; The process is equivalent
+  if con = "-"
+  [
+    let g item 1 f
+    let con2 first g
+    if con2 = "|" or con2 = "->"
+    [
+      let g1 ""
+      let g2 ""
+      if con2 = "|" [
+        set g1 (list "-" (item 1 g))
+        set g2 (list "-" (item 2 g))]
+      if con2 = "->" [
+        set g1 (item 1 g)
+        set g2 (list "-" (item 2 g))]
+      hatch-TS:formulas 1 [
+        create-TS:link-from myself 
+        set depth depth + 1
+        set TS:content remove f TS:content
+        set TS:content lput g1 TS:content
+        set TS:content lput g2 TS:content
+        set TS:content remove-duplicates map TS:clean2Negs TS:content
+        ifelse reduce and map [sf -> TS:type sf = "vp"] TS:content
+        [set TS:active? false]
+        [set TS:active? true]
+        ;if TS:contradiction? TS:content [set TS:active? false]
+      ]
+    ]    
+  ]
+end
+
+; Process beta formulas (division)
+; Similar to the previous one
+to TS:bprocess [f]
+  let con first f
+  if con = "|" or con = "->"
+  [
+    let f1 ""
+    let f2 ""
+    if con = "->" [
+      set f1 (list "-" (item 1 f))
+      set f2 (item 2 f)]
+    if con = "|" [
+      set f1 (item 1 f)
+      set f2 (item 2 f)]
+    foreach (list f1 f2) [
+      sub ->
+      hatch-TS:formulas 1 [
+        create-TS:link-from myself
+        set depth depth + 1
+        set TS:content remove f TS:content
+        set TS:content lput sub TS:content
+        set TS:content remove-duplicates map TS:clean2Negs TS:content
+        ifelse reduce and map [sf -> TS:type sf = "vp"] TS:content
+        [set TS:active? false]
+        [set TS:active? true]
+        ;if TS:contradiction? TS:content [set TS:active? false]
+    ]
+    ]
+  ]
+  if con = "-"
+  [
+    let g item 1 f
+    let con2 first g
+    if con2 = "&" or con2 = "<->"
+    [
+      let g1 ""
+      let g2 ""
+      if con2 = "&" [
+        set g1 (list "-" (item 1 g))
+        set g2 (list "-" (item 2 g))]
+      if con = "<->" [
+        set g1 (list "-" (list "->" (item 1 g) (item 2 g)))
+        set g2 (list "-" (list "->" (item 2 g) (item 1 g)))]
+      foreach (list g1 g2) [
+        sub -> 
+        hatch-TS:formulas 1 [
+          create-TS:link-from myself 
+          set depth depth + 1
+          set TS:content remove f TS:content
+          set TS:content lput sub TS:content
+          set TS:content remove-duplicates map TS:clean2Negs TS:content
+          ifelse reduce and map [sf -> TS:type sf = "vp"] TS:content
+          [set TS:active? false]
+          [set TS:active? true]
+          ;if TS:contradiction? TS:content [set TS:active? false]
+        ]
+      ]
+    ]
+  ]
+end
+
+; Procedure to clean double negations in formulas
+to-report TS:clean2Negs [f]
+  if is-string? f [report f]
+  if first f = "-" and first (item 1 f) = "-" [report item 1 (item 1 f)]
+  report f
+end
+
+; Report the type (alpha, beta) of a formula
+to-report TS:type [f]
+  ifelse length f <= 1
+  [ report "vp" ]
+  [ let con first f
+    if con = "&" or con ="<->" [report "alpha"]
+    if con = "|" or con = "->" [report "beta"]
+    if con = "-" and ((TS:type (item 1 f)) = "alpha") [report "beta"]
+    if con = "-" and ((TS:type (item 1 f)) = "beta") [report "alpha"]
+    report "vp"
+  ]
+end

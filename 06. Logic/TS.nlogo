@@ -1,90 +1,54 @@
-__includes ["RBS.nls"]
+__includes [ "ParseCNFLP.nls" "TS.nls"]
 
-; -------------------------------------------------------------------------
-;;;; Examples
-; -------------------------------------------------------------------------
 
-; Un primer ejemplo
+globals [ monitor ]
 
-; 1. Los animales con pelo o que dan leche son mamíferos
-; 2. Los mamíferos con pezuñas o que rumian son ungulados
-; 3. Los ungulados de cuello largo son jirafas
-; 4. Los ungulados con rayas negras son cebras.
-
-; Tenemos un animal con pelo, con pezuñas y con rayas negras
-
-; Demostrar que es una cebra
-
-to test1
+to test [f]
   ca
-  let rules [["Con pelo" "Mamífero"]
-             ["Da leche" "Mamífero"]
-             ["Mamífero" "Con pezuñas" "Ungulado"]
-             ["Mamífero" "Rumia" "Ungulado"]
-             ["Ungulado" "De cuello largo" "Jirafa"]
-             ["Ungulado" "Con rayas negras" "Cebra"]
+  ask patches [set pcolor white]
+  ; Transform the formula (as string) into a tree
+  let form (list ParseLP:to-tree f)
+
+  ; Apply TS algorithm to produce the tree of formulas sets (boxes)
+  TS form
+
+  ; Prettify the labels with the sets in every box
+  ask TS:formulas [
+    set label prettify-set TS:content
   ]
-  let facts ["Con pelo" "Con pezuñas" "Con rayas negras"]
-  let goal "Cebra"
-  print (word "Answer: " RBS:deduce goal rules facts Debug?)
+  ; Highlight final boxes (models/contradictions)
+  ask TS:formulas with [reduce and map [sf -> TS:type sf = "vp"] TS:content]
+  [
+    set color ifelse-value TS:contradiction? TS:content [red][green]
+  ]
+  ; Layout with LayoutSpace library
+  set #LayoutNodes TS:Formulas
+  set #LayoutEdges TS:links
+  set #LayoutNode0 Ts:formula 0
+  Layout-space "V"
+
 end
 
-; -------------------------------------------------------------------------
-
-; One more example:
-
-; EGG = Engine is getting gas.
-; ETO = Engine turns over.
-; ETON = Engine does not turn over.
-; LW = The lights work.
-; LWN = The lights do not work
-; FT = Fuel in the tank.
-; FC = Fuel in the carburetor.
-; TL = Temperature is very low.
-; TLN = Temperature is not very low.
-; MW = Motor warmer in operation.
-; MWN = Motor warmer not in operation.
-; PBAT = Problem with the battery.
-; PSTM = Problem with the starter motor.
-; PIGN = Problem with the ignition.
-; PTMP = Problem with low temperature.
-
-; 1. EGG ∧ ETO → PIGN
-; 2. ETON ∧ LWN ∧ TL ∧ MWN → PTMP
-; 3. ETON ∧ LWN ∧ MW → PIGN
-; 4. ETON ∧ LWN ∧ TLN → PIGN
-; 5. ETON ∧ LW → PSTM
-; 6. FT ∧ FC → EGG
-
-; Suppose that the following facts are given:
-; FT, FC, TL, MW, ETO
-
-; Can we deduce PIGN ?
-
-to test2
-  ca
-  let rules [
-    ["EGG" "ETO" "PIGN"]
-    ["ETON" "LWN" "TL" "MWN" "PTMP"]
-    ["ETON" "LWN" "MW" "PIGN"]
-    ["ETON" "LWN" "TLN" "PIGN"]
-    ["ETON" "LW" "PSTM"]
-    ["FT" "FC" "EGG"]]
-  let facts ["FT" "FC" "TL" "MW" "ETO"]
-  let goal "PIGN"
-  print (word "Answer: " RBS:deduce goal rules facts Debug?)
+; Auxiliary procedure to show content from one clause-set selected
+; by the mouse
+to explore
+  let node min-one-of TS:formulas [distancexy mouse-xcor mouse-ycor]
+  ask node [
+    if distancexy mouse-xcor mouse-ycor < 1 [
+      set monitor (word who ": " prettify-set TS:content)]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-763
-23
-804
-65
--1
--1
-1.0
-1
+396
 10
+1249
+500
+-1
+-1
+13.0
+1
+14
 1
 1
 1
@@ -92,31 +56,35 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
--16
-16
+-32
+32
+-18
+18
 0
 0
 1
 ticks
 30.0
 
-OUTPUT
-6
+MONITOR
 10
-843
-462
+402
+391
+447
+Formulas
+monitor
+17
+1
 11
 
 BUTTON
-761
-16
-824
-49
+10
+365
+83
+398
 NIL
-test1
-NIL
+explore
+T
 1
 T
 OBSERVER
@@ -126,24 +94,24 @@ NIL
 NIL
 1
 
-SWITCH
-659
+INPUTBOX
 16
-762
-49
-Debug?
-Debug?
-0
+16
+391
+76
+formula
+( (-(a->b)) & ( (a|c) <-> b))
 1
--1000
+0
+String
 
 BUTTON
-761
-49
-824
-82
-NIL
-test2
+26
+83
+89
+116
+TS!!!
+test formula
 NIL
 1
 T
@@ -208,13 +176,9 @@ Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
 
 box
 false
-0
-Polygon -7500403 true true 150 285 285 225 285 75 150 135
-Polygon -7500403 true true 150 135 15 75 150 15 285 75
-Polygon -7500403 true true 15 75 15 225 150 285 150 135
-Line -16777216 false 150 285 150 135
-Line -16777216 false 150 135 15 75
-Line -16777216 false 150 135 285 75
+15
+Rectangle -1 true true 0 45 300 240
+Rectangle -7500403 false false 0 45 300 240
 
 bug
 true

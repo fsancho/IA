@@ -1,99 +1,49 @@
-__includes ["RBS.nls"]
+__includes ["LayoutSpace.nls" "dpll.nls"]
 
-; -------------------------------------------------------------------------
-;;;; Examples
-; -------------------------------------------------------------------------
+globals [monitor]
 
-; Un primer ejemplo
-
-; 1. Los animales con pelo o que dan leche son mamíferos
-; 2. Los mamíferos con pezuñas o que rumian son ungulados
-; 3. Los ungulados de cuello largo son jirafas
-; 4. Los ungulados con rayas negras son cebras.
-
-; Tenemos un animal con pelo, con pezuñas y con rayas negras
-
-; Demostrar que es una cebra
-
-to test1
+to go
   ca
-  let rules [["Con pelo" "Mamífero"]
-             ["Da leche" "Mamífero"]
-             ["Mamífero" "Con pezuñas" "Ungulado"]
-             ["Mamífero" "Rumia" "Ungulado"]
-             ["Ungulado" "De cuello largo" "Jirafa"]
-             ["Ungulado" "Con rayas negras" "Cebra"]
+  ask patches [set pcolor white]
+  show dpll (read-from-string Sigma) true
+  set #LayoutNodes clause-sets
+  set #LayoutEdges dpll-links
+  set #LayoutNode0 clause-set 0
+  Layout-space "V"
+end
+
+; Auxiliary procedure to show content from one clause-set selected
+; by the mouse
+to explore
+  let node min-one-of clause-sets [distancexy mouse-xcor mouse-ycor]
+  ask node [
+    if distancexy mouse-xcor mouse-ycor < 1 [
+      set monitor #clause-content]
   ]
-  let facts ["Con pelo" "Con pezuñas" "Con rayas negras"]
-  let goal "Cebra"
-  print (word "Answer: " RBS:deduce goal rules facts Debug?)
 end
 
-; -------------------------------------------------------------------------
 
-; One more example:
 
-; EGG = Engine is getting gas.
-; ETO = Engine turns over.
-; ETON = Engine does not turn over.
-; LW = The lights work.
-; LWN = The lights do not work
-; FT = Fuel in the tank.
-; FC = Fuel in the carburetor.
-; TL = Temperature is very low.
-; TLN = Temperature is not very low.
-; MW = Motor warmer in operation.
-; MWN = Motor warmer not in operation.
-; PBAT = Problem with the battery.
-; PSTM = Problem with the starter motor.
-; PIGN = Problem with the ignition.
-; PTMP = Problem with low temperature.
-
-; 1. EGG ∧ ETO → PIGN
-; 2. ETON ∧ LWN ∧ TL ∧ MWN → PTMP
-; 3. ETON ∧ LWN ∧ MW → PIGN
-; 4. ETON ∧ LWN ∧ TLN → PIGN
-; 5. ETON ∧ LW → PSTM
-; 6. FT ∧ FC → EGG
-
-; Suppose that the following facts are given:
-; FT, FC, TL, MW, ETO
-
-; Can we deduce PIGN ?
-
-to test2
-  ca
-  let rules [
-    ["EGG" "ETO" "PIGN"]
-    ["ETON" "LWN" "TL" "MWN" "PTMP"]
-    ["ETON" "LWN" "MW" "PIGN"]
-    ["ETON" "LWN" "TLN" "PIGN"]
-    ["ETON" "LW" "PSTM"]
-    ["FT" "FC" "EGG"]]
-  let facts ["FT" "FC" "TL" "MW" "ETO"]
-  let goal "PIGN"
-  print (word "Answer: " RBS:deduce goal rules facts Debug?)
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-763
-23
-804
-65
+358
+4
+1234
+454
 -1
 -1
-1.0
+13.364
 1
-10
+12
 1
 1
 1
 0
+0
+0
 1
-1
-1
--16
-16
+-32
+32
 -16
 16
 0
@@ -102,20 +52,52 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
-OUTPUT
-6
-10
-843
-462
+MONITOR
+7
+115
+340
+160
+Clause Set
+monitor
+17
+1
 11
 
 BUTTON
-761
-16
-824
-49
+7
+163
+148
+196
+Explore Clause Sets
+Explore
+T
+1
+T
+OBSERVER
 NIL
-test1
+NIL
+NIL
+NIL
+1
+
+INPUTBOX
+7
+10
+340
+70
+Sigma
+[[\"a2\" \"b\" \"col\"] [\"-a2\" \"b\" \"d\"] [\"b\" \"-col\"]]
+1
+0
+String
+
+BUTTON
+8
+75
+75
+108
+DPLL!!
+go
 NIL
 1
 T
@@ -126,24 +108,13 @@ NIL
 NIL
 1
 
-SWITCH
-659
-16
-762
-49
-Debug?
-Debug?
-0
-1
--1000
-
 BUTTON
-761
-49
-824
-82
-NIL
-test2
+222
+163
+340
+196
+Hide/Show Sets
+ifelse [label] of clause-set 0 = \"\"\n[ ask clause-sets [set label #clause-content]]\n[  ask clause-sets [set label \"\"]]
 NIL
 1
 T
@@ -208,13 +179,9 @@ Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
 
 box
 false
-0
-Polygon -7500403 true true 150 285 285 225 285 75 150 135
-Polygon -7500403 true true 150 135 15 75 150 15 285 75
-Polygon -7500403 true true 15 75 15 225 150 285 150 135
-Line -16777216 false 150 285 150 135
-Line -16777216 false 150 135 15 75
-Line -16777216 false 150 135 285 75
+15
+Rectangle -1 true true 0 45 300 240
+Rectangle -7500403 false false 0 45 300 240
 
 bug
 true
@@ -250,7 +217,8 @@ Circle -7500403 true true 195 195 58
 circle
 false
 0
-Circle -7500403 true true 0 0 300
+Circle -7500403 true true 15 15 270
+Circle -16777216 false false 14 14 272
 
 circle 2
 false
