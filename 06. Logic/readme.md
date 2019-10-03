@@ -99,6 +99,7 @@ this one returns literals (`-a`,`-b`,...)
 
 * Add Resolution to LP.
 * Add Forward Chaining to LP (RBS will be a part of LP).
+* Add __LP:TS-Consequence?__, __LP:SAT?__, __LP:TAUT?__,...
 * Add `eval` function to evaluate formulas in valuations.
 * Add Truth tables.
 * Add some models that make use of LP for _intelligent agents_.
