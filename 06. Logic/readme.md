@@ -18,7 +18,7 @@ LP:links (directed link breed)
 
 ## ParseCNFLP
 
-* __LP:parse-to-tree S__: Transforms a formula in string format to tree (list) format
+* `LP:parse-to-tree S`: Transforms a formula in string format to tree (list) format
 
 ```
     LP:parse-to-tree "((a->b)|(-c))" : ["|" ["->" "a" "b"] ["-" "c"]]
