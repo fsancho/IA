@@ -103,4 +103,4 @@ this one returns literals (`-a`,`-b`,...)
 * Add `eval` function to evaluate formulas in valuations.
 * Add Truth tables.
 * Add some models that make use of LP for _intelligent agents_.
-* Add some approach to __First Order Logic__ (write and decode formulas, unification, Herbrand, resolution,...)
+* Add some approach to __First Order Logic__ (write and decode formulas, unification, Herbrand, resolution,...)-> In a _LPO_ library.
