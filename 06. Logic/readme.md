@@ -1,3 +1,12 @@
+In this folder you can find several models and libraries related to Propositional Logic in NetLogo (LP) (and also the Extension Fuzzy Logic, it is not mine):
+
+* __Fuzzy Logic__
+* __LP.nls__: the main library. The main functions are detailed bellow, and there are also several models to illustrate how it works (`Tree&CNF.nlogo`, `TS.nlogo`, `DPLL.nlogo`, `DPLL - Consecuencia Lógica.nlogo`).
+* __RBS.nls__: library for a simple Rule Based System (Knowledge Bases). There are several models with it (`RuleBasedSystemForwardReasoning Agents.nlogo` and `RuleBasedSystemForwardReasoning.nlogo`).
+* __Resolucion LP.nlogo__, __ResolutionPropositionalLogic.nlogo__: some models that performs resolution procedure (in a near future, it will be integrated with __LP__ library).
+
+# LP Library
+
 In the following:
 
 * `S`: Formula in string format
