@@ -98,6 +98,8 @@ this one returns literals (`-a`,`-b`,...)
 ## ToDo
 
 * Add Resolution to LP.
+* Add Forward Chaining to LP (RBS will be a part of LP).
 * Add `eval` function to evaluate formulas in valuations.
 * Add Truth tables.
 * Add some models that make use of LP for _intelligent agents_.
+* Add some approach to __First Order Logic__ (write and decode formulas, unification, Herbrand, resolution,...)
