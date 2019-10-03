@@ -94,3 +94,10 @@ this one returns literals (`-a`,`-b`,...)
 (Reports `true/false`)
 
 (see sample models)
+
+## ToDo
+
+* Add Resolution to LP.
+* Add `eval` function to evaluate formulas in valuations.
+* Add Truth tables.
+* Add some models that make use of LP for _intelligent agents_.
