@@ -102,5 +102,6 @@ this one returns literals (`-a`,`-b`,...)
 * Add `LP:TS-Consequence?`, `LP:SAT?`, `LP:TAUT?`,...
 * Add `eval` function to evaluate formulas in valuations.
 * Add Truth tables.
+* Refine algorithms (not so naive) for Resolution and DPLL. Try to provide good reports in order to practice with variants in an easy way.
 * Add some models that make use of LP for _intelligent agents_.
 * Add some approach to __First Order Logic__ (write and decode formulas, unification, Herbrand, resolution,...)-> In a _LPO_ library.
