@@ -1,29 +1,26 @@
-__includes ["LayoutSpace.nls" "dpll.nls"]
+__includes ["LP.nls"]
 
 globals [monitor]
 
-to go
+to go [f]
   ca
   ask patches [set pcolor white]
-  show dpll (read-from-string Sigma) true
-  set #LayoutNodes clause-sets
-  set #LayoutEdges dpll-links
-  set #LayoutNode0 clause-set 0
+  show LP:DPLL f true
+  set #LayoutNodes LP:nodes
+  set #LayoutEdges LP:links
+  set #LayoutNode0 LP:node 0
   Layout-space "V"
 end
 
 ; Auxiliary procedure to show content from one clause-set selected
 ; by the mouse
 to explore
-  let node min-one-of clause-sets [distancexy mouse-xcor mouse-ycor]
+  let node min-one-of LP:nodes [distancexy mouse-xcor mouse-ycor]
   ask node [
     if distancexy mouse-xcor mouse-ycor < 1 [
-      set monitor #clause-content]
+      set monitor LP:node-content]
   ]
 end
-
-
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 358
@@ -86,7 +83,7 @@ INPUTBOX
 340
 70
 Sigma
-[[\"a2\" \"b\" \"col\"] [\"-a2\" \"b\" \"d\"] [\"b\" \"-col\"]]
+[[\"p\" \"q\"] [\"-p\"]]
 1
 0
 String
@@ -97,7 +94,7 @@ BUTTON
 75
 108
 DPLL!!
-go
+go (read-from-string Sigma)
 NIL
 1
 T
@@ -114,7 +111,34 @@ BUTTON
 340
 196
 Hide/Show Sets
-ifelse [label] of clause-set 0 = \"\"\n[ ask clause-sets [set label #clause-content]]\n[  ask clause-sets [set label \"\"]]
+ifelse [label] of LP:node 0 = \"\"\n[ ask LP:nodes [set label LP:node-content]]\n[ ask LP:nodes [set label \"\"]]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+8
+200
+320
+245
+Samples
+Samples
+[["p" "-q"] ["p" "q"] ["-p" "-q"] ["-p" "q"]] [["-r"] ["q"] ["p" "-q"] ["-p" "r"]] [["p" "q" "r"] ["-p" "q"] ["-q" "r"] ["-r"] ["p" "r"]] [["p"] ["-p" "q"] ["r"]] [["-p" "-q" "r"] ["-s" "t"] ["-t" "p"] ["s"] ["-s" "u"] ["-u" "q"] ["-r"]] [["p" "q"] ["q" "r"] ["r" "w"] ["-r" "-p"] ["-w" "-q"] ["-q" "-r"]] [["-A" "-B" "C"] ["-A" "-G" "H"] ["-A" "-H" "F"] ["-G" "B"] ["G"] ["A"] ["-F"]]
+6
+
+BUTTON
+21
+257
+84
+290
+DPLL!
+go Samples
 NIL
 1
 T
@@ -464,7 +488,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

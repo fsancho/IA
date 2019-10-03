@@ -1,4 +1,4 @@
-__includes [ "ParseCNFLP.nls" "TS.nls"]
+__includes [ "LP.nls"]
 
 
 globals [ monitor ]
@@ -7,24 +7,24 @@ to test [f]
   ca
   ask patches [set pcolor white]
   ; Transform the formula (as string) into a tree
-  let form (list ParseLP:to-tree f)
+  let form (list LP:parse-to-tree f)
 
   ; Apply TS algorithm to produce the tree of formulas sets (boxes)
-  TS form
+  LP:TS form
 
   ; Prettify the labels with the sets in every box
-  ask TS:formulas [
-    set label prettify-set TS:content
+  ask LP:nodes [
+    set label LP:pretty-set LP:node-content
   ]
   ; Highlight final boxes (models/contradictions)
-  ask TS:formulas with [reduce and map [sf -> TS:type sf = "vp"] TS:content]
+  ask LP:nodes with [reduce and map [sf -> LP:ab-type sf = "vp"] LP:node-content]
   [
-    set color ifelse-value TS:contradiction? TS:content [red][green]
+    set color ifelse-value LP:contradiction? LP:node-content [red][green]
   ]
   ; Layout with LayoutSpace library
-  set #LayoutNodes TS:Formulas
-  set #LayoutEdges TS:links
-  set #LayoutNode0 Ts:formula 0
+  set #LayoutNodes LP:nodes
+  set #LayoutEdges LP:links
+  set #LayoutNode0 LP:node 0
   Layout-space "V"
 
 end
@@ -32,10 +32,10 @@ end
 ; Auxiliary procedure to show content from one clause-set selected
 ; by the mouse
 to explore
-  let node min-one-of TS:formulas [distancexy mouse-xcor mouse-ycor]
+  let node min-one-of LP:nodes [distancexy mouse-xcor mouse-ycor]
   ask node [
     if distancexy mouse-xcor mouse-ycor < 1 [
-      set monitor (word who ": " prettify-set TS:content)]
+      set monitor (word who ": " LP:pretty-set LP:node-content)]
   ]
 end
 @#$#@#$#@
@@ -460,7 +460,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

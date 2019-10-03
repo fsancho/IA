@@ -1,0 +1,784 @@
+extensions [cf]
+
+__includes ["LayoutSpace.nls"]
+
+breed [LP:nodes LP:node]
+directed-link-breed [LP:links LP:link]
+
+LP:nodes-own [
+  LP:node-content
+  LP:node-active?
+  LP:node-sat?
+  depth ; for use in the tree representation
+]
+
+LP:links-own [ LP:link-content ]
+
+;--------------------------------------------------------------------
+; Parse formulas as trees
+;--------------------------------------------------------------------
+
+; Transform  a fórmula (as a string) into a tree (list of lists) 
+; In this tree, operators are in the head of the list
+;
+; Operators: - (neg), & (and), | (or), -> (if), <-> (iff)
+;
+; The input format is very restrictive:
+;   - It needs ALL the perenthesis (also the negation)
+;   - It doesn't allow associative operators (must be written as 
+;     a combination of binaries operations)
+;
+; Some examples:
+;  LP:to-tree "((a->b)|(-c))" : ["|" ["->" "a" "b"] ["-" "c"]]
+;  LP:to-tree "(a <-> (b|c))" : ["<->" "a" ["|" "b" "c"]]
+
+to-report LP:parse-to-tree [s]
+  set s LP:remove-spaces s
+  set s LP:replace-all "(" s "["
+  set s LP:replace-all ")" s "]"
+  set s LP:string-to-list s
+  set s read-from-string s
+  report LP:OptoHead LP:Sep s
+end
+
+; Separate recursively brackets and operators by using LP:SepConn
+; "LP:Sep [[[["-a"] "&b"] "->c"] "<->" ["a|b"]] ==
+;                       [[[["-" "a"] "&" "b"] "->" "c"] "<->" ["a" "|" "b"]]
+to-report LP:Sep [s]
+  (cf:ifelse
+    empty? s [report []]
+    is-list? (first s) [report fput (LP:Sep  first s) (LP:Sep bf s)]
+    [report (sentence (LP:SepConn first s) (LP:Sep bf s))])
+end
+
+; Move operators to head of lists
+to-report LP:OptoHead [l]
+  (cf:ifelse
+    is-string? l [report l]
+    length l = 1 [report (first l)]
+    length l = 2 [report map LP:OptoHead l]
+    length l = 3 [report map LP:OptoHead (list (item 1 l) (item 0 l) (item 2 l)) ])
+end
+
+; Separate in a single string the operators from the operands:
+; LP:SepConn "aa&bb" = "aa" "&" "bb"
+; returns a list
+
+to-report LP:SepConn [s]
+  let rep ""
+  let ls length s
+  (cf:ifelse
+    member? "<->" s [ let pos position "<->" s
+                      set rep  (list (substring s 0 pos) "<->" (substring s (pos + 3) ls)) ]
+    member? "->" s  [ let pos position "->" s
+                      set rep  (list (substring s 0 pos) "->" (substring s (pos + 2) ls)) ]
+    member? "-" s   [ set rep (list "-" (bf s)) ]
+    member? "&" s   [ let pos position "&" s
+                      set rep  (list (substring s 0 pos) "&" (substring s (pos + 1) ls)) ]
+    member? "|" s   [ let pos position "|" s
+                      set rep  (list (substring s 0 pos) "|" (substring s (pos + 1) ls)) ])
+  report LP:remove-empties rep
+end
+
+; Remove empty strings from a list of strings (only in the first level)
+; LP:remove-empties ["1" "" "3" "4" ""] == ["1" "3" "4"]
+to-report LP:remove-empties [l]
+  report filter [el -> not empty? el] l
+end
+
+; Replace all substrings s1 of s with s2
+; LP:replace-all "aa" "bbaaccaa" "1" == "bb1cc1"
+to-report LP:replace-all [s1 s s2]
+  ifelse member? s1 s
+  [ let pos position s1 s
+    set s (word (substring s 0 pos) s2 (substring s (pos + length s1) (length s)))
+    report LP:replace-all s1 s s2 ]
+  [ report s ]
+end
+
+; Transform a string (with brackets) into a string with pieces as strings 
+; that can be read
+; LP:string-to-list "[123]" = "["123"]"
+; LP:string-to-list "[12[34]5]"="["12" ["34"] "5"]"
+; LP:string-to-list "12[34]5"= ["12" ["34"] "5"]
+to-report LP:string-to-list [s]
+  if empty? s [report ""]
+  let limits LP:find-limits s
+  let i first limits
+  let j last limits
+  if i = -1 [ report (word "\"" s "\"")]
+  report (word
+    (LP:string-to-list (substring s 0 i))
+    "["
+    (LP:string-to-list (substring s (i + 1) j))
+    "]"
+    (LP:string-to-list (substring s (j + 1) (length s)))
+    )
+end
+
+; Find the limits of a pair of most external brackets
+; LP:find-limits "1[123]4" = [1 5]
+to-report LP:find-limits [s]
+  let i -1
+  let j -1
+  let d -1
+  foreach (range 0 (length s)) [
+    pos ->
+    if item pos s = "["
+    [ set d d + 1
+      if d = 0 [ set i pos ] ]
+    if item pos s = "]"
+    [ set d d - 1
+      if d = -1 [ set j pos ] ]
+  ]
+  report (list i j)
+end
+
+; Remove all spaces from a string
+to-report LP:remove-spaces [s]
+  report LP:replace-all " " s ""
+end
+
+;; Representation as trees
+;; The input is a formula as a tree
+
+to LP:TreeLayoutAux [l]
+  if not empty? l
+  [
+    let c first l
+    (cf:ifelse
+      c = "-" [
+        hatch-LP:nodes 1 [
+          set color yellow
+          set shape "not"
+          create-LP:link-from myself 
+          set depth depth + 1
+          LP:TreeLayoutAux (last l)
+        ]
+      ]
+      member? c "& | -> <->" [
+        hatch-LP:nodes 1 [
+          set color yellow
+          (cf:ifelse 
+            c = "&" [set shape "and"]
+            c = "|" [set shape "or"]
+            c = "->" [set shape "if"]
+            c = "<->" [set shape "iff"])
+          create-LP:link-from myself
+          set depth depth + 1
+          foreach (bf l) [sub -> LP:TreeLayoutAux sub]
+        ]
+      ]
+      [ hatch-LP:nodes 1 [
+        set color yellow
+        set label c
+        set shape "square"
+        create-LP:link-from myself
+        set depth depth + 1]
+      ]
+    )
+  ]
+end
+
+to LP:TreeLayout [l]
+  ca
+  ask patches [set pcolor white]
+  let f LP:parse-to-tree l
+  create-LP:nodes 1 [
+    LP:TreeLayoutAux f
+    set shape "circle"
+    set color yellow
+    set size 2
+  ]
+  ask LP:node 0 [die]
+  ask LP:nodes [
+    set size 2
+    set label-color black
+  ]
+  set #LayoutNodes LP:nodes
+  set #LayoutEdges LP:links
+  set #LayoutNode0 LP:node 1
+  Layout-space "V"
+end
+
+; Return a list of pairs [var n] to identify vars of a formula with 
+; natural numbers (negations as negative numbers)
+to-report LP:extract-vars [s]
+  foreach ["&" "|" "<->" "->" "-" "(" ")"] [
+    c -> set s LP:replace-all c s " " ]
+  let vp remove-duplicates (LP:split s " ")
+  report (map [[v n] -> (list v n)] (sort vp) (range 1 (1 + length vp)))
+end
+
+;--------------------------------------------------------------------
+; Convert formulas (trees) into CNF
+;--------------------------------------------------------------------
+
+; CNF conversion report
+; Takes a formula tree and convert it into CNF
+to-report LP:CNF [l]
+  report
+    LP:trDis 
+    LP:trNeg 
+    LP:tr-> 
+    LP:tr<-> l
+end
+
+; CNF conversion report
+; Takes a formula tree and convert it into CNF
+; In contrast with previous version, this one returns literals (-a,-b,...)
+to-report LP:CNF2 [l]
+  report 
+    LP:GrNeg 
+    LP:trDis 
+    LP:trNeg 
+    LP:tr-> 
+    LP:tr<-> l
+end
+
+; Returns the type of unit of a list: "&", "|", "->", "<->", "-", "vp", false,
+to-report LP:unit-type [l]
+  (cf:ifelse
+    empty? l [ report false ]
+    is-string? l [ report "vp" ]
+    [ report first l ])
+end
+
+; Divides a string s cutting it through "c" ("c"'s are removed)
+to-report LP:split [s c]
+  ifelse empty? s [report [] ]
+  [ let pos position c s
+    ifelse pos = false [report (list s)]
+    [ report LP:remove-empties fput (substring s 0 pos) (LP:split (substring s (pos + (length c)) (length s)) c) ]
+  ]
+end
+
+; Transform <->:
+;                (a <-> b) = ((a -> b) & (b -> a))
+;
+to-report LP:tr<-> [l]
+  (cf:ifelse
+    empty? l [ report [] ]
+    [ let con first l
+      (cf:ifelse
+        con = "<->" [ let a LP:tr<-> item 1 l
+                      let b LP:tr<-> item 2 l
+                      report (list "&" (list "->" a b) (list "->" b a)) ]
+        con = "-"   [ let a LP:tr<-> item 1 l
+                      report (list con a) ]
+        con = "&" or con ="|" or con = "->" [ let a LP:tr<-> item 1 l
+                                              let b LP:tr<-> item 2 l
+                                              report (list con a b) ]
+        [ report l ] )])
+end
+
+; Transform -> :
+;                (a -> b) = (-a | b)
+;
+to-report LP:tr-> [l]
+  ifelse empty? l
+  [ report [] ]
+  [ let con first l
+    (cf:ifelse
+      con = "->" [ let a LP:tr-> item 1 l
+                   let b LP:tr-> item 2 l
+                   report (list "|" (list "-" a) b) ]
+      con = "-"  [ let a LP:tr-> item 1 l
+                   report (list con a) ]
+      con = "&" or con ="|" [ let a LP:tr-> item 1 l
+                              let b LP:tr-> item 2 l
+                              report (list con a b) ]
+      [ report l ])]
+end
+
+; Transforma -:
+;              (-(-a)) = a
+;              (-(a & b)) = ((-a) | (-b))
+;              (-(a | b)) = ((-a) & (-b))
+;
+to-report LP:trNeg [l]
+  ifelse empty? l
+  [ report [] ]
+  [ let con first l
+    (cf:ifelse
+      con = "-" [ let a item 1 l
+                  let con_a first a
+                  (cf:ifelse
+                    not member? con_a "- & |" [ report l ]
+                    con_a = "-" [ report LP:trNeg (last a) ]
+                    [ let a1 item 1 a
+                      let b1 item 2 a
+                      (cf:ifelse
+                        con_a = "&" [ report (list "|" (LP:trNeg (list "-" a1)) (LP:trNeg (list "-" LP:trNeg b1))) ]
+                        con_a = "|" [ report (list "&" (LP:trNeg (list "-" a1)) (LP:trNeg (list "-" LP:trNeg b1))) ]
+                        [ report l ])])]
+      con = "&" or con = "|" [ let a item 1 l
+                               let b item 2 l
+                               report (list con (LP:trNeg a) (LP:trNeg b)) ]
+      [ report l ])]
+end
+
+; Distributive Transformation:
+;              (a|(b&c)) = ((a|b)&(a|c))
+;              ((a&b)|c) = ((a|c)&(b|c))
+; In prefix notation:
+;              [| a [& a1 b1]] = [& [| a a1] [| a b1]]
+;              [| [& a1 b1] b] = [& [| a1 b] [| b1 b]]
+;
+; It makes use of an auxiliar report because we have to appply it an unknown number of times,
+; until an application does not produce changes. The application in a level can produce the
+; necessity of a new appplication in an upper level
+
+to-report LP:trDis [l]
+  let rep LP:trDisAux l
+  ifelse rep = l
+  [report l]
+  [report LP:trDis rep]
+end
+
+to-report LP:trDisAux [l]
+  ifelse empty? l
+  [ report [] ]
+  [ let con first l
+    (cf:ifelse
+      con = "|" [ let a item 1 l
+                  let b item 2 l
+                  (cf:ifelse
+                    first a = "&" [ let a1 LP:trDisAux item 1 a
+                                    let b1 LP:trDisAux item 2 a
+                                    report (list "&" (list "|" a1 (LP:trDisAux b)) (list "|" b1 (LP:trDisAux b))) ]
+                    first b = "&" [ let a1 LP:trDisAux item 1 b
+                                    let b1 LP:trDisAux item 2 b
+                                    report (list "&" (list "|" (LP:trDisAux a) a1) (list "|" (LP:trDisAux a) b1)) ]
+                    [ report (list "|" (LP:trDisAux a) (LP:trDisAux b)) ])]
+      con = "&" [ let a item 1 l
+                  let b item 2 l
+                  report (list "&" (LP:trDisAux a) (LP:trDisAux b)) ]
+      con = "-" [ let a item 1 l
+                  report (list "-" (LP:trDisAux a)) ]
+      [ report l ])]
+end
+
+; Change ["-" "a"] = "-a" (requires l in CNF)
+to-report LP:GrNeg [l]
+  ifelse empty? l
+  [ report l ]
+  [ ifelse is-list? l
+    [ let con first l
+      ifelse con = "-"
+      [ report (word "-" (last l)) ]
+      [ let a item 1 l
+        let b item 2 l
+        report (list con (LP:GrNeg a) (LP:GrNeg b)) ]
+    ]
+    [ report l ]
+  ]
+end
+
+;--------------------------------------------------------------------
+; Convert formulas (in CNF) into Clausal Form
+;--------------------------------------------------------------------
+
+; Clause Form conversion from CNF
+to-report LP:clause-form [l]
+  let rep LP:flat-list LP:clause-form-aux l
+  ifelse is-string? (first rep) 
+  [report (list rep)]
+  [report rep]
+end
+
+
+; Extract Clausal Form (requires l in CNF)
+to-report LP:clause-form-aux [l]
+  ifelse empty? l [report [] ]
+  [
+    (cf:ifelse
+      LP:unit-type l = "vp" [ report (list l) ]
+      LP:unit-type l = "&"  [ let a item 1 l
+                              let b item 2 l
+                              report list (LP:clause-form-aux a) (LP:clause-form-aux b)]
+      LP:unit-type l = "|"  [ report  LP:process-disjunct l])
+  ]
+end
+
+; Process all the levels in a disjunction to join them in one single list (requires l in CNF)
+to-report LP:process-disjunct [l]
+  let rep LP:flat l
+  set rep remove "|" rep
+  report rep
+end
+
+; Cleaning Clauses (requires Clause Form with neg)
+to-report LP:CleanCF [l]
+  report remove-duplicates filter [c -> not empty? c] map LP:CleanClause l
+end
+
+to-report LP:CleanClause [c]
+  set c remove-duplicates c
+  let contra? reduce or map [lit -> member? (LP:neg lit) c] c
+  ifelse contra?
+  [ report [] ]
+  [ report c ]
+end
+
+; Flatten a list with several levels (its elements mus be strings)
+; flat ["1" "2" ["3" "4" ["5"]]] = ["1" "2" "3" "4" "5"]
+to-report LP:flat [l]
+  (cf:ifelse
+    is-string? l [ report l ]
+    empty? l     [ report [] ]
+    [ report sentence (LP:flat (first l)) (LP:flat (bf l))])
+end
+
+; Flatten a lis of lists, leaving the one-level lists as basic units
+; flat-list [["1" "2"] [["3" "4"] ["5"]]] = [["1" "2"] ["3" "4"] ["5"]]
+to-report LP:flat-list [l]
+  if is-list? l and (reduce and map is-string? l) [report l]
+  let rep []
+  foreach l [
+    c ->
+    ifelse is-list? c and (reduce and map is-string? c)
+    [ set rep lput c rep ]
+    [ set rep sentence rep (LP:flat-list c) ]
+  ]
+  report rep
+end
+
+; Replace numerical vars ("1", "2",...) with their values (1,2,...)
+; Requires a Clause Form
+to-report LP:numberize [l]
+  report map [c -> map read-from-string c] l
+end
+
+; Auxiliary prodecure to negate a literal
+to-report LP:neg [u]
+  ifelse (first u) = "-" 
+  [report bf u]
+  [report (word "-" u)]
+end
+
+;------------------------------------------------------------------------
+; DPLL
+;------------------------------------------------------------------------
+
+; DPLL report: receives a set of clauses (each clause is a set (list) of
+; literals, and the clause-set y a list of lists), and a #debub boolean
+; to indicate if the process will be shown or not.
+
+to-report LP:DPLL [S #debug]
+  no-display
+  ; Create the initial clause-set
+  create-LP:nodes 1 [
+    set shape "box"
+    set color yellow
+    set size 3
+    set LP:node-content S
+    set label-color black
+    set LP:node-active? true
+    set depth 0
+  ]
+  ; The main loop, while there are active clauses to process
+  while [any? LP:nodes with [LP:node-active?]] [
+    ; Take clauses to be processed
+    ask LP:nodes with [LP:node-active?] [
+      ; Take its units
+      let units filter [c -> length c = 1] LP:node-content
+      ; if there are units
+      ifelse not empty? units
+      [
+        set units (reduce sentence units)
+        ; Create a new clause-set with the application of unit propagation of units
+        ; all the units are propagated in one step
+        hatch-LP:nodes 1 [
+          set size 2
+          foreach units [
+            u ->
+            set LP:node-content filter [c -> not member? u c] LP:node-content
+            set LP:node-content map [c -> ifelse-value (member? (LP:neg u) c) [remove (LP:neg u) c] [c]] LP:node-content
+            set depth depth + 1
+          ]
+          ; Decide if the new clause is a final one:
+          ; ... and if it produces a model
+          if empty? LP:node-content[
+            set LP:node-active? false
+            set LP:node-sat? true
+            set color green
+          ]
+          ; ... or is a closed one
+          if member? [] LP:node-content [
+            set LP:node-active? false
+            set LP:node-sat? false
+            set color red
+          ]
+          ; and connect it with the previous clause
+          create-LP:link-from myself [
+            set LP:link-content units
+            set label LP:link-content
+            set label-color black
+          ]
+        ]
+      ]
+      ; if there are no units
+      [ 
+        ; take one of their propositional variables
+        let vp first first LP:node-content
+        ; and divide the process with both literals
+        foreach (list vp (LP:neg vp)) [
+          v ->
+          hatch-LP:nodes 1 [
+            set size 2
+            set depth depth + 1
+            set LP:node-content lput (list v) LP:node-content
+            ; connect with the previous clause
+            create-LP:link-from myself [
+              set LP:link-content v
+              set  label LP:link-content
+              set label-color black
+            ]
+          ]
+        ]
+      ]
+      ; after applying this step, this clause set is not active
+      set LP:node-active? false
+    ]
+  ]
+  ; Show the built tree if #debug
+  ifelse #debug 
+  [ ]
+  [ ask LP:nodes [hide-turtle]
+    ask LP:links [hide-link]
+  ]
+  display
+  ; report if the set is satisfiable or not
+  report (any? LP:nodes with [LP:node-sat? = true])
+end
+
+; Show the content as a set of prettified formulas
+to-report LP:pretty-set [l]
+  if length l <= 1 [report (word "{" (LP:rep LP:pretty-formula (first l)) "}")]
+  report (word "{" (reduce [[a b] -> (word (LP:rep LP:pretty-formula a) " , " (LP:rep LP:pretty-formula b))] l) "}")
+end
+
+;Rewrite a single formula into infix way...
+to-report LP:pretty-formula [l]
+  if empty? l [report ""]
+  if first l = "|" [report (word "(" (LP:pretty-formula item 1 l) "v" (LP:pretty-formula item 2 l) ")")]
+  if first l = "&" [report (word "(" (LP:pretty-formula item 1 l) "^" (LP:pretty-formula item 2 l) ")")]
+  if first l = "->" [report (word "(" (LP:pretty-formula item 1 l) "→" (LP:pretty-formula item 2 l) ")")]
+  if first l = "<->" [report (word "(" (LP:pretty-formula item 1 l) "↔" (LP:pretty-formula item 2 l) ")")]
+  if first l = "-" [report (word "¬" (LP:pretty-formula item 1 l))]
+  report (word l)
+end  
+
+; remove external parenthesis: ARREGLAR
+to-report LP:rep [s]
+  report s
+  ifelse first s ="(" 
+  [report bf bl s]
+  [report s]
+end
+  
+;------------------------------------------------------------------------------------------
+; Semantic Tableau.
+;------------------------------------------------------------------------------------------
+
+; Builds the tree of transformations from a set of formulas to the models/contradictions.
+; Requires a list of formulas in tree format (tou can use ParseLP:to-tree
+to LP:TS [l]
+  ; Create the initial box with the initial set
+  create-LP:nodes 1 [
+    set shape "box"
+    set size 3
+    set color yellow
+    set LP:node-content map LP:clean2Negs l
+    set label-color black
+    set LP:node-active? true
+    set depth 0
+  ]
+  ; Main loop: while there are active boxes
+  while [any? LP:nodes with [LP:node-active?]] [
+    ask LP:nodes with [LP:node-active?] [
+      LP:TS-one-step
+    ]
+  ]
+end
+
+; One TS step procedure
+to LP:TS-one-step
+  ; In some cases the transformations introduce ""... we remove it
+  set LP:node-content remove "" LP:node-content
+  ; Take formulas alpha and beta from the box
+  let LP:alphas filter [f -> LP:ab-type f = "alpha"] LP:node-content
+  let LP:betas filter [f -> LP:ab-type f = "beta"] LP:node-content
+  ; Start with alphas, if any...
+  ifelse not empty? LP:alphas
+  [LP:TS-aprocess (first LP:alphas)]
+  [LP:TS-bprocess (first LP:betas)]
+  ; Deactivate the box (it will not be processed anymore)
+  set LP:node-active? false
+end
+
+; Decides if a box contains a contradiction
+to-report LP:contradiction? [l]
+  let rep false
+  foreach l [ x -> if is-string? x [if member? (list "-" x) l [set rep true]]]
+  report rep
+end
+
+; Process alpha formulas (no division)
+to LP:TS-aprocess [f]
+  ; Take the connective: & or <->
+  let con first f
+  if con = "&" or con = "<->"
+  [
+    let f1 ""
+    let f2 ""
+    ;and processes it
+    if con = "<->" [
+      set f1 (list "->" (item 1 f) (item 2 f))
+      set f2 (list "->" (item 2 f) (item 1 f))]
+    if con = "&" [
+      set f1 (item 1 f)
+      set f2 (item 2 f)]
+    ; It will create only one new box with both subformulas
+    hatch-LP:nodes 1 [
+      create-LP:link-from myself 
+      set depth depth + 1
+      ; remove original alpha-formula and add the new ones
+      set LP:node-content remove f LP:node-content
+      set LP:node-content lput f1 LP:node-content
+      set LP:node-content lput f2 LP:node-content
+      ; Clean double negations --f=f
+      set LP:node-content remove-duplicates map LP:clean2Negs LP:node-content
+      ; Decide if must be deactivated (only literals)
+      ifelse reduce and map [sf -> LP:ab-type sf = "vp"] LP:node-content
+      [set LP:node-active? false]
+      [set LP:node-active? true]
+      ;if LP:contradiction? LP:node-content [set LP:node-active? false]
+    ]
+  ]
+  ; Alpha formulas starting with negation: -(.|.), -(.->.)
+  ; The process is equivalent
+  if con = "-"
+  [
+    let g item 1 f
+    let con2 first g
+    if con2 = "|" or con2 = "->"
+    [
+      let g1 ""
+      let g2 ""
+      if con2 = "|" [
+        set g1 (list "-" (item 1 g))
+        set g2 (list "-" (item 2 g))]
+      if con2 = "->" [
+        set g1 (item 1 g)
+        set g2 (list "-" (item 2 g))]
+      hatch-LP:nodes 1 [
+        create-LP:link-from myself 
+        set depth depth + 1
+        set LP:node-content remove f LP:node-content
+        set LP:node-content lput g1 LP:node-content
+        set LP:node-content lput g2 LP:node-content
+        set LP:node-content remove-duplicates map LP:clean2Negs LP:node-content
+        ifelse reduce and map [sf -> LP:ab-type sf = "vp"] LP:node-content
+        [set LP:node-active? false]
+        [set LP:node-active? true]
+        ;if LP:contradiction? LP:node-content [set LP:node-active? false]
+      ]
+    ]    
+  ]
+end
+
+; Process beta formulas (division)
+; Similar to the previous one
+to LP:TS-bprocess [f]
+  let con first f
+  if con = "|" or con = "->"
+  [
+    let f1 ""
+    let f2 ""
+    if con = "->" [
+      set f1 (list "-" (item 1 f))
+      set f2 (item 2 f)]
+    if con = "|" [
+      set f1 (item 1 f)
+      set f2 (item 2 f)]
+    foreach (list f1 f2) [
+      sub ->
+      hatch-LP:nodes 1 [
+        create-LP:link-from myself
+        set depth depth + 1
+        set LP:node-content remove f LP:node-content
+        set LP:node-content lput sub LP:node-content
+        set LP:node-content remove-duplicates map LP:clean2Negs LP:node-content
+        ifelse reduce and map [sf -> LP:ab-type sf = "vp"] LP:node-content
+        [set LP:node-active? false]
+        [set LP:node-active? true]
+        ;if LP:contradiction? LP:node-content [set LP:node-active? false]
+    ]
+    ]
+  ]
+  if con = "-"
+  [
+    let g item 1 f
+    let con2 first g
+    if con2 = "&" or con2 = "<->"
+    [
+      let g1 ""
+      let g2 ""
+      if con2 = "&" [
+        set g1 (list "-" (item 1 g))
+        set g2 (list "-" (item 2 g))]
+      if con = "<->" [
+        set g1 (list "-" (list "->" (item 1 g) (item 2 g)))
+        set g2 (list "-" (list "->" (item 2 g) (item 1 g)))]
+      foreach (list g1 g2) [
+        sub -> 
+        hatch-LP:nodes 1 [
+          create-LP:link-from myself 
+          set depth depth + 1
+          set LP:node-content remove f LP:node-content
+          set LP:node-content lput sub LP:node-content
+          set LP:node-content remove-duplicates map LP:clean2Negs LP:node-content
+          ifelse reduce and map [sf -> LP:ab-type sf = "vp"] LP:node-content
+          [set LP:node-active? false]
+          [set LP:node-active? true]
+          ;if LP:contradiction? LP:node-content [set LP:node-active? false]
+        ]
+      ]
+    ]
+  ]
+end
+
+; Procedure to clean double negations in formulas
+to-report LP:clean2Negs [f]
+  if is-string? f [report f]
+  if first f = "-" and first (item 1 f) = "-" [report item 1 (item 1 f)]
+  report f
+end
+
+; Report the type (alpha, beta) of a formula
+to-report LP:ab-type [f]
+  ifelse length f <= 1
+  [ report "vp" ]
+  [ let con first f
+    if con = "&" or con ="<->" [report "alpha"]
+    if con = "|" or con = "->" [report "beta"]
+    if con = "-" and ((LP:ab-type (item 1 f)) = "alpha") [report "beta"]
+    if con = "-" and ((LP:ab-type (item 1 f)) = "beta") [report "alpha"]
+    report "vp"
+  ]
+end
+
+;------------------------------------------------------------------------------------
+; Logical Consequence
+;------------------------------------------------------------------------------------
+
+; LP:DPLL-Consequence? f S : Using DPLL decides if f (string) is logical consequence 
+; of S (list of strings)
+
+to-report LP:DPLL-Consequence? [f S #debug]
+  set S lput (word "(-" f ")") S
+  let SCF LP:CleanCF LP:flat-list map [pf -> LP:clause-form LP:CNF2 LP:parse-to-tree pf] S
+  report LP:DPLL  SCF #debug
+end

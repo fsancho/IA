@@ -1,87 +1,90 @@
 __includes ["LP.nls"]
 
+globals [monitor]
 
-; Pasa a FNC
-
-to test [f]
-  let a LP:parse-to-tree f
-  LP:TreeLayout f
-  Output-print (word "List Format: ")
-  foreach (cut (word a) 46) Output-print
-  Output-print ""
-  let pret LP:pretty-formula a
-  Output-print (word "Pretty Format: ")
-  foreach (cut (word pret) 46) Output-print
-  Output-print ""
-  let b LP:cnf a
-  Output-print (word "CNF: ")
-  foreach (cut (word b) 46) Output-print
-  Output-print ""
-  let b2 LP:cnf2 a
-  Output-print (word "CNF2: ")
-  foreach (cut (word b2) 46) Output-print
-  Output-print ""
-  let c LP:clause-form b2
-  Output-print (word "Clause Form: ")
-  foreach (cut (word c) 46) Output-print
-  Output-print ""
-  let d LP:CleanCF c
-  Output-print (word "Clause Form (clean): ")
-  foreach (cut (word d) 46) Output-print
+to test1
+  ca
+  ask patches [set pcolor white]
+  let f "(r<->q)"
+  let S ["(p->(q->r))" "(r->q)"]
+  set monitor (word "{" (reduce [[a b] -> (word a ", " b)] (map LP:pretty-formula (map LP:parse-to-tree S))) "} ⊨ " (LP:pretty-formula LP:parse-to-tree f))
+  show LP:DPLL-Consequence?  f S true
+  set #LayoutNodes LP:nodes
+  set #LayoutEdges LP:links
+  set #LayoutNode0 LP:node 0
+  Layout-space "V"
 end
 
-to-report cut [s n]
-  ifelse length s <= n
-  [report (list s)]
-  [report (fput (substring s 0 n) (cut (substring s n (length s)) n))]
+to test2
+  ca
+  ask patches [set pcolor white]
+  let f "(q->r)"
+  let S ["(p->q)" "(q->(p&q))" "(p->r)"]
+  set monitor (word "{" (reduce [[a b] -> (word a ", " b)] (map LP:pretty-formula (map LP:parse-to-tree S))) "} ⊨ " (LP:pretty-formula LP:parse-to-tree f))
+  show LP:DPLL-Consequence?  f S true
+  set #LayoutNodes LP:nodes
+  set #LayoutEdges LP:links
+  set #LayoutNode0 LP:node 0
+  Layout-space "V"
+end
+
+
+; Auxiliary procedure to show content from one clause-set selected
+; by the mouse
+to explore
+  let node min-one-of LP:nodes [distancexy mouse-xcor mouse-ycor]
+  ask node [
+    if distancexy mouse-xcor mouse-ycor < 1 [
+      set monitor LP:node-content]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-428
-10
-1229
-500
+358
+4
+1234
+454
 -1
 -1
-13.0
+13.364
 1
 12
 1
 1
 1
 0
+0
+0
 1
-1
-1
--30
-30
--18
-18
+-32
+32
+-16
+16
 0
 0
 1
 ticks
 30.0
 
-INPUTBOX
-9
+MONITOR
+12
 10
-425
-70
-Formula
-((a<->b)<->(-c))
+345
+67
+Clause Set
+monitor
+17
 1
-0
-String
+14
 
 BUTTON
-9
-73
-72
-106
-Try!
-test formula
-NIL
+12
+69
+153
+102
+Explore Clause Sets
+Explore
+T
 1
 T
 OBSERVER
@@ -91,12 +94,22 @@ NIL
 NIL
 1
 
-OUTPUT
-12
-111
-423
-500
-12
+BUTTON
+227
+69
+345
+102
+Hide/Show Sets
+ifelse [label] of LP:node 0 = \"\"\n[ ask LP:nodes [set label LP:node-content]]\n[ ask LP:nodes [set label \"\"]]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -145,13 +158,6 @@ true
 0
 Polygon -7500403 true true 150 0 135 15 120 60 120 105 15 165 15 195 120 180 135 240 105 270 120 285 150 270 180 285 210 270 165 240 180 180 285 195 285 165 180 105 180 60 165 15
 
-and
-false
-15
-Circle -1 true true 0 0 300
-Circle -16777216 false false -1 -1 301
-Polygon -7500403 true false 150 30 45 210 75 210 150 90 225 210 255 210
-
 arrow
 true
 0
@@ -159,13 +165,9 @@ Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
 
 box
 false
-0
-Polygon -7500403 true true 150 285 285 225 285 75 150 135
-Polygon -7500403 true true 150 135 15 75 150 15 285 75
-Polygon -7500403 true true 15 75 15 225 150 285 150 135
-Line -16777216 false 150 285 150 135
-Line -16777216 false 150 135 15 75
-Line -16777216 false 150 135 285 75
+15
+Rectangle -1 true true 0 45 300 240
+Rectangle -7500403 false false 0 45 300 240
 
 bug
 true
@@ -201,7 +203,8 @@ Circle -7500403 true true 195 195 58
 circle
 false
 0
-Circle -7500403 true true 0 0 300
+Circle -7500403 true true 15 15 270
+Circle -16777216 false false 14 14 272
 
 circle 2
 false
@@ -292,23 +295,6 @@ Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
 
-if
-false
-15
-Circle -1 true true 0 0 300
-Circle -16777216 false false 0 0 301
-Polygon -7500403 true false 285 150 150 225 150 195 225 150 150 105 150 75
-Rectangle -7500403 true false 30 135 225 165
-
-iff
-false
-15
-Circle -1 true true 0 0 300
-Circle -16777216 false false 0 0 301
-Polygon -7500403 true false 285 150 165 210 165 180 225 150 165 120 165 90
-Rectangle -7500403 true false 45 135 240 165
-Polygon -7500403 true false 15 150 120 90 120 120 75 150 120 180 120 210
-
 leaf
 false
 0
@@ -324,21 +310,6 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
-
-not
-false
-15
-Circle -1 true true 0 0 300
-Circle -16777216 false false 0 0 301
-Rectangle -7500403 true false 30 120 225 150
-Rectangle -7500403 true false 225 120 255 225
-
-or
-false
-15
-Circle -1 true true 0 0 300
-Circle -16777216 false false -1 0 301
-Polygon -7500403 true false 150 270 45 90 75 90 150 210 225 90 255 90
 
 pentagon
 false
@@ -384,9 +355,8 @@ Polygon -7500403 true false 219 85 210 105 193 99 201 83
 
 square
 false
-15
-Rectangle -1 true true 30 30 270 270
-Rectangle -7500403 false false 30 30 270 270
+0
+Rectangle -7500403 true true 30 30 270 270
 
 square 2
 false
