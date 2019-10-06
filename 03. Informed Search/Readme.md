@@ -62,6 +62,8 @@ Para el correcto funcionamiento de esta librería en el modelo principal se debe
 
 + `heuristic` : lo pueden ejecutar los buscadores. Recibe como entrada el objetivo buscado, y devuelve el valor de la heurística que se usará para medir la distancia entre el estado en el que se encuentra el buscador y el objetivo.
 
++ `equal?` : un report que decide cuándo dos estados son iguales. Muchas veces podrá ser simplemente el comparador `=`, pero en caso de que el contenido de los estados sea una estructura más compleja (por ejemplo, un conjunto representado por una lista) puede ser necesario definir una igualdad más elaborada (por ejemplo, en el caso anterior, que no dependa del orden).
+
 En los modelos de ejemplo se pueden ver algunas definiciones válidas para distintos problemas.
 
 # Instrucciones de uso de LayoutSpace
