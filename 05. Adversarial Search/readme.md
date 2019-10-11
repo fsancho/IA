@@ -1,5 +1,19 @@
-# MCTS
-**Uso:** Aplicar **Monte Carlo Tree Search** para resolver problemas de búsqueda con adversario.
+En esta carpeta podemos encontrar varios modelos relacionados con las búsquedas en situaciones con adversarios (también usable en situaciones con incertidumbre):
+
++ `MCTS Nim.nlogo` : Implementación de un jugador de Nim usando MCTS.
++ `MCTS OXO.nlogo` : Implementación de un jugador de 3 en raya usando MCTS.
++ `MCTS.nls` :  Librería que incluye los procedimientos para implementar jugadores con MCTS.
++ `Minimax Test.nlogo` : Test Minimax sobre un grafo completo al azar.
++ `Minimax.nls` : Librería que incluye los procedimiento para aplicar Minimax sobre un árbol completo de juego.
+
+## Minimax
+
+Una librería `minimax.nls` que implementa los procedimeintos asociados al algoritmo Minimax para el caso en que tenemos el árbol de jugadas completo (es fácil ampliarlo para que considere una evaluación heurística en nodos no terminales). Por ahora no tiene implementada la **Poda Alfa-Beta**.
+
+
+## MCTS
+
+**Uso:** Aplicar **Monte Carlo Tree Search** para resolver problemas de búsqueda con adversario. Para ello se proporciona la librería `MCTS.nls`, y algunos ejemplos de cómo se puede usar para resolver juegos convencionales de 2 usuarios (se supone que uno de ellos sería el jugador humano,  el jugador máquina haría uso de MCTS para decidir la jugada idónea.
 
 La librería montada para ejecuar el algoritmo MCTS hace uso de las sigiuentes estructuras:
 
