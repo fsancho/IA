@@ -34,3 +34,14 @@ Y responde a la siguiente interfaz:
 La función principal que proporciona esta librería es **UCT**:
 
 + `UCT root-state iter`: ejecuta una búsqueda UCT durante `iter` iteraciones comenzando por el nodo `root-state`. Devuelve el mejor movimiento encontrado. Los resultados de las jugadas debe estar en el rango $[0.0, 1.0]$.
+
+A grandes rasgos, el algoritmo UCT consta de los siguientes pasos:
+
+UCT: El procedimiento principal. Consta de la repetición de N veces de:
+
+A partir del nodo raíz:
+  1. Selección de nodo con posibilidad de expansión
+  2. Expansión del nodo seleccionado
+  3. Simulación a partir del nodo expandido
+  Devolver el mejor hijo del nodo raíz según los resultados de las simulaciones.
+  4. Propagación de los resultados de la simulación
