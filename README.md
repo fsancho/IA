@@ -8,7 +8,7 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
 + **0.3.5. Planning**: [Planificación](http://www.cs.us.es/~fsancho/?e=228)
 + **04. Local Search**: [Búsquedas Locales](http://www.cs.us.es/~fsancho/?e=96)
 + **05. Minimax**: [Juegos con Adversario. Minimax](http://www.cs.us.es/~fsancho/?e=107), [Monte Carlo Tree Search](http://www.cs.us.es/~fsancho/?e=189)
-+ **06. Logic**: [Lógica](http://www.cs.us.es/~fsancho/?e=120)
++ **06. Logic**: [Sistemas Basados en Reglas](http://www.cs.us.es/~fsancho/?e=103), [Lógica Proposicional](http://www.cs.us.es/~fsancho/?e=120), [Lógica Difusa](http://www.cs.us.es/~fsancho/?e=97)
 + **07. Complexity**: [Inteligencia Colectiva](http://www.cs.us.es/~fsancho/?e=67), [Sistemas Complejos](http://www.cs.us.es/~fsancho/?e=64), [Redes Complejas](http://www.cs.us.es/~fsancho/?e=80), [Fractales](http://www.cs.us.es/~fsancho/?e=69), [Autómatas Celulares](http://www.cs.us.es/~fsancho/?e=66)
 + **08. Evolving Computing**: [Algoritmos Genéticos y Computación Evolutiva](http://www.cs.us.es/~fsancho/?e=65)
 + **09. Optimization**: [Algoritmos de Hormigas](http://www.cs.us.es/~fsancho/?e=71), [PSO](http://www.cs.us.es/~fsancho/?e=70)
