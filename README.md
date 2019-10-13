@@ -5,6 +5,7 @@ En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usan
 + **01. State Space Search**: [Representación en Espacios de Estados](http://www.cs.us.es/~fsancho/?e=33)
 + **02. Uninformed Search**: [Búsquedas Ciegas (o no informadas)](http://www.cs.us.es/~fsancho/?e=95)
 + **03. Informed Search**: [Búsquedas Informadas](http://www.cs.us.es/~fsancho/?e=62)
++ **0.3.5. Planning**: [Planificación](http://www.cs.us.es/~fsancho/?e=228)
 + **04. Local Search**: [Búsquedas Locales](http://www.cs.us.es/~fsancho/?e=96)
 + **05. Minimax**: [Juegos con Adversario. Minimax](http://www.cs.us.es/~fsancho/?e=107)
 + **06. Logic**: [Lógica](http://www.cs.us.es/~fsancho/?e=120)
