@@ -93,6 +93,10 @@ to-report heur2 [#Goal]
   report (length (item 0 [content] of current-state ))
 end
 
+to-report AI:equal? [a b]
+  report a = b
+end
+
 ;--------------------------------------------------------------------------------
 
 ; Auxiliary procedure to test the A* algorithm
@@ -213,7 +217,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

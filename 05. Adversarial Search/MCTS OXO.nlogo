@@ -11,39 +11,39 @@ patches-own [
 ; In this case, the content is the number of chips, and the player will be 1 or 2.
 
 ; Get the content of the state
-to-report get-content [s]
+to-report MCTS:get-content [s]
   report first s
 end
 
 ; Get the player that generates the state
-to-report get-playerJustMoved [s]
+to-report MCTS:get-playerJustMoved [s]
   report last s
 end
 
 ; Create a state from the content and player
-to-report create-state [c p]
+to-report MCTS:create-state [c p]
   report (list c p)
 end
 
 ; Get the rules applicable to the state
-to-report get-rules [s]
-  let c get-content s
+to-report MCTS:get-rules [s]
+  let c MCTS:get-content s
   ; Filter the empty places in the board
   report filter [x -> item x c = 0] (range 0 9)
 end
 
 ; Apply the rule r to the state s
-to-report apply [r s]
-  let c get-content s
-  let p get-playerJustMoved s
+to-report MCTS:apply [r s]
+  let c MCTS:get-content s
+  let p MCTS:get-playerJustMoved s
   ; Fill the r place with the number of the current player
-  report create-state (replace-item r c (3 - p)) (3 - p)
+  report MCTS:create-state (replace-item r c (3 - p)) (3 - p)
 end
 
 ; Move the result from the last state to the current one
-to-report get-result [s p]
-  let pl get-playerJustMoved s
-  let c get-content s
+to-report MCTS:get-result [s p]
+  let pl MCTS:get-playerJustMoved s
+  let c MCTS:get-content s
   ; L will have the lines of the board
   let L [[0 1 2] [3 4 5] [6 7 8] [0 3 6] [1 4 7] [2 5 8] [0 4 8] [2 4 6]]
   ; For every line, we see if it is filled with the same player
@@ -55,7 +55,7 @@ to-report get-result [s p]
     ]
   ]
   ; if there is no winner lines, and the board is full, then it is a draw
-  if empty? get-rules s [report 0.5]
+  if empty? MCTS:get-rules s [report 0.5]
   report [false]
 end
 
@@ -79,18 +79,18 @@ to go
         set played? true
       ]
     ]
-    if get-result (list (board-to-state) 1) 1 = 1 [
+    if MCTS:get-result (list (board-to-state) 1) 1 = 1 [
       user-message "You win!!!"
       stop
     ]
-    if get-result (list (board-to-state) 2) 2 = 0.5 [
+    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
 
     wait .1
     if played? [
-      let m UCT (list (board-to-state) 1) MAx_iterations
+      let m MCTS:UCT (list (board-to-state) 1) MAx_iterations
       ;show m
       ask (item m (sort patches)) [
         set value 2
@@ -99,11 +99,11 @@ to go
           set color white]
       ]
     ]
-    if get-result (list (board-to-state) 2) 2 = 1 [
+    if MCTS:get-result (list (board-to-state) 2) 2 = 1 [
       user-message "I win!!!"
       stop
     ]
-    if get-result (list (board-to-state) 2) 2 = 0.5 [
+    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
@@ -533,7 +533,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

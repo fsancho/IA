@@ -1,0 +1,181 @@
+; Global variables needed to prepare planning
+globals [
+  Plan:Universe            ; The Universe, objects, of the world where we are searching the plan (a list of lists, 
+                           ;         because we can have kinds/types)
+  Plan:Predicates          ; The list of predicates names that define the properties in the world
+  Plan:actions             ; List of actions that can be performed in the world. Every action has:
+                           ;    - A Scheme with name and variables
+                           ;    - A precondition of predicates that must verify (or not) to execute the action
+                           ;    - An effect of new predicates that will verify (or not) after the execution of the action
+                           ;    - A List of kinds for variables in the action
+                           ;    - A cost of applying the action
+  Plan:actions-costs       ; A list of pairs [action-name cost] for A* application (1, by default)
+  Plan:Initial             ; List of initial predicates of the world
+  Plan:Goal                ; List of desired predicates of the world after the actions
+  Plan:Herbrand-actions    ; List of possible actions after instanced the vars with the elements of the Universe
+]
+
+; Report to obtain the list of actions applicable to a state of the world
+to-report Plan:applicable-transitions [c]
+  report filter [a -> Plan:applicable? a c] Plan:Herbrand-actions
+end
+
+; Report to decide if an action is applicable to a state of the world
+to-report Plan:applicable? [action c]
+  let pre Plan:action-pre (last action)
+  report Plan:subset? pre c
+end
+
+; Auxiliary procedure to check subset predicate
+to-report Plan:subset? [A B]
+  report reduce and (map [x -> member? x B] A)
+end
+
+; Report to build all the Herbrand actions in the world (concrete actions
+;   over concrete objects)
+to-report Plan:build-actions
+  report reduce sentence map Plan:build-from-action Plan:actions
+end
+
+; Report to build all the Herbrand actions from a concrete one
+to-report Plan:build-from-action [action]
+  let vars Plan:extract-vars Plan:action-name action
+  let rep (list action)
+  (foreach vars (Plan:action-Dom action) [
+    [v i] ->
+    let subDom item i Plan:Universe
+    set rep (reduce sentence map [a -> map [x -> Plan:change v x a] subDom] rep)
+  ])
+  report rep
+end
+
+; Auxiliary procedure to change a var v by the term x in an action a
+to-report Plan:change [v x a]
+  let new-name Plan:replace-all v (Plan:action-name a) x
+  let new-action-pre map [p -> Plan:replace-all v p x] (Plan:action-pre a)
+  let new-action-effect map [p -> Plan:replace-all v p x] (Plan:action-effect a)
+  report (list new-name new-action-pre new-action-effect)
+end
+
+; Report to get the name of an action
+to-report Plan:action-name [a]
+  report first a
+end
+
+; Report to get the dominion (list of kinds) of an action
+to-report Plan:action-Dom [a]
+  report (item 3 a)
+end
+
+; Report to get the precondition of an action
+to-report Plan:action-pre [a]
+  report (item 1 a)
+end
+
+; Report to get the effect of an action
+to-report Plan:action-effect [a]
+  report (item 2 a)
+end
+
+; Report to get the list of vars in an action
+to-report Plan:extract-vars [name]
+  let s bf bl name
+  let i position " " s
+  set s substring s (i + 1) (length s)
+  report Plan:split s " "
+end
+
+; Auxiliary report to obtain the limits of (...) in an action name
+to-report Plan:find-limits [s]
+  let i -1
+  let j -1
+  let d -1
+  foreach (range 0 (length s)) [
+    pos ->
+    if item pos s = "("
+    [ set d d + 1
+      if d = 0 [ set i pos ] ]
+    if item pos s = ")"
+    [ set d d - 1
+      if d = -1 [ set j pos ] ]
+  ]
+  report (list i j)
+end
+
+; Divides a string s cutting it through "c" ("c"'s are removed)
+to-report Plan:split [s c]
+  ifelse empty? s [report [] ]
+  [ let pos position c s
+    ifelse pos = false [report (list s)]
+    [ report Plan:remove-empties fput (substring s 0 pos) (Plan:split (substring s (pos + (length c)) (length s)) c) ]
+  ]
+end
+
+; Auxiliary report to remove " " from a list
+to-report Plan:remove-empties [l]
+  report filter [el -> not empty? el] l
+end
+
+; Auxiliary report to replace all the instances of s1 by s2 in s
+to-report Plan:replace-all [s1 s s2]
+  ifelse member? s1 s
+  [ let pos position s1 s
+    set s (word (substring s 0 pos) s2 (substring s (pos + length s1) (length s)))
+    report Plan:replace-all s1 s s2 ]
+  [ report s ]
+end
+
+; apply-transition returns the result of applying a transition t to a state s.
+; It is used directly by the map application of children-states, hence it
+; returns the format needed for the Search Engine. In order to be used by
+; BFS and A-star, we will add a second term to the "rule" part to contain
+; the cost of the action.
+
+to-report Plan:apply-transition [a c]
+  
+  let effect Plan:action-effect (last a)
+  let neg negatives effect
+  let pos positives effect
+  foreach neg [x -> set c remove x c]
+  let new-c remove-duplicates (sentence c pos)
+  let acost Plan:get-cost a
+  report (list new-c (list (Plan:action-name a) acost))
+end
+
+; Report to get the cost of an action
+to-report Plan:get-cost [a]
+  report last first filter [x -> member? (first x) (Plan:action-name a)] Plan:actions-costs
+end
+
+; Obtain the negatives literals from the effect
+to-report negatives [ef]
+  report map bf (filter [x -> first x = "-"] ef)
+end
+
+; Obtain the positives literals from the effect
+to-report positives [ef]
+  report filter [x -> first x != "-"] ef
+end
+
+;;------------------------------------------------------------------------------------------
+;; Search Engine: The following procedures will define the reports needed for the BFS search
+;;                
+;;------------------------------------------------------------------------------------------
+
+; children-states is an agent report that returns the children for the current state.
+; it will return a list of pairs [ns tran], where ns is the content of the children-state,
+; and tran is the applicable transition to get it.
+; It maps the applicable transitions on the current content, and then filters those
+; states that are valid.
+
+to-report AI:children-states
+  report (map [ t -> Plan:apply-transition t content ] (Plan:applicable-transitions content))
+end
+
+to-report AI:final-state? [params]
+  report (Plan:subset? params content)
+end
+
+to-report AI:equal? [a b]
+  report (Plan:subset? a  b) and (Plan:subset? b a)
+end

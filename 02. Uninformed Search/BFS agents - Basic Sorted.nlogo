@@ -66,6 +66,10 @@ to-report final-state? [params]
   report ( content = params)
 end
 
+to-report equal? [a b]
+  report a = b
+end
+
 ;-------------------- BFS version with timing -----------------------------
 
 ;-------------------- BFS Algorithm and related procedures ----------------
@@ -104,7 +108,7 @@ to BFS [#initial-state #final-state]
           let new-state first ns
           let applied-rule last ns
           ; We consider only new states (states that have not been visited previously)
-          if not any? AI:states with [content = new-state]
+          if not any? AI:states with [equal? content new-state]
           [
             ; Clone one new agent for each new state
             hatch-AI:states 1
@@ -672,7 +676,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -45,16 +45,20 @@ to-report AI:final-state? [params]
   report sum (map [[x y] -> x * y] content I) = 0
 end
 
+to-report AI:equal? [a b]
+  report a = b
+end
+
 
 ;-------- Customs visualization procedures -------------------------------------------
 
 
 to test
   ca
-  set Initial_State (word n-values 5 [random 2])
-  set I n-values 5 [random 10 - 5]
+  set Initial_State (word n-values 20 [random 2])
+  set I n-values 20 [random 100 - 50]
   let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
+  if p != false [
     ask p [
       set color red
       foreach extract-transitions-from-path
@@ -65,7 +69,7 @@ to test
         ]
       ]
       output-print "The solution is: "
-      output-print map [x -> [first rule] of x] extract-transitions-from-path
+      output-print filter [x -> x != 0] (map * content I)
     ]
     style
   ]
@@ -132,7 +136,7 @@ INPUTBOX
 180
 70
 Initial_State
-[0 1 0 1 1]
+[1 0 0 1 0 1 1 1 1 0 1 0 1 1 1 1 1 0 1 0]
 1
 0
 String
@@ -173,10 +177,10 @@ OUTPUT
 10
 
 MONITOR
-645
-30
-945
-75
+485
+10
+940
+55
 NIL
 I
 17
@@ -525,7 +529,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

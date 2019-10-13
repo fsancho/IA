@@ -1,107 +1,132 @@
 ;----------------- Include Algorithms Library --------------------------------
 
-__includes [ "BFS.nls" "LayoutSpace.nls"]
+__includes [ "LayoutSpace.nls" "A-star.nls" "Planning.nls"]
 
-
+globals [
+  monitor
+]
 ;--------------- Customizable Reports -------------------
 
 ; These reports must be customized in order to solve different problems using the
 ; same BFS function.
 
+; Los estados son una lista de predicados sobre objetos (del dominio) que se verifican
+
 ; Rules are represented by using pairs [ "representation" f ]
 ; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use tasks in
-; order to store the transition functions.
+; and "representation" is a string to identify the rule.
 
-to-report applicable-transitions
-  report (list
-           (list "Empty(1)" ([ s -> (list 0 (last s)) ]))
-           (list "Empty(2)" ([ s -> (list (first s) 0) ]))
-           (list "Pour 1 to 2" ([ s -> pour1-2 (first s) (last s) ]))
-           (list "Pour 2 to 1" ([ s -> pour2-1 (first s) (last s) ]))
-           (list "Fill(1)" ([ s -> (list 3 (last s)) ]))
-           (list "Fill(2)" ([ s -> (list (first s) 4) ]))
-  )
+; This agent report returns the applicable transitions for the content (it depends
+; on the current state)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Sokoban level1
+; #####
+; #  .#
+; #  $#
+; #@  #
+; #####
+;
+; Key
+; # denotes a wall
+; @ denotes the robot
+; $ denotes a box lying on a non-goal position
+; * denotes a box lying on a goal position
+; . denotes a goal position
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+to startup
+  set Plan:Universe [
+    [ "up" "down" "left" "right"]
+    [ "box1"]
+    [ "c1-3" "c2-3" "c3-3"
+      "c1-2" "c2-2" "c3-2"
+      "c1-1" "c2-1" "c3-1"]]
+  set Plan:Predicates ["robot-at" "object-at" "adjacent" "empty"]
+  set Plan:actions [
+    ["(move ?from ?to ?dir)"
+      ["(robot-at ?from)" "(adjacent ?from ?to ?dir)" "(empty ?to)"]
+      ["(empty ?from)" "(robot-at ?to)" "-(empty ?to)" "-(robot-at ?from)"]
+      [2 2 0]]
+    ["(push ?rloc ?bloc ?floc ?dir ?b)"
+      ["(robot-at ?rloc)" "(object-at ?b ?bloc)" "(adjacent ?rloc ?bloc ?dir)" "(adjacent ?bloc ?floc ?dir)" "(empty ?floc)"]
+      ["(robot-at ?bloc)" "(object-at ?b ?floc)" "(empty ?rloc)" "-(robot-at ?rloc)" "-(object-at ?b ?bloc)" "-(empty ?floc)"]
+      [2 2 2 0 1]]
+  ]
+  set Plan:actions-costs [["move" 1] ["push" 1]]
+  set Plan:Initial sort ["(robot-at c1-1)" "(object-at box1 c3-2)" "(empty c1-2)" "(empty c1-3)" "(empty c2-1)" "(empty c2-1)" "(empty c2-1)" "(empty c3-1)"
+    "(empty c3-3)" "(adjacent c1-1 c2-1 right)" "(adjacent c1-1 c1-2 up)" "(adjacent c1-2 c2-2 right)" "(adjacent c1-2 c1-1 down)" "(adjacent c1-2 c1-3 up)"
+    "(adjacent c1-3 c2-3 right)" "(adjacent c1-3 c1-2 down)" "(adjacent c2-1 c3-1 right)" "(adjacent c2-1 c2-2 up)" "(adjacent c2-1 c1-1 left)"
+    "(adjacent c2-2 c3-2 right)" "(adjacent c2-2 c2-3 up)" "(adjacent c2-2 c1-2 left)" "(adjacent c2-2 c2-1 down)" "(adjacent c2-3 c3-3 right)"
+    "(adjacent c2-3 c2-2 up)" "(adjacent c2-3 c1-3 left)" "(adjacent c3-1 c2-1 left)" "(adjacent c3-1 c3-2 up)" "(adjacent c3-2 c2-2 left)"
+    "(adjacent c3-2 c3-1 down)" "(adjacent c3-2 c3-3 up)" "(adjacent c3-3 c2-3 left)" "(adjacent c3-3 c3-2 down)"]
+  set Plan:Goal sort ["(object-at box1 c3-3)"]
+  set Plan:Herbrand-actions map [a -> (list (first a) a)] Plan:build-actions
+  ;foreach Plan:Herbrand-actions show
 end
 
-to-report pour1-2 [x1 x2]
-  let dif 4 - x2
-  ifelse dif <= x1
-  [report (list (x1 - dif) 4)]
-  [report (list 0 (x2 + x1))]
-end
-
-to-report pour2-1 [x1 x2]
-  let dif 3 - x1
-  ifelse dif <= x2
-  [report (list 3 (x2 - dif))]
-  [report (list (x2 + x1) 0)]
-end
-
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report ((first x <= 3) and (last x <= 4))
-end
-
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
-
-to-report AI:children-states
-  report filter [ s -> valid? (first s) ]
-                (map [ t -> (list (run-result (last t) content) t) ]
-                     applicable-transitions)
-end
-
-; final-state? is an agent report that identifies the final states for the problem.
-; It usually will be a property on the content of the state (for example, if it is
-; equal to the Final State).
-
-to-report AI:final-state? [params]
-  report ( last content = 2)
-end
-
-to-report AI:equal? [a b]
-  report a = b
+; Searcher report to compute the heuristic for this searcher.
+; We use the sum of manhattan distances between the current 2D positions of every
+; tile and the goal position of the same tile.
+to-report AI:heuristic [#Goal]
+  let c [content] of current-state
+  let rep filter [x -> member? x c]  #Goal
+  report (length #Goal) - (length rep)
 end
 
 
-;-------- Customs visualization procedures -------------------------------------------
+; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
+; highlight report
+to highlight-path [path]
+  foreach path [ s ->
+    ask s [
+      set color red set thickness .4
+    ]
+  ]
+end
 
+;--------------------------- Main procedure --------------------------------------
 
 to test
+  reset-timer
   ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
-    ask p [
-      set color red
-      foreach extract-transitions-from-path
-      [ t ->
-        ask t [
-          set color red
-          set thickness .3
-        ]
-      ]
-      output-print "The solution is: "
-      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path)[
-        t ->
-        output-print t
-      ]
-    ]
+  startup
+  Output-print (Word "Time creating actions: " timer)
+  Output-print ""
+  let plan A* Plan:Initial Plan:Goal false true
+    ifelse plan != false  [
+    highlight-path plan
+    output-print "Found Plan: "
+    foreach (path-to-list plan) Output-print
     style
+  ]
+  [ Output-print "No plans found" ]
+  Output-print ""
+  Output-print (word "Time Searching: " timer)
+end
+
+to-report path-to-list [p]
+  report map [s -> first [rule] of s] p
+end
+
+to explore
+  let prop min-one-of turtles [distancexy mouse-xcor mouse-ycor]
+  ask prop [
+    if distancexy  mouse-xcor mouse-ycor < 1 [
+      set monitor content
+    ]
   ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
+285
 10
-622
-448
+1235
+445
 -1
 -1
-13.0
+12.91
 1
 12
 1
@@ -111,8 +136,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
+-36
+36
 -16
 16
 0
@@ -123,11 +148,11 @@ ticks
 
 BUTTON
 120
-390
+395
 182
-423
+428
 layout
-layout-space \"o\"
+layout-space \"*\"
 T
 1
 T
@@ -140,43 +165,56 @@ NIL
 
 MONITOR
 10
-380
+385
 115
-425
+430
 Explored States
 count turtles
 17
 1
 11
 
-INPUTBOX
+OUTPUT
 10
+175
+280
+380
 10
-180
-70
-Initial_State
-[0 0]
-1
-0
-String
 
-INPUTBOX
+MONITOR
+5
 10
-70
-180
-130
-Final_State
-[1 1]
+400
+55
+NIL
+monitor
+17
 1
-0
-String
+11
 
 BUTTON
-15
-135
-110
-168
-Run Search
+210
+55
+282
+88
+NIL
+explore
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+10
+140
+73
+173
+Try!
 test
 NIL
 1
@@ -187,13 +225,6 @@ NIL
 NIL
 NIL
 1
-
-OUTPUT
-10
-170
-180
-365
-10
 
 @#$#@#$#@
 ## WHAT IS IT?

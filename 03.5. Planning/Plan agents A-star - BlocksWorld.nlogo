@@ -1,24 +1,129 @@
-__includes ["utils.nls"]
+;----------------- Include Algorithms Library --------------------------------
+
+__includes [ "LayoutSpace.nls" "A-star.nls" "Planning.nls" ]
+
+globals [
+  monitor
+]
+;--------------- Customizable Reports -------------------
+
+; These reports must be customized in order to solve different problems using the
+; same BFS function.
+
+; Los estados son una lista de predicados sobre objetos (del dominio) que se verifican
+
+; Rules are represented by using pairs [ "representation" f ]
+; in such a way that f allows to transform states (it is the transition function)
+; and "representation" is a string to identify the rule.
+
+; This agent report returns the applicable transitions for the content (it depends
+; on the current state)
+
+
+to startup
+  set Plan:Universe [["A" "B" "C" "D" "E"]]
+  set Plan:Predicates ["on" "ontable" "clear" "handempty" "holding"]
+  set Plan:actions [
+    ["(pickup ?x)"
+      ["(clear ?x)" "(ontable ?x)" "(handempty)"]
+      ["-(ontable ?x)" "-(clear ?x)" "-(handempty)" "(holding ?x)"]
+      [0]
+      ]
+    ["(putdown ?x)"
+      ["(holding ?x)"]
+      ["-(holding ?x)" "(clear ?x)" "(handempty)" "(ontable ?x)"]
+      [0]
+      ]
+    ["(stack ?x ?y)"
+      ["(holding ?x)" "(clear ?y)"]
+      ["-(holding ?x)" "-(clear ?y)" "(clear ?x)" "(handempty)" "(on ?x ?y)"]
+      [0 0]
+      ]
+    ["(unstack ?x ?y)"
+      ["(on ?x ?y)" "(clear ?x)" "(handempty)"]
+      ["(holding ?x)" "(clear ?y)" "-(clear ?x)" "-(handempty)" "-(on ?x ?y)"]
+      [0 0]
+      ]
+  ]
+  set Plan:actions-costs [["pickup" 1] ["putdown" 1] ["stack" 1] ["unstack" 1]]
+  set Plan:Initial ["(clear C)" "(clear E)" "(ontable A)" "(ontable D)" "(on C B)" "(on B A)" "(on E D)" "(handempty)"]
+  set Plan:Goal ["(on B A)" "(on C B)" "(on D C)" "(on E D)" "(clear E)" "(ontable A)" "(handempty)"]
+  set Plan:Herbrand-actions map [a -> (list (first a) a)] Plan:build-actions
+  Output-print (word "Number of actions: " length Plan:Herbrand-actions)
+  ;foreach Plan:Herbrand-actions show
+end
+
+; Searcher report to compute the heuristic for this searcher.
+; We use the sum of manhattan distances between the current 2D positions of every
+; tile and the goal position of the same tile.
+to-report AI:heuristic [#Goal]
+  let c [content] of current-state
+  let rep filter [x -> member? x c]  #Goal
+  report (length #Goal) - (length rep)
+end
+
+; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
+; highlight report
+to highlight-path [p]
+  foreach p [ s ->
+    ask s [
+      set color red set thickness .4
+    ]
+  ]
+end
+
+to-report path-to-list [p]
+  report map [s -> first [rule] of s] p
+end
+
+;--------------------------- Main procedure --------------------------------------
+
+to test
+  reset-timer
+  ca
+  startup
+  Output-print (Word "Time creating actions: " timer)
+  Output-print ""
+  let plan A* Plan:Initial Plan:Goal false true
+  ifelse plan != false  [
+    highlight-path plan
+    output-print "Found Plan: "
+    foreach (path-to-list plan) Output-print
+    style
+  ]
+  [ Output-print "No plans found" ]
+  Output-print ""
+  Output-print (word "Time Searching: " timer)
+end
+
+to explore
+  let prop min-one-of AI:states [distancexy mouse-xcor mouse-ycor]
+  ask prop [
+    if distancexy  mouse-xcor mouse-ycor < 1 [
+      set monitor content
+    ]
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+265
 10
-647
+1118
 448
 -1
 -1
 13.0
 1
-10
+12
 1
 1
 1
 0
+0
+0
 1
-1
-1
--16
-16
+-32
+32
 -16
 16
 0
@@ -26,6 +131,86 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+120
+395
+182
+428
+layout
+layout-space \"*\"
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+10
+385
+115
+430
+Explored States
+count turtles
+17
+1
+11
+
+OUTPUT
+10
+175
+260
+380
+10
+
+MONITOR
+5
+10
+490
+55
+NIL
+monitor
+17
+1
+11
+
+BUTTON
+190
+55
+262
+88
+NIL
+explore
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+50
+125
+113
+158
+Try!
+test
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -369,14 +554,14 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
 default
-0.0
+1.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -386,5 +571,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@

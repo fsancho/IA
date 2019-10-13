@@ -52,6 +52,11 @@ to-report AI:heuristic [#Goal]
   report ifelse-value (d > 1) [log d 3][d]
 end
 
+to-report AI:equal? [a b]
+  report a = b
+end
+
+
 ;------------------------------------------------------------------------------------------
 
 ; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with
@@ -170,7 +175,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

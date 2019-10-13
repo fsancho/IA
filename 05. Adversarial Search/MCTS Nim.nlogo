@@ -5,35 +5,35 @@ __includes ["MCTS.nls"]
 ; In this case, the content is the number of chips, and the player will be 1 or 2.
 
 ; Get the content of the state
-to-report get-content [s]
+to-report MCTS:get-content [s]
   report first s
 end
 
 ; Get the player that generates the state
-to-report get-playerJustMoved [s]
+to-report MCTS:get-playerJustMoved [s]
   report last s
 end
 
 ; Create a state from the content and player
-to-report create-state [c p]
+to-report MCTS:create-state [c p]
   report (list c p)
 end
 
 ; Get the rules applicable to the state
-to-report get-rules [s]
-  report (range 1 (min (list 4 (1 + get-content s))))
+to-report MCTS:get-rules [s]
+  report (range 1 (min (list 4 (1 + MCTS:get-content s))))
 end
 
 ; Apply the rule r to the state s
-to-report apply [r s]
-  let c get-content s
-  let p get-playerJustMoved s
-  report create-state (c - r) (3 - p)
+to-report MCTS:apply [r s]
+  let c MCTS:get-content s
+  let p MCTS:get-playerJustMoved s
+  report MCTS:create-state (c - r) (3 - p)
 end
 
 ; Move the result from the last state to the current one
-to-report get-result [s p]
-  let pl get-playerJustMoved s
+to-report MCTS:get-result [s p]
+  let pl MCTS:get-playerJustMoved s
   ifelse pl = p [report 1] [report 0]
 end
 
@@ -47,7 +47,7 @@ to remove-chips [n]
   ]
   ifelse num_chips = 0
   [ user-message "You Win!!!"]
-  [ let m UCT (list num_chips 1) Max_iterations
+  [ let m MCTS:UCT (list num_chips 1) Max_iterations
     user-message (word "I remove " m)
     set num_chips num_chips -  m
     if num_chips = 0 [user-message "I Win!!!"]
@@ -504,7 +504,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

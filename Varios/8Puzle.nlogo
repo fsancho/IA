@@ -1,21 +1,26 @@
 breed [fichas ficha]
-breed [estados estado]
 
 to startup
   clear-all
-  let stado [1 2 3 4 5 6 7 8]
-  (foreach (sort n-of 8 patches) (shuffle stado)
+  (foreach (bl sort patches) (range 1 9)
   [
     [x y] ->
     ask x
     [
       sprout-fichas 1
       [
-        set shape word "Numero-" y
+        set shape word "numero-" y
         set color item y base-colors
         ;set color blue
-        __set-line-thickness 0.05
+        __set-line-thickness 0.07
       ]]])
+end
+
+to mezcla
+  (foreach (bl shuffle sort patches) (range 1 9)
+  [
+    [x y] -> ask ficha (y - 1) [move-to x]
+  ])
 end
 
 to desplaza [f dirx diry]
@@ -23,6 +28,12 @@ to desplaza [f dirx diry]
   [
     repeat 100 [ setxy (xcor + dirx / 100) (ycor + diry / 100) wait .005]
   ]
+end
+
+to move [p]
+  let hueco one-of patches with [not any? fichas-here]
+  let f (one-of fichas with [shape = (word "numero-" p)])
+  desplaza f ([pxcor] of hueco - [xcor] of f) ([pycor] of hueco - [ycor] of f)
 end
 
 to go
@@ -563,7 +574,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

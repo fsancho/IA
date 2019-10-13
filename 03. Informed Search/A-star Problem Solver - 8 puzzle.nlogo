@@ -79,6 +79,10 @@ to-report manhattan-distance [x y]
   report abs ((first x) - (first y)) + abs ((last x) - (last y))
 end
 
+to-report AI:equal? [a b]
+  report a = b
+end
+
 ;--------------------------------------------------------------------------------
 
 ; Auxiliary procedure to test the A* algorithm
@@ -189,7 +193,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

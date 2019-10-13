@@ -1,62 +1,5 @@
-to-report set:list-to-set [l]
-  report remove-duplicates l
-end
+__includes ["sets.nls"]
 
-to-report set:union [s1 s2]
-  ifelse set:is-set? s1 and set:is-set? s2
-  [ report set:list-to-set (sentence s1 s2) ]
-  [ error "set:union only works on sets. Please, verify that arguments are sets" ]
-end
-
-to-report set:intersection [s1 s2]
-  ifelse set:is-set? s1 and set:is-set? s2
-  [ report filter [ ?1 -> member? ?1 s2 ] s1 ]
-  [ error "set:intersection only works on sets. Please, verify that arguments are sets" ]
-end
-
-to-report set:subset? [s1 s2]
-  ifelse set:is-set? s1 and set:is-set? s2
-  [
-    ifelse empty? s1
-    [ report true]
-    [ report reduce and (map [ ?1 -> member? ?1 s2 ] s1) ]
-  ]
-  [ error "set:subset? only works on sets. Please, verify that arguments are sets" ]
-end
-
-to-report set:equal? [s1 s2]
-  ifelse set:is-set? s1 and set:is-set? s2
-  [ report (set:subset? s1 s2) and (set:subset? s2 s1) ]
-  [ error "set:equal? only works on sets. Please, verify that arguments are sets" ]
-end
-
-to-report set:dif [s1 s2]
-  ifelse set:is-set? s1 and set:is-set? s2
-  [ report filter [ ?1 -> not member? ?1 s2 ] s1 ]
-  [ error "set:dif-set? only works on sets. Please, verify that arguments are sets" ]
-end
-
-to-report set:sym-dif [s1 s2]
-  ifelse set:is-set? s1 and set:is-set? s2
-  [ report set:union (set:dif s1 s2) (set:dif s2 s1) ]
-  [ error "set:sym-dif only works on sets. Please, verify that arguments are sets" ]
-end
-
-to-report set:member? [x s]
-  ifelse set:is-set? s
-  [ report member? x s ]
-  [ error "set:member? only works on sets. Please, verify that second argument is a set" ]
-end
-
-to-report set:is-set? [s]
-  report s = (set:list-to-set s)
-end
-
-to-report set:size [s]
-  ifelse set:is-set? s
-  [ report length s ]
-  [ error "set:size only works on sets. Please, verify that the argument is a set" ]
-end
 
 to set:test
  let s1 [1 2 3 4 5]
@@ -448,7 +391,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

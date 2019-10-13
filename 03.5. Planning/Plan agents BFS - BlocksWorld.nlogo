@@ -1,81 +1,55 @@
 ;----------------- Include Algorithms Library --------------------------------
 
-__includes [ "BFS.nls" "LayoutSpace.nls"]
+__includes [ "LayoutSpace.nls" "BFS.nls" "Planning.nls"]
 
-
+globals [
+  monitor
+]
 ;--------------- Customizable Reports -------------------
 
-; These reports must be customized in order to solve different problems using the
-; same BFS function.
+; The startup fills all the information needed by Planning library to apply
+; a search on it
 
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use tasks in
-; order to store the transition functions.
-
-to-report applicable-transitions
-  report (list
-           (list "Empty(1)" ([ s -> (list 0 (last s)) ]))
-           (list "Empty(2)" ([ s -> (list (first s) 0) ]))
-           (list "Pour 1 to 2" ([ s -> pour1-2 (first s) (last s) ]))
-           (list "Pour 2 to 1" ([ s -> pour2-1 (first s) (last s) ]))
-           (list "Fill(1)" ([ s -> (list 3 (last s)) ]))
-           (list "Fill(2)" ([ s -> (list (first s) 4) ]))
-  )
+to startup
+  set Plan:Universe [["A" "B" "C" "D" "E"]]
+  set Plan:Predicates ["on" "ontable" "clear" "handempty" "holding"]
+  set Plan:actions [
+    ["(pickup ?x)"
+      ["(clear ?x)" "(ontable ?x)" "(handempty)"]
+      ["-(ontable ?x)" "-(clear ?x)" "-(handempty)" "(holding ?x)"]
+      [0]]
+    ["(putdown ?x)"
+      ["(holding ?x)"]
+      ["-(holding ?x)" "(clear ?x)" "(handempty)" "(ontable ?x)"]
+      [0]]
+    ["(stack ?x ?y)"
+      ["(holding ?x)" "(clear ?y)"]
+      ["-(holding ?x)" "-(clear ?y)" "(clear ?x)" "(handempty)" "(on ?x ?y)"]
+      [0 0]]
+    ["(unstack ?x ?y)"
+      ["(on ?x ?y)" "(clear ?x)" "(handempty)"]
+      ["(holding ?x)" "(clear ?y)" "-(clear ?x)" "-(handempty)" "-(on ?x ?y)"]
+      [0 0]]
+  ]
+  set Plan:actions-costs [["pickup" 1] ["putdown" 1] ["stack" 1] ["unstack" 1]]
+  set Plan:Initial ["(clear C)" "(clear E)" "(ontable A)" "(ontable D)" "(on C B)" "(on B A)" "(on E D)" "(handempty)"]
+  set Plan:Goal ["(on B A)" "(on C B)" "(on D C)" "(on E D)" "(clear E)" "(ontable A)" "(handempty)"]
+  set Plan:Herbrand-actions map [a -> (list (first a) a)] Plan:build-actions
+  Output-print (word "Number of actions: " length Plan:Herbrand-actions)
+  ;foreach Plan:Herbrand-actions show
 end
 
-to-report pour1-2 [x1 x2]
-  let dif 4 - x2
-  ifelse dif <= x1
-  [report (list (x1 - dif) 4)]
-  [report (list 0 (x2 + x1))]
-end
-
-to-report pour2-1 [x1 x2]
-  let dif 3 - x1
-  ifelse dif <= x2
-  [report (list 3 (x2 - dif))]
-  [report (list (x2 + x1) 0)]
-end
-
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report ((first x <= 3) and (last x <= 4))
-end
-
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
-
-to-report AI:children-states
-  report filter [ s -> valid? (first s) ]
-                (map [ t -> (list (run-result (last t) content) t) ]
-                     applicable-transitions)
-end
-
-; final-state? is an agent report that identifies the final states for the problem.
-; It usually will be a property on the content of the state (for example, if it is
-; equal to the Final State).
-
-to-report AI:final-state? [params]
-  report ( last content = 2)
-end
-
-to-report AI:equal? [a b]
-  report a = b
-end
-
-
-;-------- Customs visualization procedures -------------------------------------------
-
+;--------------------------- Main procedure --------------------------------------
 
 to test
+  reset-timer
   ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
-    ask p [
+  startup
+  Output-print (Word "Time creating actions: " timer)
+  Output-print ""
+  let plan BFS Plan:Initial Plan:Goal false true
+  ifelse plan != false  [
+    ask plan [
       set color red
       foreach extract-transitions-from-path
       [ t ->
@@ -84,7 +58,7 @@ to test
           set thickness .3
         ]
       ]
-      output-print "The solution is: "
+      output-print "Found Plan: "
       foreach (map [ t -> [first rule] of t ] extract-transitions-from-path)[
         t ->
         output-print t
@@ -92,12 +66,24 @@ to test
     ]
     style
   ]
+  [ Output-print "No plans found" ]
+  Output-print ""
+  Output-print (word "Time Searching: " timer)
+end
+
+to explore
+  let prop min-one-of turtles [distancexy mouse-xcor mouse-ycor]
+  ask prop [
+    if distancexy  mouse-xcor mouse-ycor < 1 [
+      set monitor content
+    ]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
+265
 10
-622
+1118
 448
 -1
 -1
@@ -111,8 +97,8 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
+-32
+32
 -16
 16
 0
@@ -122,13 +108,13 @@ ticks
 30.0
 
 BUTTON
-120
-390
-182
-423
+195
+140
+257
+173
 layout
-layout-space \"o\"
-T
+layout-space \"→\"
+NIL
 1
 T
 OBSERVER
@@ -140,43 +126,56 @@ NIL
 
 MONITOR
 10
-380
-115
-425
-Explored States
+385
+117
+430
+Generated States
 count turtles
 17
 1
 11
 
-INPUTBOX
+OUTPUT
 10
+175
+260
+380
 10
-180
-70
-Initial_State
-[0 0]
-1
-0
-String
 
-INPUTBOX
+MONITOR
+5
 10
-70
-180
-130
-Final_State
-[1 1]
+490
+55
+NIL
+monitor
+17
 1
-0
-String
+11
 
 BUTTON
-15
-135
-110
-168
-Run Search
+195
+55
+267
+88
+NIL
+explore
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+10
+140
+73
+173
+Try!
 test
 NIL
 1
@@ -187,13 +186,6 @@ NIL
 NIL
 NIL
 1
-
-OUTPUT
-10
-170
-180
-365
-10
 
 @#$#@#$#@
 ## WHAT IS IT?

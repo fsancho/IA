@@ -24,13 +24,13 @@ MCTSrules-own [
 ;---------------------------------------------------------------------------
 
 ; Create a new node from state s. This node will be the root of the search (the current game state)
-to-report create-MCTSnode [s]
+to-report MCTS:create-MCTSnode [s]
   let rep nobody
   create-MCTSnodes 1 [
     set state s
     set wins 0
     set visits 0
-    set untriedRules get-rules s
+    set untriedRules MCTS:get-rules s
     set rep self
     set shape "circle"
     set color blue
@@ -43,7 +43,7 @@ end
 
 ; Use the UCB1 formula to return the child with highest UCB value (after the previous simulations)
 ; The 2 summands try to balance between explotation and exploration
-to-report UCTSelectChild
+to-report MCTS:UCTSelectChild
   let v visits
   let child max-one-of out-link-neighbors [(wins / visits) + sqrt(2 * (ln v) / visits)]
   report child
@@ -51,13 +51,13 @@ end
 
 ; Creates a new child from the current node by applying the rule r, then it removes this rule from 
 ; untriedRules
-to-report AddChild [r]
+to-report MCTS:AddChild [r]
   let rep nobody
   hatch-MCTSnodes 1 [
-    set state apply r state
+    set state MCTS:apply r state
     set wins 0
     set visits 0
-    set untriedRules get-rules state
+    set untriedRules MCTS:get-rules state
     create-MCTSrule-from myself [
       set rule r
       set label rule
@@ -71,13 +71,13 @@ to-report AddChild [r]
 end
 
 ; Update the wins/visits values for the current node 
-to Update [result]
+to MCTS:Update [result]
   set visits visits + 1
   set wins wins + result
 end
 
 ; Auxiliary report to obtain the parent of the caller node
-to-report parent
+to-report MCTS:parent
   report one-of in-MCTSrule-neighbors
 end
 
@@ -88,10 +88,10 @@ end
 ; Execute a UCT search for iter iterations starting from root-state.
 ; Return the best move from the root-state. 
 ; The games results is in the range [0.0, 1.0]
-to-report UCT [root-state iter]
+to-report MCTS:UCT [root-state iter]
   ask MCTSnodes [die]
   ; Create the root node (with the input state)
-  let rootnode create-MCTSnode root-state
+  let rootnode MCTS:create-MCTSnode root-state
   
   ;Main loop for iter iterations
   repeat iter [
@@ -104,7 +104,7 @@ to-report UCT [root-state iter]
     
     while [empty? [untriedRules] of cnode and any? [my-out-MCTSrules] of cnode]
     [
-      set cnode [UCTSelectChild] of cnode
+      set cnode [MCTS:UCTSelectChild] of cnode
     ]
 
     ; Expand stage: 
@@ -115,7 +115,7 @@ to-report UCT [root-state iter]
     [
       ask cnode [
         let r one-of untriedRules
-        set cnode AddChild r
+        set cnode MCTS:AddChild r
       ]
     ]
 
@@ -125,10 +125,10 @@ to-report UCT [root-state iter]
     ;   winnner)
     
     let s [state] of cnode
-    while [not empty? get-rules s]
+    while [not empty? MCTS:get-rules s]
     [
-      let r one-of (get-rules s)
-      set s (apply r s)
+      let r one-of (MCTS:get-rules s)
+      set s (MCTS:apply r s)
     ]
     
     ; Backpropagate stage: 
@@ -137,9 +137,9 @@ to-report UCT [root-state iter]
     while [cnode != nobody] 
     [
       ask cnode [
-        Update get-result s (get-playerJustMoved state)
+        MCTS:Update MCTS:get-result s (MCTS:get-playerJustMoved state)
         set label (word state " W/V:" wins "/" visits)
-        set cnode parent
+        set cnode MCTS:parent
       ]
     ]
   ]

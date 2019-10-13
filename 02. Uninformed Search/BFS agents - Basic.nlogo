@@ -46,6 +46,10 @@ to-report AI:final-state? [params]
   report ( content = params)
 end
 
+to-report AI:equal? [a b]
+  report a = b
+end
+
 
 ;-------- Customs visualization procedures -------------------------------------------
 
@@ -53,7 +57,7 @@ end
 to test
   ca
   let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
+  if p != false [
     ask p [
       set color red
       foreach extract-transitions-from-path
@@ -513,7 +517,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

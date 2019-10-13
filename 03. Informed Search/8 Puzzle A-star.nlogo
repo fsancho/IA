@@ -1,120 +1,184 @@
 ;----------------- Include Algorithms Library --------------------------------
 
-__includes [ "BFS.nls" "LayoutSpace.nls"]
+__includes [ "A-star.nls"]
 
+;-----------------------------------------------------------------------------
 
-;--------------- Customizable Reports -------------------
+breed [pieces piece]
+
+pieces-own [number]
+
+globals [Board]
+;-------------------- Customizable Reports for A* -----------------------------
 
 ; These reports must be customized in order to solve different problems using the
-; same BFS function.
+; same A* function.
 
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use tasks in
-; order to store the transition functions.
+; Rules are represented by using lists [ "representation" cost f], where:
+; - f allows to transform states (it is the transition function),
+; - cost is the cost of applying the transition on a state,
+; - and "representation" is a string to identify the rule.
 
-to-report applicable-transitions
-  report (list
-           (list "Empty(1)" ([ s -> (list 0 (last s)) ]))
-           (list "Empty(2)" ([ s -> (list (first s) 0) ]))
-           (list "Pour 1 to 2" ([ s -> pour1-2 (first s) (last s) ]))
-           (list "Pour 2 to 1" ([ s -> pour2-1 (first s) (last s) ]))
-           (list "Fill(1)" ([ s -> (list 3 (last s)) ]))
-           (list "Fill(2)" ([ s -> (list (first s) 4) ]))
-  )
+; We represent a state as a shuffle of
+; [ 0 1 2 ]
+; [ 3 4 5 ]
+; [ 6 7 8 ]
+; where 0 is the hole. And we will use lists [0 1 2 3 4 5 6 7 8]
+
+; For a given position, h, (movements h) reports the list of possible swaps with
+; the position h. For example:
+; 0 can swap with 1 (right) and 3 (down)
+; 1 can swap with 0 (left), 2 (right) and 4 (down)
+; ... and so on
+to-report movements [h]
+  let movs  [[1 3] [0 2 4] [1 5] [0 4 6] [1 3 5 7] [2 4 8] [3 7] [6 4 8] [5 7]]
+  report item h movs
 end
 
-to-report pour1-2 [x1 x2]
-  let dif 4 - x2
-  ifelse dif <= x1
-  [report (list (x1 - dif) 4)]
-  [report (list 0 (x2 + x1))]
+; For a given state s, (swap i j s) returns a new state where tiles in
+; positions i and j have been swapped
+to-report swap [i j s]
+  let old-i item i s
+  let old-j item j s
+  let s1 replace-item i s old-j
+  let s2 replace-item j s1 old-i
+  report s2
 end
 
-to-report pour2-1 [x1 x2]
-  let dif 3 - x1
-  ifelse dif <= x2
-  [report (list 3 (x2 - dif))]
-  [report (list (x2 + x1) 0)]
-end
-
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report ((first x <= 3) and (last x <= 4))
-end
-
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
+; children-states is a state report that returns the children for the current state.
+; It will return a list of pairs [ns tran], where ns is the content of the children-state,
 ; and tran is the applicable transition to get it.
 ; It maps the applicable transitions on the current content, and then filters those
 ; states that are valid.
 
 to-report AI:children-states
-  report filter [ s -> valid? (first s) ]
-                (map [ t -> (list (run-result (last t) content) t) ]
-                     applicable-transitions)
+  let i (position 0 content)
+  let indexes (movements i)
+  report (map [ x -> (list (swap i x content) (list (word "T-" x) 1 "regla")) ] indexes)
 end
 
-; final-state? is an agent report that identifies the final states for the problem.
+; final-state? is a state report that identifies the final states for the problem.
 ; It usually will be a property on the content of the state (for example, if it is
-; equal to the Final State).
-
+; equal to the Final State). It allows the use of parameters because maybe the
+; verification of reaching the goal depends on some extra information from the problem.
 to-report AI:final-state? [params]
-  report ( last content = 2)
+  report ( content = params)
+end
+
+; Searcher report to compute the heuristic for this searcher.
+; We use the sum of manhattan distances between the current 2D positions of every
+; tile and the goal position of the same tile.
+
+to-report AI:heuristic [#Goal]
+  let pos [[0 0] [0 1] [0 2] [1 0] [1 1] [1 2] [2 0] [2 1] [2 2]]
+  let c [content] of current-state
+  report sum (map [ x -> manhattan-distance (item (position x  c   ) pos)
+                                            (item (position x #Goal) pos) ]
+                  (range 9))
+  ;One other option is to count the misplaced tiles
+  ;   report length filter [ x -> x = False] (map [[x y] -> x = y] c #Goal)
+  ; but it is not so good as measuring the manhattan distance
+end
+
+to-report manhattan-distance [x y]
+  report abs ((first x) - (first y)) + abs ((last x) - (last y))
 end
 
 to-report AI:equal? [a b]
   report a = b
 end
 
+;--------------------------------------------------------------------------------
 
-;-------- Customs visualization procedures -------------------------------------------
-
-
-to test
+; Auxiliary procedure to test the A* algorithm
+to New-Game
   ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
-  if p != nobody [
-    ask p [
-      set color red
-      foreach extract-transitions-from-path
-      [ t ->
-        ask t [
-          set color red
-          set thickness .3
-        ]
-      ]
-      output-print "The solution is: "
-      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path)[
-        t ->
-        output-print t
-      ]
-    ]
-    style
+  create-board
+  ; From a final position, we randomly move the hole some times
+  set Board (range 9)
+  repeat 60 [
+    let i position 0 Board
+    let j one-of movements i
+    set Board swap i j Board
   ]
+  View-Board
+end
+
+to Solve
+  let path (A* Board (range 9) False False)
+  let plan []
+  ; if any, we highlight it
+  if path != false [
+    set plan (map [ s -> first [rule] of s ] path)
+  ]
+  foreach (map [x -> read-from-string last x] plan)
+  [
+    x -> move x
+    wait .3
+  ]
+end
+
+
+;-----------------------------------------------------------------------------
+; Interface Procedures
+;-----------------------------------------------------------------------------
+
+to create-board
+  (foreach (bl sort patches) (range 1 9)
+  [
+    [x y] ->
+    ask x
+    [
+      sprout-pieces 1
+      [
+        set shape word "numero-" y
+        set color item y base-colors
+        __set-line-thickness 0.07
+        set number y
+      ]]])
+end
+
+to View-Board
+  (foreach (sort patches) Board
+  [
+      [x y] -> if y != 0 [ask piece (y - 1) [move-to x]]
+  ])
+end
+
+to shift [f dirx diry]
+  ask f
+  [
+    repeat 100 [ setxy (xcor + dirx / 100) (ycor + diry / 100) wait .005]
+  ]
+end
+
+to move [pos]
+  let H one-of patches with [not any? pieces-here]
+  let P one-of pieces-on (item pos (sort patches))
+  shift P ([pxcor] of H - [xcor] of P) ([pycor] of H - [ycor] of P)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
+210
+11
+638
+440
+-1
+-1
+140.0
+1
 10
-622
-448
+1
+1
+1
+0
+0
+0
+1
 -1
+1
 -1
-13.0
 1
-12
-1
-1
-1
-0
-0
-0
-1
--16
-16
--16
-16
 0
 0
 1
@@ -122,13 +186,13 @@ ticks
 30.0
 
 BUTTON
-120
-390
-182
-423
-layout
-layout-space \"o\"
-T
+14
+10
+106
+43
+NIL
+New-Game
+NIL
 1
 T
 OBSERVER
@@ -137,47 +201,14 @@ NIL
 NIL
 NIL
 1
-
-MONITOR
-10
-380
-115
-425
-Explored States
-count turtles
-17
-1
-11
-
-INPUTBOX
-10
-10
-180
-70
-Initial_State
-[0 0]
-1
-0
-String
-
-INPUTBOX
-10
-70
-180
-130
-Final_State
-[1 1]
-1
-0
-String
 
 BUTTON
-15
-135
-110
-168
-Run Search
-test
+112
+10
+175
+43
+NIL
+Solve
 NIL
 1
 T
@@ -188,49 +219,10 @@ NIL
 NIL
 1
 
-OUTPUT
-10
-170
-180
-365
-10
-
 @#$#@#$#@
-## WHAT IS IT?
+## QUÉ ES
 
-(a general understanding of what the model is trying to show or explain)
-
-## HOW IT WORKS
-
-(what rules the agents use to create the overall behavior of the model)
-
-## HOW TO USE IT
-
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Un modelo base para el 8Puzzle sobre el que construir diversos resolvedores automáticos.
 @#$#@#$#@
 default
 true
@@ -398,6 +390,167 @@ true
 0
 Line -7500403 true 150 0 150 150
 
+numero-0
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+Line -1 false 90 60 90 135
+Line -1 false 90 135 105 150
+Line -1 false 105 150 90 165
+Line -1 false 90 165 90 240
+
+numero-1
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 105 90 150 45
+Line -1 false 150 45 150 240
+Line -1 false 195 255 165 255
+Line -1 false 165 255 150 240
+Line -1 false 135 255 150 240
+Line -1 false 105 255 135 255
+
+numero-2
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 105 150
+Line -1 false 105 150 90 165
+Line -1 false 90 165 90 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+
+numero-3
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 105 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+
+numero-4
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 105 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 255
+Line -1 false 90 60 90 135
+Line -1 false 90 135 105 150
+
+numero-5
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 195 150 105 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+Line -1 false 90 60 90 135
+Line -1 false 90 135 105 150
+
+numero-6
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 195 150 105 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+Line -1 false 90 60 90 135
+Line -1 false 90 135 105 150
+Line -1 false 105 150 90 165
+Line -1 false 90 165 90 240
+
+numero-7
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 210 255 210 240
+
+numero-8
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 105 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+Line -1 false 90 60 90 135
+Line -1 false 90 135 105 150
+Line -1 false 105 150 90 165
+Line -1 false 90 165 90 240
+
+numero-9
+false
+0
+Rectangle -7500403 true true 15 15 285 285
+Line -1 false 90 60 105 45
+Line -1 false 105 45 195 45
+Line -1 false 195 45 210 60
+Line -1 false 210 60 210 135
+Line -1 false 210 135 195 150
+Line -1 false 195 150 105 150
+Line -1 false 195 150 210 165
+Line -1 false 210 165 210 240
+Line -1 false 90 240 105 255
+Line -1 false 105 255 195 255
+Line -1 false 195 255 210 240
+Line -1 false 90 60 90 135
+Line -1 false 90 135 105 150
+
 pentagon
 false
 0
@@ -426,19 +579,12 @@ Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
 sheep
 false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
+0
+Rectangle -7500403 true true 151 225 180 285
+Rectangle -7500403 true true 47 225 75 285
+Rectangle -7500403 true true 15 75 210 225
+Circle -7500403 true true 135 75 150
+Circle -16777216 true false 165 76 116
 
 square
 false
@@ -527,9 +673,11 @@ Line -7500403 true 84 40 221 269
 wolf
 false
 0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
+Polygon -7500403 true true 135 285 195 285 270 90 30 90 105 285
+Polygon -7500403 true true 270 90 225 15 180 90
+Polygon -7500403 true true 30 90 75 15 120 90
+Circle -1 true false 183 138 24
+Circle -1 true false 93 138 24
 
 x
 false
@@ -544,7 +692,7 @@ NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 default
-1.0
+0.0
 -0.2 0 0.0 1.0
 0.0 1 1.0 0.0
 0.2 0 0.0 1.0
@@ -554,5 +702,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-1
+0
 @#$#@#$#@

@@ -43,9 +43,14 @@ to-report AI:final-state? [params]
   let prod ifelse-value (M2 = []) [0] [reduce * M2]
   report ( suma = 45 and prod = 24)
 end
-; Como BFS no puede encontrar mínimos porque si sno existe ha de hacer una búsqueda exhaustiva,
+; Como BFS no puede encontrar mínimos porque si s no existe ha de hacer una búsqueda exhaustiva,
 ; se ha puesto el mismo problema pero buscando suma 45 y producto 24, que sí tiene solución
 ; exacta
+
+to-report AI:equal? [a b]
+  report (sort first a) = (sort first b)
+end
+
 
 ;-------- Customs visualization procedures -------------------------------------------
 
@@ -136,7 +141,7 @@ INPUTBOX
 180
 70
 Initial_State
-[[1 3 6 8 9 10] [2 4 5 7]]
+[[1 2 3 6 8 10] [4 5 7 9]]
 1
 0
 String
@@ -518,7 +523,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -51,6 +51,10 @@ to-report AI:heuristic [#Goal]
   report abs (suma - 36) + abs (prod - 360)
 end
 
+to-report AI:equal? [a b]
+  report a = b
+end
+
 ;--------------------------------------------------------------------------------
 
 ; Auxiliary procedure to test the A* algorithm for sorting lists
@@ -157,7 +161,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
