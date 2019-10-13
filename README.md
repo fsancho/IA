@@ -1,4 +1,4 @@
-# Modelos de la asignatura [Inteligencia Artificial de Ingeniería de Computadores](http://www.cs.us.es/~fsancho/?p=doc-iaic-2019-20) de la ETSII-US
+# Modelos de la asignatura [Inteligencia Artificial de Ingeniería de Computadores](http://www.cs.us.es/~fsancho/?p=inteligencia-artificial-2019-20) de la ETSII-US
 
 En esta carpeta de GitHhub podrás encontrar los diversos modelos que vamos usando en las clases de la asignatura. La relación entre el contenido de cada una de las carpetas y el temario del curso es el siguiente:
 
