@@ -21,20 +21,20 @@ LP:links (directed link breed)
 * `LP:parse-to-tree S`: Transforms a formula in string format to tree (list) format
 
 ```
-    LP:parse-to-tree "((a->b)|(-c))" : ["|" ["->" "a" "b"] ["-" "c"]]
-    LP:parse-to-tree "(a <-> (b|c))" : ["<->" "a" ["|" "b" "c"]]
+    LP:parse-to-tree "((a->b)|(-c))" = ["|" ["->" "a" "b"] ["-" "c"]]
+    LP:parse-to-tree "(a <-> (b|c))" = ["<->" "a" ["|" "b" "c"]]
 ```
 	
 * `LP:pretty-formula L`: Rewrites a single tree-list formula into infix way string using pretty symbols
 
 ```
-    LP:pretty-formula ["|" ["->" "a" "b"] ["-" "c"]] : "((a→b)v¬c)"
+    LP:pretty-formula ["|" ["->" "a" "b"] ["-" "c"]] = "((a→b)v¬c)"
 ```
 
 * `LP:pretty-set S`: Rewrites (pretty) all the formulas in a set of formulas
 
 ```
-	LP:pretty-set [["|" ["->" "a" "b"] ["-" "c"]] ["&" ["<->" "a" "b"] ["-" "c"]]] : "{((a→b)v¬c) , ((a↔b)^¬c)}"
+	LP:pretty-set [["|" ["->" "a" "b"] ["-" "c"]] ["&" ["<->" "a" "b"] ["-" "c"]]] = "{((a→b)v¬c) , ((a↔b)^¬c)}"
 ```
 
 * `LP:TreeLayout L`: Visual representation of the formula `L` (in tree-list format)
@@ -43,37 +43,37 @@ LP:links (directed link breed)
 (the vars are sorted in alphabetical order)
 
 ```
-	LP:extract-vars "(p->q)"     : [["p" 1] ["q" 2]]
-	LP:extract-vars "(-(b&c)|a)" : [["a" 1] ["b" 2] ["c" 3]]
+	LP:extract-vars "(p->q)"     = [["p" 1] ["q" 2]]
+	LP:extract-vars "(-(b&c)|a)" = [["a" 1] ["b" 2] ["c" 3]]
 ```
 
 * `LP:CNF L`: Takes a formula tree and convert it into CNF (returns `(- a)`...)
 
 ```
-	LP:CNF ["|" ["->" "a" "b"] ["-" "c"]] : ["|" ["|" ["-" "a"] "b"] ["-" "c"]]
-	LP:CNF ["<->" "a" ["|" "b" "c"]] : ["&" ["|" ["-" "a"] ["|" "b" "c"]] ["&" ["|" ["-" "b"] "a"] ["|" ["-" "c"] "a"]]]
+	LP:CNF ["|" ["->" "a" "b"] ["-" "c"]] = ["|" ["|" ["-" "a"] "b"] ["-" "c"]]
+	LP:CNF ["<->" "a" ["|" "b" "c"]] = ["&" ["|" ["-" "a"] ["|" "b" "c"]] ["&" ["|" ["-" "b"] "a"] ["|" ["-" "c"] "a"]]]
 ```
 
 * `LP:CNF2 L`: Takes a formula tree and convert it into CNF, In contrast with previous version, 
 this one returns literals (`-a`,`-b`,...)
 
 ```
-	LP:CNF2 ["|" ["->" "a" "b"] ["-" "c"]] : ["|" ["|" "-a" "b"] "-c"]
-	LP:CNF2 ["<->" "a" ["|" "b" "c"]] : ["&" ["|" "-a" ["|" "b" "c"]] ["&" ["|" "-b" "a"] ["|" "-c" "a"]]]
+	LP:CNF2 ["|" ["->" "a" "b"] ["-" "c"]] = ["|" ["|" "-a" "b"] "-c"]
+	LP:CNF2 ["<->" "a" ["|" "b" "c"]] = ["&" ["|" "-a" ["|" "b" "c"]] ["&" ["|" "-b" "a"] ["|" "-c" "a"]]]
 ```
 
 * `LP:clause-form L`: Clause Form conversion from CNF2 formula
 
 ```
-	LP:clause-form ["|" ["|" "-a" "b"] "-c"] : [["-a" "b" "-c"]]
-	LP:clause-form ["&" ["|" "-a" ["|" "b" "c"]] ["&" ["|" "-b" "a"] ["|" "-c" "a"]]] : [["-a" "b" "c"] ["-b" "a"] ["-c" "a"]]
+	LP:clause-form ["|" ["|" "-a" "b"] "-c"] = [["-a" "b" "-c"]]
+	LP:clause-form ["&" ["|" "-a" ["|" "b" "c"]] ["&" ["|" "-b" "a"] ["|" "-c" "a"]]] = [["-a" "b" "c"] ["-b" "a"] ["-c" "a"]]
 ```
 
 * `LP:CleanCF L`: Returns a Clause Form removing duplicated clauses and tautologies (works with CNF and CNF2)
 
 ```
-	LP:cleanCF [["-a" "b" "-a"]] : [["-a" "b"]]
-	LP:cleanCF [["-a" "b"] ["-a" "b"] ["-a" "-b"]] : [["-a" "b"] ["-a" "-b"]]
+	LP:cleanCF [["-a" "b" "-a"]] = [["-a" "b"]]
+	LP:cleanCF [["-a" "b"] ["-a" "b"] ["-a" "-b"]] = [["-a" "b"] ["-a" "-b"]]
 ```
 
 ## Semantic Tableau (TS)
