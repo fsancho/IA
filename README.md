@@ -1,5 +1,5 @@
-+ [English](models-of-the-course-artificial-intelligence)
-+ [Spanish](modelos-de-la-asignatura-inteligencia-artificial)
++ [English](#models-of-the-course-artificial-intelligence)
++ [Spanish](#modelos-de-la-asignatura-inteligencia-artificial)
 
 ----------------------
 
