@@ -30,7 +30,7 @@ It should be noted that:
 
 ----------------------
 
-# Modelos de la asignatura Inteligencia Artificial 
+# Modelos de la asignatura Inteligencia Artificial
 
 [Link](http://www.cs.us.es/~fsancho/?p=inteligencia-artificial-2019-20) de la ETSII-US (Ingeniería de Computadores)
 
