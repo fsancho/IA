@@ -127,5 +127,5 @@ Additionally, because `BFS` returns the complete final state, from which we can 
 
 # Instructions for LayoutSpace
 
-See [equivalent section in BSS] (https://github.com/fsancho/IA/blob/master/01.%20State%20Space%20Search/README.md).
+See [equivalent section in BSS](https://github.com/fsancho/IA/blob/master/01.%20State%20Space%20Search/README.md).
 
