@@ -1,8 +1,8 @@
-[English](#english)
+[English](#building-states-spaces)
 
-[Spanish](#spanish)
+[Spanish](#construcción-de-espacios-de-estados)
 -----------------
-# <a id="english"></a>Building States Spaces
+# Building States Spaces
 
 Set of file associated to this folder:
 
@@ -115,7 +115,7 @@ In the case of trees, the algorithm attempts to properly sort the successors in 
 In addition, the library provides a procedure, `style`, which gives a uniform appearance to the state space graph: white background, blue circular states with black labels, transitions with green labels.
 
 ----------------------
-# <a id="spanish"></a>Construcción de Espacios de Estados
+# Construcción de Espacios de Estados
 
 Conjunto de ficheros asociados a esta carpeta:
 
