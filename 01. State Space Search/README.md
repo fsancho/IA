@@ -1,7 +1,8 @@
 [English](#english)
 [Spanish](#spanish)
 -----------------
-# Building States Spaces (#english)
+<a id="english"></a>
+# Building States Spaces
 
 Set of file associated to this folder:
 
