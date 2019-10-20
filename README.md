@@ -28,6 +28,8 @@ It should be noted that:
 2. There may be additional material that is not referenced in this documentation or in those inside each folder.
 3. These folders are the result of a work in progress, so there may be temporary discrepancies between the actual content and the one referenced in the respective documentation.
 
+Distributed under [MIT License](https://choosealicense.com/licenses/mit/).
+
 ----------------------
 
 # Modelos de la asignatura Inteligencia Artificial
@@ -54,3 +56,5 @@ Ha de tenerse en cuenta que:
 1. Dentro de cada carpeta se puede encontrar información más específica acerca de su contenido. 
 2. Puede haber material adicional que no está referenciado en esta documentación o en las que se encuentran dentro de cada carpeta.
 3. Estas carpetas son el resultado de un trabajo en curso, por lo que pueden producirse discrepancias temporales entre el contenido real y el referenciado en las respectivas documentaciones.
+
+Distribuido bajo [MIT License](https://choosealicense.com/licenses/mit/).
