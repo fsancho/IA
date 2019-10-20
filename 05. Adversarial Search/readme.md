@@ -61,11 +61,11 @@ Broadly speaking, the UCT algorithm consists of the following steps:
 UCT: The main procedure. It consists of the repetition of N times of:
 
 From the root node:
-  1. Selection of node with possibility of expansion
-  2. Expansion of the selected node
-  3. Simulation from the expanded node
+  1. Selection of node with possibility of expansion.
+  2. Expansion of the selected node.
+  3. Simulation from the expanded node.
   Return the best child of the root node according to the results of the simulations.
-  4. Propagation of simulation results
+  4. Propagation of simulation results.
 
 --------------------------------
 
