@@ -1,7 +1,8 @@
-[English](#building-states-spaces)
++ [English](#building-states-spaces)
++ [Spanish](#construcción-de-espacios-de-estados)
 
-[Spanish](#construcción-de-espacios-de-estados)
 -----------------
+
 # Building States Spaces
 
 Set of file associated to this folder:
