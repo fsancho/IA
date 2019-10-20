@@ -50,7 +50,7 @@ In addition, this library includes some procedures to calculate the **diversity*
 
 -----------------------------
 
-# [Computación Evolutiva]
+# Computación Evolutiva
 
 Contenido aproximado de los ficheros de esta carpeta:
 
