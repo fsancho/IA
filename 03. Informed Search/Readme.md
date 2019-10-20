@@ -1,6 +1,85 @@
++ [English](#informed-search)
++ [Spanish](#búsquedas-informadas)
+
+---------------------------
+
+# Informed Search
+
+List of files associated with Informed Search: The following is a list of files associated with Informed Searches:
+
++ `A-star.nls`: NetLogo Source File with the generic algorithms associated with the A* Informed Search.
++ `LayoutSpace.nls`: NetLogo Source File that contains the library to visualize calculated state spaces (for BFS and other libraries that make use of similar structures).
++ `A-star Problem Solver - Numerical Puzzle.nlogo`: Model of A* solution of the _numerical _puzle_ problem.
++ `A-star Problem Solver - Sorting Lists.nlogo`: Model of A* solution of the problem of sorting lists.
++ A-star Problem Solver - 8 puzzle.nlogo`: Model of A* solution of the _8 puzzle_ problem.
++ A-star Problem Solver - Hanoi Towers.nlogo`: Model of A* solution of the _Hanoi Towers_ problem.
++ A-star Problem Solver - Figures and Letters.nlogo`: Model of A* solution of the _Numbers and Letters_ problem (only Numbers).
++ A-star Problem Solver - Cards.nlogo`: Model of A* solution of the _deck of cards_ problem.
++ `A-star Turtles Geometric Network.nlogo`: Model of use of the A* algorithm in the search of minimum paths for geometrical networks. It does not make use of the A-star library.
++ `A-star patches.nlogo`: Model of use of the A* algorithm in the search for minimum paths on patches. It does not make use of the A-star library.
++ `a-star_2009.nlogo`: Model of use of the A* algorithm in the search for minimum paths on patches. It does not make use of the A-star library. Shows different heuristics of distances to compare results.
+
+# Instructions for A-star
+
+This library is actually an extension of the BFS library explained in [Uninformed Search](https://github.com/fsancho/IA/tree/master/02.%20Uninformed%20Search), therefore, both the states (_AI:states_) and the transitions (_AI:transitions_) follow a similar behavior and only the differences are shown here.
+
+The states are represented by the _AI:states_ family of turtles, which must contain (at least) the following properties:
+
++ `content` : Stores the content (value) of the state
++ `depth` : Indicates the depth of the state inside with respect to the initial state (used in some of the functionalities of LayoutSpace for representation).
+
+Transitions, which allow you to convert states to each other, are represented by the _AI:transitions_ family of links, which must contain (at least) the following properties:
+
++ `rule` : Stores several information about the transition. It must have a certain structure that is explained below.
++ cost-link` : Stores the cost of the transition.
+
+As in the BFS library, in this case we need the rules to use a `["rep" cost ..]` list format, which must have in its first component a printable representation of the rule, since this component will be used to give a human-comprehensible version of the transitions used in the processes, and in the second component the cost of applying the rule. Valid uses of the rules can be seen in the example models above.
+
+In addition, the A* algorithm stores all the search information in an additional family of agents called _AI:searchers_, which have the following properties:
+
++ `memory` : Stores the path of nodes that has traveled A* from the initial state to the node in which this searcher is located.
++ `cost` : Stores the real cost of the road travelled since the initial state.
++ `total-expected-cost` : Stores the total expected cost from the initial state to the target.
++ `current-state`: Stores the state (_AI:state_) in which this searcher is located.
++ `active?` : Sets whether this searcher is active or not, that is, whether the states neighboring yours have been scanned or not.
+
+The main function of the **A-star** library is the `A*` procedure, which builds the state graph obtained from a given initial state (following the heuristic selection defined by the user) and checks whether the target state has been reached or not. The underlying state graph is built dynamically as needed. 
+
+Essentially, the algorithm recursively calculates the successor states of the state that heuristics says must be expanded and connects them by means of links (_AI:transitions_). This process is repeated until reaching the objective state and we are sure that it is the optimal path (so, perhaps, after having reached it, it is necessary to close some more nodes) or if the complete space has been traveled and the objective has not been reached. A*` is therefore a report, which will return:
+
++ False' if the search was not successful.
++ The memory of the search engine that has reached a final state.
+
+It should be noted that the search could result in an infinite process, which in NetLogo can cause stability problems in the execution engine.
+
+The input data that this procedure expects are:
+
++ `#initial-state` : Content of the initial state that will start the construction.
++ `#final-state` : Content of the final state to be searched. In case the final state is given by a stop condition, but not by a specific state (as in the problem of _N queens_), that stop condition will be given by a report that will be explained next, and in this case we can pass any data to it as a final state, since it will not consider it.
++ `#debug?` : `True / False` - Indicates if the content will be shown in the states, and the rules in the transitions.
++ `#visible?` : Shows/hides states and transitions in the interface.
+
+For the correct functioning of this library in the main model, the following functions must be defined:
+
++ `children-states` : It can be executed by states, and it returns a list with information about the possible successors of the state that executes it. In this sense, each returned state must be a `[s r]` pair, where `s` is the content of the new state, and `r` is a rule with the structure previously seen (`["rep" c ...]`).
+
++ `final-state?` : It can be executed by states and returns if the current state is to be considered a final state. This procedure receives as input a parameter that, for example, allows to compare the current state with the `#final-state` in case that final state is a concrete state. If not, the passed parameter is useless and the verification of whether it is final or not will only be based on properties internal to the current state.
+
++ `heuristic` : can be run by searchers. It receives as input the searched target, and returns the value of the heuristic that will be used to measure the distance between the state in which the searcher is and the target.
+
++ `equal?` : a report that decides when two states are equal. Many times it may simply be the comparator `=`, but if the content of the states is a more complex structure (for example, a set represented by a list) it may be necessary to define a more elaborate equality (for example, in the previous case, which does not depend on the order).
+
+Some valid definitions for different problems can be seen in the example models.
+
+# Instructions for LayoutSpace
+
+See [equivalent section in BSS](https://github.com/fsancho/IA/blob/master/01.%20State%20Space%20Search/README.md).
+
+----------------
+
 # Búsquedas Informadas
 
-Lista de ficheros asociados a Búquedas no Informadas:
+Lista de ficheros asociados a Búquedas Informadas:
 
 + `A-star.nls`:	Fichero Fuente de NetLogo con los algoritmos genéricos asociados a la Búsqueda Informada con A*.
 + `LayoutSpace.nls`:	Fichero Fuente de NetLogo que contiene la librería para visualizar espacios de estados calculados (para BFS y otras librerías que hacen uso de estructuras similares).
