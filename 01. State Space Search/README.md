@@ -1,3 +1,120 @@
+[English](#english)
+[Spanish](#spanish)
+-----------------
+# Building States Spaces (#english)
+
+Set of file associated to this folder:
+
++ `BSS.nls`: **NetLogo Source file** containing the library to build the state space associated with a problem (Build Search Space) from an initial state and a basic builder.
++ `LayoutSpace.nls`: **NetLogo Source File** that contains the library to visualize state spaces computed from the BSS library (and other libraries that make use of similar structures).
++ `Build State Space - Basic.nlogo`: Definitions for the *numerical puzzle* problem.
++ `Build State Space - Jugs.nlogo`: Definitions for the *jugs problem*.
++ `Build State Space - Farmer.nlogo`: Definitions for *farmer's problem*.
++ `Build State Space - Tic Tac Toe.nlogo`: Definitions for the *Tic Tac Toe problem*.
++ `Build State Space - Towers of Hanoi.nlogo`: Definitions for the *Hanoi Towers* problem.
++ `Build State Space Repetitions - Nim.nlogo`: Definitions for the *Nim* game (repeating nodes).
+
+## BSS instructions:
+
+States** are represented by the _AI:states_ family of turtles, which must contain (at least) the following properties:
+
++ `Content` : Stores the content (value) of the state
++ `explored?` : Indicates whether the state has been explored/created or not
++ `depth` : Indicates the depth of the state with respect to the initial state (used in some of the functionalities of LayoutSpace for the representation).
+
+The **transitions**, which allow you to convert/connect states between them, are represented by the _AI:transitions_ links family, which must contain (at least) the following properties:
+
++ `rule` : Stores information about the transition. It must have a certain structure that we explain next.
+
+In this solution we need the rules to use a list shape that must have in its first component a printable representation of the rule, since this component will be used to give a human-comprehensible version of the transitions used in the processes. In the example models above you can see valid uses of the rules.
+
+The main function of the **BSS** library is the `BSS` procedure, which builds the states graph obtained from a given initial state (following the constructors defined by the user). Essentially, the algorithm recursively calculates the successor states of the current states (_AI:states_) and connects them by means of links (_AI:transitions_). This process is repeated a maximum number of times.
+
+The input data that this procedure waits for are:
+
++ `#initial-state` : Content of the **initial state** that will start the construction.
++ `#type` : Type of **graph/structure** that the constructed space will have:
+  +` 0` - **Tree, without repeated states** (if a state is repeated, it is ignored).
+  + `1` - **Tree, with repeated states** (if a state is repeated, a copy is created).
+  + `2` - **Graph** (if a state is going to be repeated, a link is created with the existing one).
++ `#max-depth` : **Maximum depth** allowed. Maximum number of transitions applied to calculate the new states.
++ `#debug?` : `True / False` - Indicates if the content will be shown in the states, and the rules in the transitions.
++ `#visible?` : Shows/hides states and transitions in the interface.
+
+For the correct functioning of this library in the main model, a _report_ must be defined:
+   
++ `children-states` : It can be executed by states, and it returns a list with information about the possible successors of the state that executes it. In this sense, each returned state must be a `[s r]` pair, where `s` is the content of the new state, and `r` is a rule with the structure previously seen (`["rep" ...]`).
+  
+In the example models you can see some valid definitions for different problems.
+
+## Example
+
+We are going to define the data structure and reports needed to build (a part of) the state space of the next game: 
+> Given two numbers, S and G, find a way to transform S into G by means of the allowed operations:
+> Add 3, multiply by 7, or subtract 2.
+
+For example, to get from 5 to 20, a possible solution would be the one that goes through the following states, applying the previous rules: 5 -(*3)-> 15 -(+7)-> 22 -(-2)-> 20.
+
+* The content of the states will be simply a numerical value.
+
+* The applicable rules will be constructed directly by means of the construction of lists and anonymous reports:
+
+[ ["*3" regla*3] ["+7" regla+7] ["-2" regla-2] ]
+
+    to-report reglas
+      report (list
+               (list "*3" ([ x -> x * 3 ]))
+               (list "+7" ([ x -> x + 7 ]))
+               (list "-2" ([ x -> x - 2 ])))
+    end
+
+* Once the rules have been defined, we can define the procedure that calculates the following states by means of the following report.
+
+A possible definition would be:
+ 
+    to-report AI:children-states
+      let res []
+      foreach reglas [
+        regla -> 
+        let app last regla
+        let r (run-result app content)
+        if r > 0 [set res lput (list r regla) res]
+      ]
+      report res
+    end
+    
+More generally, we can give the following equivalent definition, which makes use of an auxiliary report that indicates when a state is valid, and also makes use of a functional approach:
+
+    to-report valid? [x]
+      report (x > 0)
+    end
+
+    to-report AI:children-states
+      report filter [ s -> valid? (first s) ]
+                    (map [ r -> (list (run-result (last r) content) r) ]  reglas)
+    end
+
+Now, for you to build the simple tree (without repetitions) that you get from S, with 3 levels of depth, showing the states in nodes and rules in transitions, and showing the information in the world (note that as we are building the space of states, not performing the search, it is not necessary to know the final searched value, G):
+
+    BSS S 0 3 True True
+
+## Instructions for LayoutSpace
+
+This library is not only used in this type of exercises, but can be used for the representation of any state space (so it will also be useful in uninformed, informed, local and Minimax searches). The objective of this representation library is not to provide a final product, but to give the basic tools to be able to focus on the generation of state spaces, and not on their representation, so it might be necessary to adapt it to contexts with more specific needs.
+
+It provides a main procedure, `layout-space`, which receives the type of representation as input data and represents the state space according to the selected type:
+
++ `*` : **organic** representation by force algorithm.
++ `o` : **radial** representation from the initial state (assuming it is `AI:state 0`).
++ `↓` : Representation as vertical tree.
++ `→` : Representation as horizontal tree.
+
+In the case of trees, the algorithm attempts to properly sort the successors in order to achieve a balanced tree.
+
+In addition, the library provides a procedure, `style`, which gives a uniform appearance to the state space graph: white background, blue circular states with black labels, transitions with green labels.
+
+----------------------
+(#spanish)
 # Construcción de Espacios de Estados
 
 Conjunto de ficheros asociados a esta carpeta:
