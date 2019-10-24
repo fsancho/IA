@@ -17,7 +17,9 @@ In this folder we can find several models related to searches in situations with
 
 A `minimax.nls` library that implements the procedures associated to the Minimax algorithm for the case in which we have the complete game tree (it is easy to extend it to consider a heuristic evaluation in non-terminal nodes). 
 
-Now, there are two implementations in the same library: one for the complete propagation from the leaves to the root (no pruning), and the usual alpha-beta pruning algorithm.
+Now, there are two implementations in the same library: 
++ **minimax**: for the complete propagation from the leaves to the root (no pruning), 
++ **alphabeta**: the usual alpha-beta pruning algorithm.
 
 In this time, it is not implemented on dynamical building of game states.
 
