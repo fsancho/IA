@@ -54,3 +54,54 @@ end
 to-report legal-move-to [a]
   report out-transition-to a
 end
+
+
+;; ------------------- Alpha Beta Pruning -----------------------------------
+;;
+;; Pseudocode:
+;;
+;function alphabeta(depth, α, β)         
+;    if  depth = 0 or node is a terminal node
+;        return the heuristic value of node
+;    if  Player = MaxPlayer
+;        for each child of node
+;            α := max(α, alphabeta(child, depth-1, α, β, not(Player) ))     
+;            if β ≤ α
+;                break                             (* Beta cut-off *)
+;        return α
+;    else
+;        for each child of node
+;            β := min(β, alphabeta(child, depth-1, α, β, not(Player) ))     
+;            if β ≤ α
+;                break                             (* Alpha cut-off *)
+;        return β
+
+to alphabeta [d alpha beta]
+  ifelse d = 0 or leaf?
+  [set color ifelse-value player = 1 [green] [red]]
+  [ifelse player = 1 
+    [ foreach (sort-by positions legal-successors)
+      [ s -> 
+        ask s [alphabeta (d - 1) alpha beta]
+        set alpha max (list alpha ([fitness] of s))
+        if beta < alpha [stop]
+        set color green
+      ]
+      set fitness alpha
+    ]
+    [ foreach (sort-by positions legal-successors)
+      [ s -> 
+        ask s [alphabeta (d - 1) alpha beta]
+        set beta min (list beta ([fitness] of s))
+        if beta < alpha [stop]
+        set color red
+      ]
+      set fitness beta
+    ]
+  ]
+end
+
+; Boolean report used to sort the states in the tree
+to-report positions [x y]
+  report [xcor] of x <= [xcor] of y
+end

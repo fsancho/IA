@@ -54,7 +54,7 @@ to setup
   layout-tree (state 0) layout
   ask states [
     set leaf? false
-    set heading ifelse-value (player = "op") [180][0]
+    set heading ifelse-value (player = 2) [180][0]
     set label-color black
     set size .5 + 6 / (1 + depth)
 
@@ -70,20 +70,31 @@ to setup
     set size 2
     set heading 0
     setxy min-pxcor + 1 max-pycor - 1
+    stamp
     ask patch-at 7 0 [
       set plabel-color black
       set plabel "MAX player"]
+    die
   ]
   create-states 1 [
     set color red
     set size 2
     set heading 180
     setxy min-pxcor + 1 (max-pycor - 3)
+    stamp
     ask patch-at 7 0 [
       set plabel-color black
       set plabel "MIN player"]
+    die
   ]
-  ask states with [player = 2] [rt 180]
+end
+
+; Test function for alpabetha pruning
+to test-alpha-beta-pruning
+  ask states with [not leaf?] [set fitness ""]
+  ask states [set color gray]
+  ask state 0 [alphabeta 6 -100 100]
+  ask states [set label fitness]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -171,6 +182,23 @@ layout
 layout
 "↓" "→"
 0
+
+BUTTON
+15
+130
+185
+163
+Test Alpha Beta Pruning
+test-alpha-beta-pruning
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
