@@ -26,7 +26,7 @@ In this time, it is not implemented on dynamical building of game states.
 
 ## MCTS
 
-**Use:**Apply **Monte Carlo Tree Search** to solve search problems with adversary. For this purpose the `MCTS.nls` library is provided, and some examples of how it can be used to solve conventional 2 players games (it is assumed that one of them would be the human player, the machine player would make use of MCTS to decide the ideal move).
+**Use:** Apply **Monte Carlo Tree Search** to solve search problems with adversary. For this purpose the `MCTS.nls` library is provided, and some examples of how it can be used to solve conventional 2 players games (it is assumed that one of them would be the human player, the machine player would make use of MCTS to decide the ideal move).
 
 The library built to run the MCTS algorithm makes use of the following structures:
 
