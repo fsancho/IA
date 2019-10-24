@@ -2,6 +2,22 @@ to-report set:list-to-set [l]
   report remove-duplicates l
 end
 
+to-report set:empty
+  report []
+end
+
+to-report set:add [el s]
+  ifelse set:is-set? s
+  [ report ifelse-value (member? el s) [s][fput el s] ]
+  [ error "set:add only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:remove [el s]
+  ifelse set:is-set? s
+  [ report remove el s ]
+  [ error "set:add only works on sets. Please, verify that arguments are sets" ]
+end
+
 to-report set:union [s1 s2]
   ifelse set:is-set? s1 and set:is-set? s2
   [ report set:list-to-set (sentence s1 s2) ]

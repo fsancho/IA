@@ -1,25 +1,105 @@
-__includes ["sets.nls"]
+extensions [ table ]
 
+__includes ["sets.nls" "FP.nls" "ASCII.nls"]
+
+globals [G1 G2]
 
 to set:test
- let s1 [1 2 3 4 5]
- let s2 [4 3 5 6 7 8]
- let l1 [1 2 3 4 5 4 3 2 1]
- show set:list-to-set l1
- show set:union s1 s2
- show set:intersection s1 s2
- show set:subset? [5 3] s1
- show set:subset? s1 s2
- show set:equal? s1 s2
- show set:equal? [1 2] [2 1]
- show set:dif s1 s2
- show set:dif s2 s1
- show set:sym-dif s1 s2
- show set:member? 1 s1
- show set:member? 1 s2
- show set:is-set? l1
- show set:is-set? s1
- show set:size s1
+  let s1 [1 2 3 4 5]
+  let s2 [4 3 5 6 7 8]
+  let l1 [1 2 3 4 5 4 3 2 1]
+  show set:add 2 set:empty
+  show set:remove 2 [2 3]
+  show set:remove 2 [3 4]
+  show set:list-to-set l1
+  show set:union s1 s2
+  show set:intersection s1 s2
+  show set:subset? [5 3] s1
+  show set:subset? s1 s2
+  show set:equal? s1 s2
+  show set:equal? [1 2] [2 1]
+  show set:dif s1 s2
+  show set:dif s2 s1
+  show set:sym-dif s1 s2
+  show set:member? 1 s1
+  show set:member? 1 s2
+  show set:is-set? l1
+  show set:is-set? s1
+  show set:size s1
+end
+
+to FP:test
+  let l1 range 10
+  show take 2 l1
+  show drop 2 l1
+  show takewhile [x -> x < 5] l1
+  show dropwhile [x -> x < 5] l1
+  show zip l1 l1
+  show apply-report "approximate-rgb" [50 100 150]
+  foreach (zip l1 l1) [ p -> apply "plotxy" p]
+end
+
+to FP:test2
+  let l1 range 10
+  set G1 [x -> 2 * x]
+  set G2 [x -> x + 1]
+  let G composition G1 G2
+  ; Lo que se obtiene es un procedimiento anónimo
+  show (runresult G 4)
+  ; Por eso se puede usar directamente en etructuras como map
+  show (map G l1)
+  ; Parece ser que puedo usar el nombre de variable que almacena el
+  ; report anónimo solo cuando es una variable global
+  show (apply-anon-report "[x -> 2 * x]" [2])
+  show (apply-anon-report "G1" [2])
+  ; y funciona bien al cambio
+  set G1 [x -> x + 1]
+  show (apply-anon-report "G1" [2])
+  ;show (apply-report "G1" [2])
+  set G1 [[x y] -> aux1 x y]
+  show (word "G1: " G1)
+  set G2 [[x y] -> x + y]
+  set G composition-anon G2 G1
+  show (runresult G [1 2])
+end
+
+
+
+to-report aux1 [x y]
+  report (list (x + y) (x * y))
+end
+
+
+to Table:test
+  let T table:from-list zip (range 10) (n-values 10 [random 10])
+  let lowletters "abcdefghijklmnñopqrstuvwxyz"
+  let uppletters "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+  show T
+  table:foreach T [ [k v] -> print (word k " :-> " v)]
+  show table:map [ [k v] -> (list (item k lowletters) (-1 * v))] T
+  show table:filter [[k v] -> (k < 4)] T
+end
+
+to String:test
+  let S "super12minus43"
+  show S
+  string:foreach S [ c -> print c]
+  show string:map [c -> chr (1 + asc c)] S
+  show reduce word string:map [c -> chr (1 + asc c)] S
+  show string:filter [c -> is-digit? c] S
+  show string:filter [c -> is-letter? c] S
+  show substring:upto 5 S
+  show substring:from 5 S
+  show string:split-by 5 S
+end
+
+to ASCII:test
+  show is-digit? "2"
+  show is-digit? "a"
+  show is-letter? "a"
+  show is-letter? "W"
+  show is-letter? "3"
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -48,6 +128,24 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+PLOT
+8
+10
+208
+160
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
 
 @#$#@#$#@
 ## WHAT IS IT?

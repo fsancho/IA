@@ -83,6 +83,7 @@ to setup
       set plabel-color black
       set plabel "MIN player"]
   ]
+  ask states with [player = 2] [rt 180]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -513,7 +514,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
