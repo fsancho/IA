@@ -1,0 +1,25 @@
+Edad,Prescripción,Astigmatismo,Producción de lágrimas,Lentes de contacto
+Joven,Miope,false,Reducida,Ninguna
+Joven,Miope,false,Normal,Blandas
+Joven,Miope,true,Reducida,Ninguna
+Joven,Miope,true,Normal,Duras
+Joven,Hipermétrope,false,Reducida,Ninguna
+Joven,Hipermétrope,false,Normal,Blandas
+Joven,Hipermétrope,true,Reducida,Ninguna
+Joven,Hipermétrope,true,Normal,Duras
+Adulto,Miope,false,Reducida,Ninguna
+Adulto,Miope,false,Normal,Blandas
+Adulto,Miope,true,Reducida,Ninguna
+Adulto,Miope,true,Normal,Duras
+Adulto,Hipermétrope,false,Reducida,Ninguna
+Adulto,Hipermétrope,false,Normal,Blandas
+Adulto,Hipermétrope,true,Reducida,Ninguna
+Adulto,Hipermétrope,true,Normal,Ninguna
+Anciano,Miope,false,Reducida,Ninguna
+Anciano,Miope,false,Normal,Ninguna
+Anciano,Miope,true,Reducida,Ninguna
+Anciano,Miope,true,Normal,Duras
+Anciano,Hipermétrope,false,Reducida,Ninguna
+Anciano,Hipermétrope,false,Normal,Blandas
+Anciano,Hipermétrope,true,Reducida,Ninguna
+Anciano,Hipermétrope,true,Normal,Ninguna

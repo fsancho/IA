@@ -1,131 +1,41 @@
-__includes ["ID3.nls"]
+extensions [ CSV ]
+
+__includes ["ID3.nls" "LayoutSpace.nls" "DF.nls"]
+
 
 globals [decision-tree]
-
-; Muestra un dataset de forma ordenada
-to show-dataframe [df]
-  let m 1 + max map [ x -> max map [ y -> length (word y) ] x ] df
-  output-print "Dataframe:"
-  repeat 1 + (m + 1) * length (first df) [output-type "-"]
-  output-print ""
-  foreach df
-  [ x ->
-    output-type "|"
-    foreach x
-    [ y ->
-      output-type y
-      repeat (m - length (word y)) [output-type " "]
-      output-type "|"
-    ]
-    output-print ""
-    repeat 1 + (m + 1) * length (first df) [output-type "-"]
-    output-print ""
-  ]
-end
-
-to-report output-dataframe [df]
-  let s "Dataframe:\n"
-  let atrs first df
-  let long map [ x -> 1 + max map [ y -> length (word y) ] (column x df) ] atrs
-  set s (word s "\n")
-  ;; Lineas
-  let lin "├"
-  foreach long
-  [ x ->
-    repeat (1 + x) [set lin (word lin "─")]
-    set lin (word lin "┼")
-  ]
-  set lin (word (bl lin) "┤\n")
-  ;; Cabecera
-  set s (word s "│ ")
-  (foreach (first df) long
-    [ [x y] ->
-      set s (word s  x )
-      repeat (y - length (word x)) [set s (word s " ")]
-      set s (word s "│ ")
-    ])
-  set s (word s "\n" lin)
-  ; Cuerpo
-  foreach bf df
-  [ x ->
-    set s (word s lin)
-    set s (word s "│ ")
-    (foreach x long
-    [ [y z] ->
-      set s (word s  y )
-      repeat (z - length (word y)) [set s (word s " ")]
-      set s (word s "│ ")
-    ])
-    set s (word s "\n")
-    ;set s (word s lin)
-  ]
-  ;; Linea final
-  let lin2 "└"
-  foreach long
-  [ x ->
-    repeat (1 + x) [set lin2 (word lin2 "─")]
-    set lin2 (word lin2 "┴")
-  ]
-  set lin2 (word (bl lin2) "┘\n")
-  set s (word s lin2)
-  ; Devolución
-  report s
-end
-
-; Carga un Dataset desde un fichero
-to-report load-Dataframe
-  file-close-all
-  let f user-file
-  let df []
-  ;let f "Test3-ID3.txt"
-  ifelse is-string? f
-  [
-    file-open f
-    while [not file-at-end?]
-    [
-      set df lput (read-from-string (word "[" file-read-line "]")) df
-    ]
-    file-close
-    report df
-  ]
-  [report false]
-end
-
-
-
 
 ; Procedimiento principal q genera el árbol de decisión obtenido por ID3
 to main
   ca
   ask patches [set pcolor white]
   set decision-tree nobody
-  let df load-dataframe
+  let df DF:load
   if df != false
   [
+    output-print DF:output df
     set decision-tree ID3:ID3 df
-    layout-radial ID3:nodes links (ID3:node 0)
-    output-print output-dataframe df
     ID3:format
+    set #LayoutNodes ID3:nodes
+    set #LayoutEdges ID3:links
+    set #LayoutNode0 ID3:node 0
+    layout-space "V"
   ]
 end
 
-to layout
-  layout-spring ID3:nodes links .5 8 .3
-  let cx sum [xcor] of ID3:nodes / count ID3:nodes
-  let cy sum [ycor] of ID3:nodes / count ID3:nodes
-  ask ID3:nodes [
-    setxy xcor - cx ycor - cy
-    setxy xcor * .999 ycor * .999]
+
+to test
+  ask decision-tree [show ID3:evaluate [["Outlook" "Rainy"] [ "Temp" "Hot"] ["Humidity" "High"] ["Windy" "True"] ]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-4
-10
-507
-438
+6
+56
+508
+483
 -1
 -1
-12.7
+12.67
 1
 12
 1
@@ -149,7 +59,7 @@ BUTTON
 139
 10
 206
-43
+55
 ID3
 main
 NIL
@@ -162,28 +72,11 @@ NIL
 NIL
 1
 
-BUTTON
-443
-10
-509
-43
-NIL
-layout
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 OUTPUT
 509
 10
-1047
-460
+1208
+483
 11
 
 CHOOSER
@@ -294,6 +187,8 @@ false
 0
 Circle -7500403 true true 0 0 300
 Circle -1 true false 29 29 242
+Circle -7500403 true true 58 58 182
+Circle -1 true false 88 88 124
 
 circle 2
 false
@@ -318,6 +213,8 @@ false
 0
 Polygon -7500403 true true 0 150 150 0 300 150 150 300 0 150
 Polygon -1 true false 30 150 150 30 270 150 150 270 30 150
+Polygon -7500403 true true 105 120 105 90 195 90 195 165 165 165 165 210 135 210 135 150 180 150 180 105 120 105 120 120
+Rectangle -7500403 true true 135 225 165 240
 
 dot
 false
@@ -458,6 +355,8 @@ false
 0
 Rectangle -7500403 true true 30 30 270 270
 Rectangle -1 true false 60 60 240 240
+Polygon -7500403 true true 60 75 225 240 255 240 255 240 60 45 45 45
+Polygon -7500403 true true 60 255 255 60 240 45 45 240
 
 star
 false
@@ -545,7 +444,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

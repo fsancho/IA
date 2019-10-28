@@ -57,9 +57,9 @@ end
 
 to-report apply-anon-report [f v]
   let sv ifelse-value (is-list? v) [bf bl (word v)][(word v)]
-  ;show sv
+  show sv
   if is-anonymous-reporter? f [set f bl substring:from 21 (word f)]
-  ;show (word "( runresult " f " " sv ")")
+  show (word "( runresult " f " " sv ")")
   report (runresult (word "( runresult " f " " sv ")"))
 end
 

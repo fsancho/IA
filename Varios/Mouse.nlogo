@@ -1,128 +1,50 @@
-__includes ["MCTS.nls"]
-
-breed [pieces piece]
-
-patches-own [
-  value   ; to store the piece (0/1/2) of this place
-]
-
-; state: [content player]
-;
-; In this case, the content is the configuration of the board, and the player will be 1 or 2.
-
-; Get the content of the state
-to-report MCTS:get-content [s]
-  report first s
-end
-
-; Get the player that generates the state
-to-report MCTS:get-playerJustMoved [s]
-  report last s
-end
-
-; Create a state from the content and player
-to-report MCTS:create-state [c p]
-  report (list c p)
-end
-
-; Get the rules applicable to the state
-to-report MCTS:get-rules [s]
-  let c MCTS:get-content s
-  ; Filter the empty places in the board
-  report filter [x -> item x c = 0] (range 0 9)
-end
-
-; Apply the rule r to the state s
-to-report MCTS:apply [r s]
-  let c MCTS:get-content s
-  let p MCTS:get-playerJustMoved s
-  ; Fill the r place with the number of the current player
-  report MCTS:create-state (replace-item r c (3 - p)) (3 - p)
-end
-
-; Move the result from the last state to the current one
-to-report MCTS:get-result [s p]
-  let pl MCTS:get-playerJustMoved s
-  let c MCTS:get-content s
-  ; L will have the lines of the board
-  let L [[0 1 2] [3 4 5] [6 7 8] [0 3 6] [1 4 7] [2 5 8] [0 4 8] [2 4 6]]
-  ; For every line, we see if it is filled with the same player
-  foreach L [
-    lin ->
-    let val map [x -> (item x c)] lin
-    if first val = last val and first val = (first bf val) [
-      ifelse first val = p [report 1] [report 0]
-    ]
-  ]
-  ; if there is no winner lines, and the board is full, then it is a draw
-  if empty? MCTS:get-rules s [report 0.5]
-  report [false]
-end
-
-;; Interface
-
-to start
-  ca
-  ask patches [set value 0]
-  ask patches with [(pxcor + pycor) mod 2 = 0] [set pcolor grey]
-end
-
-to go
-  let played? false
+to go1
   if mouse-down? [
-    ask patch mouse-xcor mouse-ycor [
-      if not any? pieces-here [
-        set value 1
-        sprout-pieces 1 [
-          set shape "o"
-          set color white]
-        set played? true
-      ]
-    ]
-    if MCTS:get-result (list (board-to-state) 1) 1 = 1 [
-      user-message "You win!!!"
-      stop
-    ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
-      user-message "Draw!!!"
-      stop
-    ]
+    ask patch mouse-xcor mouse-ycor [set pcolor white - pcolor]
+    wait .3
+  ]
+end
 
-    wait .1
-    if played? [
-      let m MCTS:UCT (list (board-to-state) 1) MAx_iterations
-      ;show m
-      ask (item m (sort patches)) [
-        set value 2
-        sprout-pieces 1 [
-          set shape "x"
-          set color white]
-      ]
-    ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 1 [
-      user-message "I win!!!"
-      stop
-    ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
-      user-message "Draw!!!"
-      stop
+to go2
+  if mouse-down? [
+    crt 1 [ setxy mouse-xcor mouse-ycor ]
+    wait .3
+  ]
+end
+
+to follow-mouse
+  if mouse-inside? [
+    ask turtles [
+      ;set label towardsxy mouse-xcor mouse-ycor - heading
+      ;rt (towardsxy mouse-xcor mouse-ycor - heading) / 1000
+      facexy mouse-xcor mouse-ycor
+      fd .001
     ]
   ]
 end
 
-to-report board-to-state
-  let b map [x -> [value] of x] (sort patches)
-  report b
+to drag&drop
+  if mouse-down? [
+    let selec min-one-of turtles [distancexy mouse-xcor mouse-ycor]
+    ask selec [
+      if distancexy mouse-xcor mouse-ycor < 1 [
+        while [mouse-down?] [
+          setxy mouse-xcor mouse-ycor
+        ]
+      ]
+    ]
+    wait .3
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-163
+210
 10
-535
-383
+647
+448
 -1
 -1
-121.33333333333333
+13.0
 1
 10
 1
@@ -132,24 +54,46 @@ GRAPHICS-WINDOW
 1
 1
 1
-0
-2
-0
-2
+-16
+16
+-16
+16
 0
 0
 1
 ticks
 30.0
 
-BUTTON
-21
+MONITOR
+6
 10
-84
-43
-Start
-start
+242
+55
+Mouse Coordinates
+(word \"Coor: (\" (precision mouse-xcor 1) \",\" \n(precision mouse-ycor 1) \") \" \n\"Down?: \" mouse-down? \" Inside?: \" mouse-inside?)
+17
+1
+11
+
+MONITOR
+6
+59
+98
+104
+Patch:
+patch mouse-xcor mouse-ycor
+17
+1
+11
+
+BUTTON
+50
+115
+113
+148
 NIL
+go1
+T
 1
 T
 OBSERVER
@@ -160,36 +104,55 @@ NIL
 1
 
 BUTTON
-91
-10
-154
-43
-Play!
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-22
 52
-154
-85
-Max_iterations
-Max_iterations
-0
-1000
-1000.0
-100
-1
+156
+115
+189
 NIL
-HORIZONTAL
+go2
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+53
+195
+157
+228
+NIL
+follow-mouse
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+54
+236
+144
+269
+NIL
+drag&drop
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -289,6 +252,12 @@ false
 0
 Circle -7500403 true true 0 0 300
 
+circle 2
+false
+0
+Circle -7500403 true true 0 0 300
+Circle -16777216 true false 30 30 240
+
 cow
 false
 0
@@ -387,12 +356,6 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
-
-o
-false
-0
-Circle -7500403 true true 30 30 240
-Circle -16777216 true false 60 60 180
 
 pentagon
 false

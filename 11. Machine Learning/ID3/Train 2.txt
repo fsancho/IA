@@ -1,0 +1,15 @@
+Presión Arterial,Urea en Sangre,Gota,Hipotiroidismo,Administrar Tratamiento
+Alta,Alta,true,false,false
+Alta,Alta,true,true,false
+Normal,Alta,true,false,true
+Baja,Normal,true,false,true
+Baja,Baja,false,false,true
+Baja,Baja,false,true,false
+Normal,Baja,false,true,true
+Alta,Normal,true,false,false
+Alta,Baja,false,false,true
+Baja,Normal,false,false,true
+Alta,Normal,false,true,true
+Normal,Normal,true,true,true
+Normal,Alta,false,false,true
+Baja,Normal,true,true,false

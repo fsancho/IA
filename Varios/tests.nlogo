@@ -1,6 +1,6 @@
 extensions [ table ]
 
-__includes ["sets.nls" "FP.nls" "ASCII.nls"]
+__includes ["sets.nls" "FP.nls" "ASCII.nls" "DF.nls"]
 
 globals [G1 G2]
 
@@ -99,7 +99,65 @@ to ASCII:test
   show is-letter? "a"
   show is-letter? "W"
   show is-letter? "3"
+end
 
+to DF:test
+  ca
+  let dftest DF:load "Train 1.txt"
+  ;DF:show dftest true
+  output-print "Print complete DF:"
+  output-print DF:output dftest
+
+  output-print "Print DF Header:"
+  output-print DF:header dftest
+  output-print ""
+
+  output-print "Print DF (first 3 rows):"
+  output-print DF:output (DF:first 3 dftest)
+
+  output-print "Print DF (last 3 rows):"
+  output-print DF:output (DF:last 3 dftest)
+
+  output-print "Print DF (3 random rows):"
+  output-print DF:output (DF:n-of 3 dftest)
+
+  output-print "Add column manually (Random):"
+  output-print DF:output (DF:first 3 (DF:add-column "Random" dftest (n-values (first DF:size dftest) [random 10] )))
+
+  output-print "Add Calculated Column (Join):"
+  let dftest1 DF:add-calculated-column "Join" dftest [r -> (word (item 0 r) " " (item 1 r))]
+  output-print DF:output (DF:first 3 dftest1)
+
+  ;  let a DF:save dftest "Train2.txt"
+
+  output-print "Filter DF (by Windy and PlayGolf:"
+  let dftest2 DF:filter [r -> (DF:value "Windy" dftest r) and (DF:value "PlayGolf" dftest r)] dftest
+  output-print DF:output dftest2
+
+  output-print "Values in a column (Outlook):"
+  output-print (DF:values dftest "Outlook")
+  output-print ""
+
+  output-print "Remove Column (Outlook):"
+  output-print DF:output (DF:remove "Outlook" dftest)
+
+  output-print "Separate DFs by every value in every attribute:"
+  output-print ""
+  foreach DF:header dftest [
+    h ->
+    foreach (DF:values dftest h)[
+      v ->
+      output-print (word h " = " v)
+      let f [r -> DF:value h dftest r = v]
+      output-print DF:output (DF:filter f dftest)
+    ]
+  ]
+
+  DF:foreach dftest [r -> print r]
+
+  show DF:rename dftest "Outlook" "Tiempo"
+
+  show DF:map [x -> first x] dftest
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -146,6 +204,13 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
+
+OUTPUT
+656
+10
+1236
+444
+8
 
 @#$#@#$#@
 ## WHAT IS IT?
