@@ -562,10 +562,10 @@ end
 ;Rewrite a single formula into infix way...
 to-report LP:pretty-formula [l]
   if empty? l [report ""]
-  if first l = "|" [report (word "(" (LP:pretty-formula item 1 l) "v" (LP:pretty-formula item 2 l) ")")]
-  if first l = "&" [report (word "(" (LP:pretty-formula item 1 l) "^" (LP:pretty-formula item 2 l) ")")]
-  if first l = "->" [report (word "(" (LP:pretty-formula item 1 l) "→" (LP:pretty-formula item 2 l) ")")]
-  if first l = "<->" [report (word "(" (LP:pretty-formula item 1 l) "↔" (LP:pretty-formula item 2 l) ")")]
+  if first l = "|" [report (word "(" (LP:pretty-formula item 1 l) " v " (LP:pretty-formula item 2 l) ")")]
+  if first l = "&" [report (word "(" (LP:pretty-formula item 1 l) " ^ " (LP:pretty-formula item 2 l) ")")]
+  if first l = "->" [report (word "(" (LP:pretty-formula item 1 l) " → " (LP:pretty-formula item 2 l) ")")]
+  if first l = "<->" [report (word "(" (LP:pretty-formula item 1 l) " ↔ " (LP:pretty-formula item 2 l) ")")]
   if first l = "-" [report (word "¬" (LP:pretty-formula item 1 l))]
   report (word l)
 end  
@@ -780,5 +780,5 @@ end
 to-report LP:DPLL-Consequence? [f S #debug]
   set S lput (word "(-" f ")") S
   let SCF LP:CleanCF LP:flat-list map [pf -> LP:clause-form LP:CNF2 LP:parse-to-tree pf] S
-  report LP:DPLL  SCF #debug
+  report not LP:DPLL  SCF #debug
 end

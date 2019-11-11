@@ -69,7 +69,7 @@ INPUTBOX
 425
 70
 Formula
-((a<->b)<->(-c))
+((a<->b)->(-c))
 1
 0
 String

@@ -10,6 +10,7 @@ to go [f]
   set #LayoutEdges LP:links
   set #LayoutNode0 LP:node 0
   Layout-space "V"
+  pretty:labels
 end
 
 ; Auxiliary procedure to show content from one clause-set selected
@@ -19,6 +20,13 @@ to explore
   ask node [
     if distancexy mouse-xcor mouse-ycor < 1 [
       set monitor LP:node-content]
+  ]
+end
+
+to pretty:labels
+  ask LP:nodes [
+    set label (LP:replace-all "[" (word label) "{")
+    set label (LP:replace-all "]" label "}")
   ]
 end
 @#$#@#$#@
@@ -111,7 +119,7 @@ BUTTON
 340
 196
 Hide/Show Sets
-ifelse [label] of LP:node 0 = \"\"\n[ ask LP:nodes [set label LP:node-content]]\n[ ask LP:nodes [set label \"\"]]
+ifelse [label] of LP:node 0 = \"\"\n[ ask LP:nodes [set label LP:node-content]]\n[ ask LP:nodes [set label \"\"]]\npretty:labels
 NIL
 1
 T
@@ -130,7 +138,7 @@ CHOOSER
 Samples
 Samples
 [["p" "-q"] ["p" "q"] ["-p" "-q"] ["-p" "q"]] [["-r"] ["q"] ["p" "-q"] ["-p" "r"]] [["p" "q" "r"] ["-p" "q"] ["-q" "r"] ["-r"] ["p" "r"]] [["p"] ["-p" "q"] ["r"]] [["-p" "-q" "r"] ["-s" "t"] ["-t" "p"] ["s"] ["-s" "u"] ["-u" "q"] ["-r"]] [["p" "q"] ["q" "r"] ["r" "w"] ["-r" "-p"] ["-w" "-q"] ["-q" "-r"]] [["-A" "-B" "C"] ["-A" "-G" "H"] ["-A" "-H" "F"] ["-G" "B"] ["G"] ["A"] ["-F"]]
-6
+5
 
 BUTTON
 21

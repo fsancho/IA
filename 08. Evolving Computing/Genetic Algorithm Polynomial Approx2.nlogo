@@ -1,179 +1,194 @@
-__includes ["PSO.nls"]
+; ------------------- Include Genetic Algorithm Module --------------------
 
-breed [figuras figura]
+__includes ["GeneticAlgorithm.nls"]
 
-; Crea los cuadrados aleatoriamente en el mundo
-to setup-figuras
-  create-figuras num-figuras [
-    set size 2 + random-float 3
-    set shape "square"
-    ; se hacen semitransparentes para ver los solapamientos
-    set color lput 100 extract-rgb color
-  ]
+; --------------------------- Main procedures calling ---------------------
+
+globals [
+  I       ; Interval where the function will be approximated
+  Ipoints ; List of points of I
+]
+
+; Function to be approximated
+to-report ftest [x]
+  report
+   sin (180 * e ^ x)
+  ; x ^ 3
+  ; e ^ x
 end
 
-; Calcula la evaluación del conjunto de figuras actual
-to-report calcula-evaluacion
-  let xmax max [xcor + size] of figuras
-  let xmin min [xcor - size] of figuras
-  let ymax max [ycor + size] of figuras
-  let ymin min [ycor - size] of figuras
-  let area ((xmax - xmin) * (ymax - ymin))
-  let penalizacion 0
-  ask figuras [
-    let x1 xcor
-    let y1 ycor
-    let r1 size / 2
-    ask other figuras with [who > [who] of myself] [
-      let r2 size / 2
-      let distx abs (x1 - xcor)
-      let disty abs (y1 - ycor)
-      if distx < (r1 + r2) and disty < (r1 + r2)
-      [ set penalizacion penalizacion + (r1 + r2 - distx) ^ 2 * (r1 + r2 - disty) ^ 2]
-    ]
-  ]
-  report area + 2 * penalizacion
+; Setup procedure
+to Setup
+  ca
+  ; Set the Interval of definition
+  set I [-1 1]
+  set Ipoints (Interval-Points I 100)
+  ; Create initial population
+  AI:Initial-Population population
+  AI:ExternalUpdate
+  plots
 end
 
-; Tansforma una lista de tamaño 2n en una lista de n pares
-to-report lista-a-pares [l]
-  ifelse empty? l
-  [ report [] ]
-  [ report fput (list (item 0 l) (item 1 l)) lista-a-pares (bf bf l) ]
-end
-
-; Setuo general del modelo
-to setup
-  clear-all
-  setup-figuras
-  ;
-  AI:create-particles num-particulas (2 * num-figuras)
-  ; ocultamos las partículas, no usamos su representación
-  ask AI:particles [ ht ]
-end
-
+; Procedure that launchs the GA
 to Launch
-  ; #iters
-  ;#inertia-particle
-  ;#atraction-best-personal
-  ;#atraction-best-global
-  ;#lim-vel-particles
-  let best AI:PSO 500 .5 .5 .5 .01
-  let pos-best last best
-  let lista map convert-a-mundo (lista-a-pares pos-best)
-  (foreach (sort figuras) lista [
-    [f p] ->
-    ask f [ setxy (first p) (last p)]
-    ])
-
+  let best AI:GeneticAlgorithm 500 Population crossover-ratio mutation-ratio
+  plots
+  ; Print the polinomial
+  let pol [content] of best
+  output-print map [x -> precision x 2] pol
+  output-print reduce [[x y] -> (word x " + " y)]  (map [[x y] -> (word (precision x 2) " x^" y)] pol (range 10))
 end
 
-; Transforma un par [a b] de coordenadas de partículas en un par de coordenadas
-; del mundo
-to-report convert-a-mundo [p]
-  report (list
-    (convert (first p) min-pxcor max-pxcor)
-    (convert (last p) min-pycor max-pycor))
+; Procedure to plot the evolution of best fitness
+to plots
+  let fitness-list [fitness] of AI:individuals
+  let best-fitness max fitness-list
+  set-current-plot "Fitness"
+  set-current-plot-pen "best"
+  plot best-fitness
+  if plot-diversity?
+  [
+    set-current-plot "Diversity"
+    set-current-plot-pen "diversity"
+    plot AI:diversity
+  ]
 end
 
-;-----------------------------------------------------------------------------------------------
+;------------------ Customizable Procedures ---------------------------------
+
+; Create Initial Population.
+; It depends on the problem to be solved as it uses a concrete representation
+to AI:Initial-Population [#population]
+  create-AI:individuals #population [
+    set content n-values 10 [random 10 - 5]
+    AI:Compute-fitness
+    hide-turtle
+  ]
+end
+
+; Individual report to compute its fitness
+to AI:Compute-fitness
+  set fitness -1 * sum map dif Ipoints
+end
 
 
-;---------------------------------- Customizable Procedures ----------------------------------
-; AI:evaluation reports the evaluation of the current particle. Must be individualize to
-; fit the necesities of the problem
-; Para evaluar una partícula:
-;  1.- Extraemos las coordenadas de las figuras que su estado representa
-;  2.- Ponemos las figuras en esas coordenadas
-;  3.- Evaluamos la posición actual de las figuras
-to-report AI:evaluation
-  no-display
-  let lista map convert-a-mundo (lista-a-pares pos)
-  (foreach (sort figuras) lista [
-    [f p] ->
-    ask f [ setxy (first p) (last p)]
-    ])
+
+; Crossover procedure
+; It takes content from two parents and returns a list with two contents.
+; When content is a list (as in DNA case) it uses a random cut-point to
+; cut both contents and mix them:
+; a1|a2, b1|b2, where long(ai)=long(bi)
+; and report: a1|b2, b1|a2
+to-report AI:Crossover [c1 c2]
+  let cut-point 1 + random (length c1 - 1)
+  report list (sentence (sublist c1 0 cut-point)
+                        (sublist c2 cut-point length c2))
+              (sentence (sublist c2 0 cut-point)
+                        (sublist c1 cut-point length c1))
+end
+
+; Mutation procedure
+; Random mutation of units of the content.
+; Individual procedure
+to AI:mutate [#mutation-ratio]
+  set content map [ f -> ifelse-value (random-float 100.0 < #mutation-ratio) [f + random-float 1 - .5] [f] ] content
+end
+
+; Auxiliary procedure to be executed in every iteration of the main loop.
+; Usually to show or update some information.
+to AI:ExternalUpdate
+  ; take the best individual and its content
+  let best max-one-of AI:individuals [fitness]
+  ; Plot the current best solution
+  let f [content] of best
+  plotf f
+  ; Update plots
+  plots
+  ; show changes
   display
-  report (- calcula-evaluacion)
 end
 
-; AI:PSOExternalUpdate contains the set of auxiliary actions to be performed in every
-; iteration of the main loop
-; En cada oteración de PSO mostramos la mejor solución encontrada hasta el momento
-to AI:PSOExternalUpdate
-  let lista map convert-a-mundo (lista-a-pares global-best-pos)
-  (foreach (sort figuras) lista [
-    [f p] ->
-    ask f [ setxy (first p) (last p)]
-    ])
-  plot global-best-value
+; Procedure to plot the current polynomial in interval I
+to plotf [f]
+  set-current-plot "f(x)"
+  clear-plot
+  set-plot-x-range (first I) (last I)
+  foreach Ipoints [
+    x ->
+    set-current-plot-pen "approx"
+    let res apply f x
+    plotxy x res
+    set-current-plot-pen "f(x)"
+    plotxy x (ftest x)
+  ]
+end
+
+; AI:individual procedure to compute the difference of its polynomial
+; and the objective function in x
+to-report dif [x]
+  let res (apply content x)
+  report ((ftest x) - res) ^ 2
+end
+
+; Apply the polynomial f to a point x
+to-report apply [f x]
+  report sum (map [ [t ex] -> t * x ^ ex ] f (range 10))
+end
+
+; Repots the list of Npoints of an interval In
+to-report  Interval-Points [In Npoints]
+  report (n-values (1 + Npoints) [ x -> (first In) + x * ((last In) - (first In)) / Npoints ])
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
 10
-647
-448
+190
+30
+211
 -1
 -1
-13.0
+1.2
 1
 10
 1
 1
 1
 0
-0
-0
 1
--16
-16
--16
-16
+1
+1
+0
+9
+0
+9
 0
 0
 1
 ticks
 30.0
 
-PLOT
-8
-277
-208
-427
-Mejor Resultado
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" ""
-
-SLIDER
-22
-20
-194
-53
-num-figuras
-num-figuras
-1
+BUTTON
+75
 10
-4.0
-1
-1
+140
+43
 NIL
-HORIZONTAL
+Launch
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 BUTTON
-23
-145
-86
-178
+10
+10
+70
+43
 NIL
 setup
 NIL
@@ -186,46 +201,127 @@ NIL
 NIL
 1
 
-BUTTON
-23
-183
-90
-216
-NIL
-launch
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
-22
-55
-194
-88
-num-particulas
-num-particulas
-0
-500
-200.0
 10
+45
+140
+78
+Population
+Population
+5
+200
+100.0
+5
 1
 NIL
 HORIZONTAL
 
+PLOT
+670
+10
+865
+130
+Fitness
+gen #
+fitness
+0.0
+20.0
+-1.0
+0.0
+true
+false
+"" ""
+PENS
+"best" 1.0 0 -2674135 true "" ""
+"mean" 1.0 0 -10899396 true "" ""
+"worst" 1.0 0 -13345367 true "" ""
+
+SLIDER
+10
+115
+140
+148
+mutation-ratio
+mutation-ratio
+0
+50
+1.0
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+670
+130
+865
+250
+Diversity
+gen #
+diversidad
+0.0
+20.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"diversity" 1.0 0 -8630108 true "" ""
+
+SWITCH
+10
+150
+140
+183
+plot-diversity?
+plot-diversity?
+1
+1
+-1000
+
+SLIDER
+10
+80
+140
+113
+crossover-ratio
+crossover-ratio
+0
+100
+70.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+145
+115
+665
+265
+f(x)
+NIL
+NIL
+-1.0
+1.0
+-2.0
+2.0
+true
+false
+"" ""
+PENS
+"approx" 1.0 0 -16777216 true "" ""
+"f(x)" 1.0 0 -2674135 true "" ""
+
+OUTPUT
+145
+10
+665
+115
+11
+
 @#$#@#$#@
-## QUÉ ES?
-
-Usa PSO para minimizar el área ocupada por un conjunto de cuadrados. La función de evaluación se calcula a partir del área ocupada por el menor rectángulo que los contiene a todos y se penaliza por las superposiciones que se generan entre la configuración de cuadrados.
-
-Para usar PSO se crean partículas de dimensión 2 * Num-figuras.
-
-Se usa la librería PSO.nls
 @#$#@#$#@
 default
 true
@@ -283,6 +379,30 @@ Polygon -16777216 true false 162 80 132 78 134 135 209 135 194 105 189 96 180 89
 Circle -7500403 true true 47 195 58
 Circle -7500403 true true 195 195 58
 
+chess queen
+false
+0
+Circle -7500403 true true 140 11 20
+Circle -16777216 false false 139 11 20
+Circle -7500403 true true 120 22 60
+Circle -16777216 false false 119 20 60
+Rectangle -7500403 true true 90 255 210 300
+Line -16777216 false 75 255 225 255
+Rectangle -16777216 false false 90 255 210 300
+Polygon -7500403 true true 105 255 120 90 180 90 195 255
+Polygon -16777216 false false 105 255 120 90 180 90 195 255
+Rectangle -7500403 true true 105 105 195 75
+Rectangle -16777216 false false 105 75 195 105
+Polygon -7500403 true true 120 75 105 45 195 45 180 75
+Polygon -16777216 false false 120 75 105 45 195 45 180 75
+Circle -7500403 true true 180 35 20
+Circle -16777216 false false 180 35 20
+Circle -7500403 true true 140 35 20
+Circle -16777216 false false 140 35 20
+Circle -7500403 true true 100 35 20
+Circle -16777216 false false 99 35 20
+Line -16777216 false 105 90 195 90
+
 circle
 false
 0
@@ -300,11 +420,6 @@ false
 Polygon -7500403 true true 200 193 197 249 179 249 177 196 166 187 140 189 93 191 78 179 72 211 49 209 48 181 37 149 25 120 25 89 45 72 103 84 179 75 198 76 252 64 272 81 293 103 285 121 255 121 242 118 224 167
 Polygon -7500403 true true 73 210 86 251 62 249 48 208
 Polygon -7500403 true true 25 114 16 195 9 204 23 213 25 200 39 123
-
-cuadrado
-false
-0
-Rectangle -7500403 false true 0 0 300 300
 
 cylinder
 false
@@ -424,26 +539,10 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
-Rectangle -7500403 true true 0 0 300 300
+Rectangle -7500403 true true 30 30 270 270
 
 square 2
 false
@@ -524,21 +623,15 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
+need-to-manually-make-preview-for-this-model
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -554,5 +647,5 @@ true
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
 @#$#@#$#@
-0
+1
 @#$#@#$#@

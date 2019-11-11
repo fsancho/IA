@@ -40,10 +40,10 @@ AI:particles-own [
 to AI:Create-particles [#population #dimension]
   create-AI:particles #population [
     set pos n-values #dimension [random-float 1]
-        ; proporcionar a las partículas velocidades iniciales (vx y vy) con una distribución normal
+    ; Give initial velocities with a normal distribution
     set velocity n-values #dimension  [(random-normal 0 1)]
     set evaluation AI:evaluation
-    ; el punto de partida es la mejor localización actual de la partícula
+    ; The starting position is the initial best personal value
     
     set personal-best-value evaluation
     set personal-best-pos pos
@@ -106,6 +106,16 @@ to AI:PSO-step [#inertia-particle #atraction-best-personal #atraction-best-globa
     ; Update the position of the particle
     set pos map cut01 (+v pos velocity)
     set evaluation AI:evaluation
+  ]
+  ; Restart particles that close too much
+  ask AI:particles [
+    let p pos
+    let #d length p
+    ask other AI:particles with [norm (-v  p pos) < .01] [
+      set pos n-values #d [random-float 1]
+      set velocity n-values #d  [(random-normal 0 1)]
+      set evaluation AI:evaluation
+    ]
   ]
 end
 

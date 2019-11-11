@@ -1,122 +1,155 @@
-;--------------------------------- Load PSO Module ---------------------------------------------
+; ------------------- Include Genetic Algorithm Module --------------------
 
-__includes ["PSO.nls"]
+__includes ["GeneticAlgorithm.nls"]
 
-;-----------------------------------------------------------------------------------------------
+; --------------------------- Main procedures calling ---------------------
 
-;--------------------------------- Specific Definitions ----------------------------------------
-patches-own
-[
-  val  ; Cada patch tiene un valor de "fitness" asociado
-       ; El objetivo del PS es encontrar el patch con el mejor valor de fitness
+globals [
+  Values
+  Weights
+  T-max
 ]
 
-;-----------------------------------------------------------------------------------------------
+to Setup
+  ca
+  set Values n-values N [random 100]
+  set Weights n-values N [random 100]
+  set T-max random 1000
+  output-print "Problem:"
+  output-print "--------"
+  output-print (word "Values: " Values)
+  output-print (word "Weights: " Weights)
+  output-print (word "T-max: " T-max)
+  output-print "------------------------------------------"
 
-;----------------------------------- Model Procedures ------------------------------------------
-
-to setup-search-space
-  ;; Prepara un espacio de búsqueda con colinas y valles
-  ifelse num-max-locales = 0
-  [ ask patches [ set val random-float 1.0 ]]
-  [ ask n-of num-max-locales patches [ set val random-float 10.0 ]]
-  ;; suaviza ligeramente el espacio
-  repeat Suavizar-espacio [ diffuse val 1 ]
-  let min-val min [val] of patches
-  let max-val max [val] of patches
-  ; normaliza los valores para estar entre 0 y 0.99999
-  ask patches [ set val 0.99999 * (val - min-val) / (max-val - min-val)  ]
-
-  ; y hacemos que solo exista un máximo global, con valor 1.0
-  ask max-one-of patches [val]
-  [
-    set val 1.0
-  ]
-
-  ask patches [ set pcolor scale-color gray val 0.0 1.0]
-end
-
-to setup
-  clear-all
-  setup-search-space
-  AI:create-particles poblacion 2
-  ; crear partículas y situarlas aleatoriamente en el mundo
-  ask AI:particles [
-    setxy (convert (first pos) min-pxcor max-pxcor) (convert (last pos) min-pycor max-pycor)
-    pd
-    set size 4
-  ]
-  reset-ticks
+  AI:Initial-Population population
+  AI:ExternalUpdate
+  set-current-plot "Fitness"
+  set-plot-y-range 0 N
+  plots
 end
 
 to Launch
-  let best AI:PSO 200
-                  inercia-particula
-                  atraccion-mejor-personal
-                  atraccion-mejor-global
-                  lim-vel-particulas
-  let p last best
-  ask patch (convert (first p) min-pxcor max-pxcor) (convert (last p) min-pycor max-pycor)
+  let win AI:GeneticAlgorithm 100 Population crossover-ratio mutation-ratio
+  let c [content] of win
+  output-print ""
+  output-print "Solution:"
+  output-print "---------"
+
+  output-print (word "Winner Selection: " c)
+  output-print (word "Value of selection: " sum (map * c Values) )
+  output-print (word "Weight of selection: " sum (map * c Weights))
+  plots
+end
+
+to plots
+  let lista-fitness [fitness] of AI:individuals
+  let mejor-fitness max lista-fitness
+  let media-fitness mean lista-fitness
+  let peor-fitness min lista-fitness
+  set-current-plot "Fitness"
+  set-current-plot-pen "mean"
+  plot media-fitness
+  set-current-plot-pen "best"
+  plot mejor-fitness
+  set-current-plot-pen "worst"
+  plot peor-fitness
+  if plot-diversity?
   [
-    ask patches in-radius 3 [ set pcolor red ]
+    set-current-plot "Diversity"
+    set-current-plot-pen "diversity"
+    plot AI:diversity
   ]
 end
-;-----------------------------------------------------------------------------------------------
 
+;------------------ Customizable Procedures ---------------------------------
 
-;---------------------------------- Customizable Procedures ----------------------------------
-; AI:evaluation reports the evaluation of the current particle. Must be individualize to
-; fit the necesities of the problem
-
-to-report AI:evaluation
-  report val
+; Create Initial Population.
+; It depends on the problem to be solved as it uses a concrete representation
+to AI:Initial-Population [#population]
+  create-AI:individuals #population [
+    set content n-values N [random 2]
+    AI:Compute-fitness
+    hide-turtle
+  ]
 end
 
-; AI:PSOExternalUpdate contains the set of auxiliary actions to be performed in every
-; iteration of the main loop
+; Individual report to compute its fitness
+to AI:Compute-fitness
+  let val sum (map * content Values)
+  let wei sum (map * content Weights)
+  ifelse wei <= T-max
+  [ set fitness val ]
+  [ set fitness val - 100 * wei ]
+end
 
-to AI:PSOExternalUpdate
-  ask AI:particles [
-    setxy (convert (first pos) min-pxcor max-pxcor) (convert (last pos) min-pycor max-pycor)
-    ;set label (precision AI:evaluation 2)
-  ]
-  tick
+; Crossover procedure
+; It takes content from two parents and returns a list with two contents.
+; When content is a list (as in DNA case) it uses a random cut-point to
+; cut both contents and mix them:
+; a1|a2, b1|b2, where long(ai)=long(bi)
+; and report: a1|b2, b1|a2
+to-report AI:Crossover [c1 c2]
+  let cut-point 1 + random (length c1 - 1)
+  report list (sentence (sublist c1 0 cut-point)
+                        (sublist c2 cut-point length c2))
+              (sentence (sublist c2 0 cut-point)
+                        (sublist c1 cut-point length c1))
+end
+
+; Mutation procedure
+; Random mutation of units of the content.
+; Individual procedure
+to AI:mutate [#mutation-ratio]
+  set content map [ x -> ifelse-value (random-float 100.0 < #mutation-ratio) [1 - x] [x] ] content
+end
+
+; Auxiliary procedure to be executed in every iteration of the main loop.
+; Usually to show or update some information.
+to AI:ExternalUpdate
+  ; take the best individual and its content
+  let best max-one-of AI:individuals [fitness]
+  let c [content] of best
+  ; Update plots
+  plots
+  ; show changes
+  display
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-230
 10
-640
-421
+225
+38
+254
 -1
 -1
-2.0
+1.0
 1
 10
 1
 1
 1
 0
+1
+1
+1
+0
+19
+0
+19
 0
 0
-1
--100
-100
--100
-100
-1
-1
 1
 ticks
 30.0
 
 BUTTON
-165
-80
-225
-113
+75
+10
+140
+43
 NIL
-setup
+Launch
 NIL
 1
 T
@@ -128,12 +161,12 @@ NIL
 1
 
 BUTTON
-165
-150
-225
-183
+10
+10
+70
+43
 NIL
-Launch
+setup
 NIL
 1
 T
@@ -147,13 +180,92 @@ NIL
 SLIDER
 10
 45
-225
+140
 78
-poblacion
-poblacion
+Population
+Population
+5
+200
+200.0
+5
 1
+NIL
+HORIZONTAL
+
+PLOT
+480
+10
+760
+130
+Fitness
+gen #
+fitness
+0.0
+20.0
+0.0
+101.0
+true
+true
+"" ""
+PENS
+"best" 1.0 0 -2674135 true "" ""
+"mean" 1.0 0 -10899396 true "" ""
+"worst" 1.0 0 -13345367 true "" ""
+
+SLIDER
+10
+115
+140
+148
+mutation-ratio
+mutation-ratio
+0
+10
+0.5
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+480
+130
+760
+250
+Diversity
+gen #
+diversidad
+0.0
+20.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"diversity" 1.0 0 -8630108 true "" ""
+
+SWITCH
+10
+150
+140
+183
+plot-diversity?
+plot-diversity?
+0
+1
+-1000
+
+SLIDER
+10
+80
+140
+113
+crossover-ratio
+crossover-ratio
+0
 100
-10.0
+70.0
 1
 1
 NIL
@@ -162,131 +274,23 @@ HORIZONTAL
 SLIDER
 10
 185
-225
+140
 218
-atraccion-mejor-personal
-atraccion-mejor-personal
+N
+N
 0
-5
-0.1
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-10
-220
-225
-253
-atraccion-mejor-global
-atraccion-mejor-global
-0
-5
-0.4
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-10
-115
-160
-148
-inercia-particula
-inercia-particula
-0
-1.0
-0.5
-0.01
-1
-NIL
-HORIZONTAL
-
-SLIDER
-10
-150
-160
-183
-lim-vel-particulas
-lim-vel-particulas
-0
-1
-0.01
-.01
-1
-NIL
-HORIZONTAL
-
-MONITOR
-725
-160
-850
-205
-Mejor valor encontrado
-global-best-value
-4
-1
-11
-
-SLIDER
-10
-10
-225
-43
-Suavizar-espacio
-Suavizar-espacio
-0
-100
-42.0
+20
+10.0
 1
 1
 NIL
 HORIZONTAL
 
-SLIDER
+OUTPUT
+145
 10
-80
-160
-113
-num-max-locales
-num-max-locales
-0
-500
-0.0
-1
-1
-NIL
-HORIZONTAL
-
-PLOT
-650
-10
-850
-160
-Evolución Mejor Global
-NIL
-NIL
-0.0
-1.0
-0.0
-1.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot global-best-value"
-
-MONITOR
-650
-160
-707
-205
-Media:
-mean [val] of patches
-4
-1
+475
+365
 11
 
 @#$#@#$#@
@@ -346,6 +350,30 @@ Circle -16777216 true false 30 180 90
 Polygon -16777216 true false 162 80 132 78 134 135 209 135 194 105 189 96 180 89
 Circle -7500403 true true 47 195 58
 Circle -7500403 true true 195 195 58
+
+chess queen
+false
+0
+Circle -7500403 true true 140 11 20
+Circle -16777216 false false 139 11 20
+Circle -7500403 true true 120 22 60
+Circle -16777216 false false 119 20 60
+Rectangle -7500403 true true 90 255 210 300
+Line -16777216 false 75 255 225 255
+Rectangle -16777216 false false 90 255 210 300
+Polygon -7500403 true true 105 255 120 90 180 90 195 255
+Polygon -16777216 false false 105 255 120 90 180 90 195 255
+Rectangle -7500403 true true 105 105 195 75
+Rectangle -16777216 false false 105 75 195 105
+Polygon -7500403 true true 120 75 105 45 195 45 180 75
+Polygon -16777216 false false 120 75 105 45 195 45 180 75
+Circle -7500403 true true 180 35 20
+Circle -16777216 false false 180 35 20
+Circle -7500403 true true 140 35 20
+Circle -16777216 false false 140 35 20
+Circle -7500403 true true 100 35 20
+Circle -16777216 false false 99 35 20
+Line -16777216 false 105 90 195 90
 
 circle
 false
@@ -575,6 +603,7 @@ Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
 NetLogo 6.1.1
 @#$#@#$#@
+need-to-manually-make-preview-for-this-model
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
