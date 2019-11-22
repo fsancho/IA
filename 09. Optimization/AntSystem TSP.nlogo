@@ -1,3 +1,5 @@
+extensions [rnd]
+
 globals [ mejor-recorrido
           coste-mejor-recorrido ]
 
@@ -120,13 +122,13 @@ end
 to-report generar-recorrido
   let origen one-of nodos
   let nuevo-recorrido (list origen)
-  let resto-nodos [self] of nodos with [self != origen]
+  let resto-nodos nodos with [self != origen]
   let nodo-actual origen
 
-  while [not empty? resto-nodos] [
-    let siguiente-nodo elige-siguiente-nodo nodo-actual resto-nodos
+  while [any? resto-nodos] [
+    let siguiente-nodo rnd:weighted-one-of resto-nodos [peso-desde nodo-actual]
     set nuevo-recorrido lput siguiente-nodo nuevo-recorrido
-    set resto-nodos remove siguiente-nodo resto-nodos
+    set resto-nodos resto-nodos with [self != siguiente-nodo]
     set nodo-actual siguiente-nodo
   ]
   set nuevo-recorrido lput origen nuevo-recorrido
@@ -134,28 +136,14 @@ to-report generar-recorrido
   report nuevo-recorrido
 end
 
-to-report elige-siguiente-nodo [nodo-actual resto-nodos]
-  let probabilidades calcula-probabilidades nodo-actual resto-nodos
-  let rand-num random-float 1
-  report last first filter [x -> first x >= rand-num] probabilidades
-end
 
-; Devuelve una lista de pares (p n), donde n es el nodo, y p la probabilidad de pasar a �l desde el nodo actual
-; las probabilidades van acumuladas, es decir, primero se normalizan para que la suma sea 1, despu�s se ordenan
-; de mayor a menos, y por �ltimo se realiza la suma acumulada (es decir, la funci�n de densidad)
-to-report calcula-probabilidades [nodo-actual resto-nodos]
-  let pt map [ x -> ([feromona] of x ^ alpha) * ((1 / [coste] of x) ^ beta)] (map [x -> arista nodo-actual x] resto-nodos)
-  let denominador sum pt
-  set pt map [ x -> x / denominador] pt
-  let probabilidades sort-by [[x1 x2] -> first x1 < first x2] (map [[x1 x2] -> (list x1 x2)] pt resto-nodos)
-  let probabilidad-normalizada []
-  let ac 0
-  foreach probabilidades [
-    x ->
-    set ac (ac + first x)
-    set probabilidad-normalizada lput (list ac last x) probabilidad-normalizada
-  ]
-  report probabilidad-normalizada
+; Calcula el peso de un nodo (reporte de nodo) desde el nodo actual
+; Nota: no es una probabilidad porque no está normalizada. Eso lo hace
+; la función rnd:weighted-one-of al conocer el conjunto de nodos sobre
+; el que trabaja
+to-report peso-desde [nodo-actual]
+  let a arista nodo-actual self
+  report ([feromona] of a ^ alpha) * ((1 / [coste] of a) ^ beta)
 end
 
 to actualiza-feromona
@@ -164,7 +152,7 @@ to actualiza-feromona
     set feromona (feromona * (1 - rho))
   ]
 
-  ;; A�ade feromona a los caminos encontrados por las hormigas
+  ;; Añade feromona a los caminos encontrados por las hormigas
   ask hormigas [
     let inc-feromona (100 / coste-recorrido)
     foreach aristas-recorrido recorrido [
@@ -228,7 +216,7 @@ to-report arista [n1 n2]
 end
 
 to-report longitud-recorrido [nodos-recorrido]
-  report reduce [[x1 x2] -> x1 + x2] map [x -> [coste] of x] (aristas-recorrido nodos-recorrido)
+  report reduce + map [x -> [coste] of x] (aristas-recorrido nodos-recorrido)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -348,7 +336,7 @@ alpha
 alpha
 0
 20
-1.0
+2.0
 1
 1
 NIL
@@ -363,7 +351,7 @@ beta
 beta
 0
 20
-1.0
+2.0
 1
 1
 NIL
@@ -408,7 +396,7 @@ num-hormigas
 num-hormigas
 0
 100
-25.0
+30.0
 1
 1
 NIL
@@ -774,7 +762,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

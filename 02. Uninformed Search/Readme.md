@@ -5,7 +5,7 @@
 
 # Búsqueda No Informada
 
-Lista de ficheros asociados a Búquedas no Informadas:
+Lista de ficheros asociados a Búsquedas no Informadas:
 
 + `BFS.nls`:	Fichero Fuente de NetLogo con los algoritmos genéricos asociados a la Búsqueda en Anchura.
 + `LayoutSpace.nls`:	Fichero Fuente de NetLogo que contiene la librería para visualizar espacios de estados calculados (para BFS y otras librerías que hacen uso de estructuras similares).
@@ -84,7 +84,7 @@ List of files associated with uninformed searches:
 
 # Instructions for BFS
 
-This library is really an extension of the BSS library explained in the [State Space Search](https://github.com/fsancho/IA/tree/master/01.%20State%20Space%20Search) section , therefore, both the states (_AI:states_) and the transitions (_AI:transitions_) follow a similar behavior and only the differences are shown here.
+This library is really an extension of the BSS library explained in the [State Space Search](https://github.com/fsancho/IA/tree/master/01.%20State%20Space%20Search) section , therefore, both the states (_AI:states_) and the transitions (_AI:transitions_) follow a similar behaviour and only the differences are shown here.
 
 The states are represented by the _AI:states_ family of turtles, which must contain (at least) the following properties:
 
