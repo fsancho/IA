@@ -39,8 +39,6 @@ to crea-nodos
     [
       set color blue + 2
       set size 2
-      set label-color black
-      set label (word "Ciudad-" who)
     ]
   ]
 end
@@ -155,10 +153,7 @@ to actualiza-feromona
   ;; Añade feromona a los caminos encontrados por las hormigas
   ask hormigas [
     let inc-feromona (100 / coste-recorrido)
-    foreach aristas-recorrido recorrido [
-      x ->
-      ask x [ set feromona (feromona + inc-feromona) ]
-    ]
+    ask (aristas-recorrido recorrido) [ set feromona (feromona + inc-feromona) ]
   ]
 end
 
@@ -170,15 +165,7 @@ end
 ; que no pertenecen a él
 to muestra-mejor-recorrido
   ask links [ hide-link ]
-  foreach aristas-recorrido mejor-recorrido [
-    x ->
-    ask x
-    [
-      show-link
-      set label int link-length
-      set label-color black
-    ]
-  ]
+  ask (aristas-recorrido mejor-recorrido) [ show-link ]
 end
 
 ; Muestra la feromona de cada arista (en grosor y opacidad)
@@ -208,7 +195,7 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to-report aristas-recorrido [nodos-recorrido]
-  report map [x -> arista (item x nodos-recorrido) (item (x + 1) nodos-recorrido)] (n-values num-nodos [x -> x])
+  report link-set map [x -> arista (item x nodos-recorrido) (item (x + 1) nodos-recorrido)] (n-values num-nodos [x -> x])
 end
 
 to-report arista [n1 n2]
@@ -216,7 +203,7 @@ to-report arista [n1 n2]
 end
 
 to-report longitud-recorrido [nodos-recorrido]
-  report reduce + map [x -> [coste] of x] (aristas-recorrido nodos-recorrido)
+  report sum [coste] of (aristas-recorrido nodos-recorrido)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -336,7 +323,7 @@ alpha
 alpha
 0
 20
-2.0
+1.0
 1
 1
 NIL
@@ -351,7 +338,7 @@ beta
 beta
 0
 20
-2.0
+1.0
 1
 1
 NIL
@@ -381,7 +368,7 @@ num-nodos
 num-nodos
 0
 100
-30.0
+36.0
 1
 1
 NIL
@@ -396,7 +383,7 @@ num-hormigas
 num-hormigas
 0
 100
-30.0
+32.0
 1
 1
 NIL
