@@ -26,7 +26,7 @@ to setup
   crea-hormigas
 
   set mejor-recorrido camino-aleatorio
-  set coste-mejor-recorrido longitud-recorrido mejor-recorrido
+  set coste-mejor-recorrido longitud-de mejor-recorrido
   muestra-mejor-recorrido
 
   reset-ticks
@@ -78,7 +78,7 @@ to reset
   crea-hormigas
 
   set mejor-recorrido camino-aleatorio
-  set coste-mejor-recorrido longitud-recorrido mejor-recorrido
+  set coste-mejor-recorrido longitud-de mejor-recorrido
   muestra-mejor-recorrido
 
   reset-ticks
@@ -93,7 +93,7 @@ to go
   no-display
   ask hormigas [
     set recorrido generar-recorrido
-    set coste-recorrido longitud-recorrido recorrido
+    set coste-recorrido longitud-de recorrido
 
     if coste-recorrido < coste-mejor-recorrido [
       set mejor-recorrido recorrido
@@ -153,7 +153,7 @@ to actualiza-feromona
   ;; Añade feromona a los caminos encontrados por las hormigas
   ask hormigas [
     let inc-feromona (100 / coste-recorrido)
-    ask (aristas-recorrido recorrido) [ set feromona (feromona + inc-feromona) ]
+    ask (aristas-de recorrido) [ set feromona (feromona + inc-feromona) ]
   ]
 end
 
@@ -165,7 +165,7 @@ end
 ; que no pertenecen a él
 to muestra-mejor-recorrido
   ask links [ hide-link ]
-  ask (aristas-recorrido mejor-recorrido) [ show-link ]
+  ask (aristas-de mejor-recorrido) [ show-link ]
 end
 
 ; Muestra la feromona de cada arista (en grosor y opacidad)
@@ -185,7 +185,7 @@ to dibuja-plots
   plot coste-mejor-recorrido
 
   set-current-plot "Distribución Costes de Recorridos"
-  set-plot-pen-interval 1
+  set-plot-pen-interval .1
   set-plot-x-range 0 int (2 * coste-mejor-recorrido)
   histogram  [coste-recorrido] of hormigas
 end
@@ -194,22 +194,25 @@ end
 ;;; Procedimientos auxiliares ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-to-report aristas-recorrido [nodos-recorrido]
-  report link-set map [x -> arista (item x nodos-recorrido) (item (x + 1) nodos-recorrido)] (n-values num-nodos [x -> x])
+; Devuelve el conjunto de aristas que intervienen en un recorrido (agentset)
+to-report aristas-de [r]
+  report link-set (map [[x y] -> arista x y] r (lput (first r) (bf r)))
 end
 
+; Devuelve la arista que conecta n1 con n2 (son nodos)
 to-report arista [n1 n2]
-  report (link [who] of n1 [who] of n2)
+  report (link ([who] of n1) ([who] of n2))
 end
 
-to-report longitud-recorrido [nodos-recorrido]
-  report sum [coste] of (aristas-recorrido nodos-recorrido)
+; Devuelve la longitud de un recorrido
+to-report longitud-de [r]
+  report sum [coste] of (aristas-de r)
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-200
+245
 10
-634
+679
 445
 -1
 -1
@@ -236,7 +239,7 @@ ticks
 BUTTON
 10
 10
-102
+125
 43
 Setup
 setup
@@ -251,9 +254,9 @@ NIL
 1
 
 BUTTON
-105
+127
 115
-197
+242
 148
 Go
 go
@@ -281,7 +284,7 @@ coste-mejor-recorrido
 PLOT
 10
 151
-195
+240
 271
 Coste Mejor Recorrido
 Tiempo
@@ -299,7 +302,7 @@ PENS
 PLOT
 10
 275
-195
+240
 395
 Distribución Costes de Recorridos
 Coste
@@ -317,7 +320,7 @@ PENS
 SLIDER
 10
 80
-102
+125
 113
 alpha
 alpha
@@ -330,9 +333,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-105
+127
 80
-197
+242
 113
 beta
 beta
@@ -347,7 +350,7 @@ HORIZONTAL
 SLIDER
 10
 115
-102
+125
 148
 rho
 rho
@@ -362,7 +365,7 @@ HORIZONTAL
 SLIDER
 10
 45
-102
+125
 78
 num-nodos
 num-nodos
@@ -375,9 +378,9 @@ NIL
 HORIZONTAL
 
 SLIDER
-105
+127
 45
-197
+242
 78
 num-hormigas
 num-hormigas
@@ -390,9 +393,9 @@ NIL
 HORIZONTAL
 
 BUTTON
-105
+127
 10
-197
+242
 43
 Reset
 reset
@@ -409,8 +412,8 @@ NIL
 BUTTON
 130
 400
-195
-433
+240
+445
 Feromona
 muestra-feromona
 T

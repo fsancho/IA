@@ -1,114 +1,115 @@
-breed [topics topic]
-breed [clusters cluster]
+breed [data datum]
+breed [centers center]
 
-topics-own [
-  clase
+data-own [
+  class
 ]
-clusters-own [
-  movido?
+centers-own [
+  moved?
 ]
 
 
 patches-own [
-  potencial
+  potential
 ]
 
 ; Crea los topicos requeridos
-to setup-topics [n]
+to setup-data [n]
   ca
   ask patches [set pcolor white]
-  create-topics n [
+  create-data n [
     setxy random-xcor random-ycor
     set size 1
     set shape "x"
     set color black ]
 end
 
-to setup-topics2 [n]
+to setup-data2 [n]
   ca
   ask patches [set pcolor grey]
-  let bolsas random dispersion
-  create-topics bolsas [
+  let bags 1 + random dispersion
+  create-data bags [
     setxy random-xcor random-ycor
     set size 1
     set shape "dot"
     set color black ]
-  repeat n - bolsas
+  repeat n - bags
   [
-    ask one-of topics
-    [hatch-topics 1 [set heading random 360 fd random-float 5]]]
+    ask one-of data
+    [hatch-data 1 [set heading random 360 fd random-float 5]]]
 end
 
-; Crea los clusters iniciales
-to setup-clusters [m]
+; Crea los centers iniciales
+to setup-centers [m]
   cd
   ask patches [set pcolor grey]
-  ask clusters [die]
-  create-clusters m [
-    move-to one-of topics
+  ask centers [die]
+  create-centers m [
+    move-to one-of data
     set shape "circle 2"
     set size 2
     ;pd
-    set movido? true
-    set color -3 + 5 * (who - (count topics)) ]
+    set moved? true
+    set color -3 + 5 * (who - (count data)) ]
 end
 
-to K-medias
-  ifelse any? clusters with [movido?]
+to K-means [epsilon]
+  ifelse any? centers with [moved?]
   [
-    ask topics [
-      set clase min-one-of clusters [distance myself]
-      set color [color] of clase ]
-    ask clusters [
-      let cc-t topics with [clase = myself]
-      let cc count cc-t
-      ifelse cc > 0
+    ask data [
+      set class min-one-of centers [distance myself]
+      set color [color] of class
+    ]
+    ask centers [
+      let cluster data with [class = myself]
+      let cluster-size count cluster
+      ifelse cluster-size > 0
       [
-        let x (sum [xcor] of cc-t) / cc
-        let y (sum [ycor] of cc-t) / cc
-        set movido? (distancexy x y > .01)
+        let x (sum [xcor] of cluster) / cluster-size
+        let y (sum [ycor] of cluster) / cluster-size
+        set moved? (distancexy x y > epsilon)
         setxy x y ]
       [
         setxy random-pxcor random-pycor
-        set movido? true
+        set moved? true
       ]
     ]
-    ask clusters [
-      if any? other clusters with [distance myself < Tolerancia]
-      [
-        ask other clusters with [distance myself < Tolerancia] [
-          face myself
-          bk tolerancia
-          ;setxy random-pxcor random-pycor
-          ]
-        set movido? true ]
-    ]
+;    ask centers [
+;      if any? other centers with [distance myself < epsilon]
+;      [
+;        ask other centers with [distance myself < epsilon] [
+;          face myself
+;          bk epsilon
+;          ;setxy random-pxcor random-pycor
+;          ]
+;        set moved? true ]
+;    ]
   ]
   [
     stop
   ]
 end
 
-to representa-areas
+to Draw-areas
   cd
-  if potencial? [calculo-potencial]
+  if potencial? [compute-potential]
   ask patches [
-    let c [color] of min-one-of clusters [distance myself] + 2
-    let p ifelse-value potencial? [potencial][0]
+    let c [color] of min-one-of centers [distance myself] + 2
+    let p ifelse-value potencial? [potential][0]
     set pcolor c - 4 * p ]
 end
 
-to calculo-potencial
-  ask patches [set potencial sum [distance myself] of clusters]
-  let m max [potencial] of patches
+to compute-potential
+  ask patches [set potential sum [distance myself] of centers]
+  let m max [potential] of patches
   ask patches [
-    set potencial potencial / m
+    set potential potential / m
     ;set pcolor scale-color black potencial 1 0
     ]
 end
 
-to-report peso
-  report sqrt sum [(distance clase) ^ 2] of topics
+to-report weight
+  report sqrt sum [(distance class) ^ 2] of data
 end
 
 to experimento
@@ -118,10 +119,10 @@ to experimento
   [ x ->
     let p []
     repeat 50 [
-      setup-clusters x
-      while [any? clusters with [movido?]]
-      [ k-medias ]
-      set p lput peso p
+      setup-centers x
+      while [any? centers with [moved?]]
+      [ K-means tolerancia ]
+      set p lput weight p
     ]
     plotxy x x * (mean p)
   ]
@@ -160,8 +161,8 @@ BUTTON
 237
 172
 270
-NIL
-K-medias
+K-means
+K-means Tolerancia
 T
 1
 T
@@ -177,8 +178,8 @@ SLIDER
 31
 121
 64
-Num-Topicos
-Num-Topicos
+Num-Data
+Num-Data
 0
 10000
 500.0
@@ -196,7 +197,7 @@ Num-Clusters
 Num-Clusters
 1
 100
-6.0
+4.0
 1
 1
 NIL
@@ -207,8 +208,8 @@ BUTTON
 31
 191
 130
-Crea Topicos
-ifelse agrupados?\n[setup-topics2 Num-Topicos]\n[setup-topics Num-Topicos]
+Crea Datos
+ifelse agrupados?\n[setup-data2 Num-data]\n[setup-data Num-data]
 NIL
 1
 T
@@ -225,7 +226,7 @@ BUTTON
 191
 217
 Crea Clusters
-setup-clusters Num-Clusters
+setup-centers Num-Clusters
 NIL
 1
 T
@@ -256,7 +257,7 @@ Tolerancia
 Tolerancia
 0
 50
-0.0
+0.7
 .1
 1
 NIL
@@ -283,7 +284,7 @@ BUTTON
 68
 303
 Areas
-representa-areas
+Draw-areas
 NIL
 1
 T
@@ -698,7 +699,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
