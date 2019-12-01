@@ -1,8 +1,8 @@
-__includes ["SOM.nls"]
+__includes ["SOM.nls" "../DF.nls"]
 
 globals [
   TSet      ; Training set
-  Header    ; Identifiers of Training Vectors
+  Items     ; Identifiers of Training Vectors
   Att-name  ; Attributes in Training Vectors
   ]
 
@@ -19,7 +19,7 @@ to setup
     set shape "hex"
     set size 1.345  * world-width / Size-World
     set label-color black
-    set color scale-color white (mean weight) -0.0 1.0
+    set color lput 200 extract-rgb (scale-color white (mean weight) -0.0 1.0)
   ]
   reset-ticks
 end
@@ -28,54 +28,59 @@ to go
   ; Run the SOM Algorithm
   SOM:SOM Tset Training-Time
   ask patches [set pcolor white]
-  let Mx max [xcor] of SOM:Lnodes
+  ;let Mx max [xcor] of SOM:Lnodes
   let inc .1 * max-pxcor; - Mx * .9
   ask SOM:Lnodes [
     setxy (inc + xcor * .9) (inc + ycor * .9)
     set size size * .9
   ]
   ; Label the BMUs of TSet element with their names
-  (foreach TSet Header [ [t h] ->
+  (foreach TSet Items [ [t i] ->
     let V t
     let W SOM:BMU V
-    ask W [set label ifelse-value (label = "") [h][(word label "/" h)]]
+    ask W [set label ifelse-value (label = "") [i][(word label "/" i)]]
   ])
+  ; Next line is only to test SOM as latent space classifier (only for iris)
+  test-iris
+  ; move labels to turtles to center and highlight
+  rectify-labels
 end
 
 to SOM:ExternalUpdate
-  ask SOM:Lnodes [ set color scale-color white (mean weight) -0.4 1.4]
+  ask SOM:Lnodes [ set color (scale-color white (mean weight) -0.4 1.4)]
   tick
 end
 
 ; Read numeric data from a file and normalize it into TSet.
-;   Alse creates the Header (identifiers of the columns), and names of attributes
+;   Also fills Items (identifiers of the items), and names of attributes
+
 to read-data
-  file-close-all
-  let f user-file
-  if (f = false) [stop]
-  file-open f
-  set Header bf read-from-string (word "[" file-read-line "]")
-  let att []
-  set Att-name []
-  while [not file-at-end?]
-  [
-    let line read-from-string (word "[" file-read-line "]")
-    let max-line max (bf line)
-    set Att-name lput (first line) Att-name
-    set line map [ ?1 -> ?1 / max-line ] (bf line)
-    set att lput line att
-  ]
-  file-close-all
-  set TSet []
-  foreach (range (length Header))
-  [ i ->
-    set Tset lput (map [ at -> item i at ] att) TSet
-  ]
+  let df df:load user-file
+  output-print "Original Data:"
+  output-print df:output df
+  set Items bf df:column "Item" df
+  set Tset df:data (normalize-df (df:remove "Item" df))
+  set Att-name remove "Item" DF:header df
 end
+
+to-report normalize-df [df]
+  foreach (df:header df)[
+    att ->
+    let newatt (word "N" att)
+    let Mmax max DF:values df att
+    let Mmin min DF:values df att
+    set df df:add-calculated-column newatt df [r -> ((DF:value att df r) - Mmin) / (Mmax - Mmin)]
+    set df df:remove att df
+  ]
+  output-print "Normalized Data:"
+  output-print DF:output df
+  report df
+end
+
 
 to refresh [i]
   ask SOM:Lnodes [
-    set color scale-color yellow (item i weight) -0.4 1.4
+    set color lput 200 extract-rgb (scale-color yellow (item i weight) -0.4 1.4)
     set label-color black
   ]
   display
@@ -90,6 +95,29 @@ end
 to show-error
   SOM:error 6
   ask SOM:lnodes [set color scale-color white err  -.2 .5]
+end
+
+to rectify-labels
+  ask som:lnodes with [label != ""] [
+    let l label
+    hatch 1 [
+      set breed turtles
+      set label l
+      set size 1
+      set shape "circle"
+      set label-color black
+      set color red + 2
+    ]
+    set label ""
+  ]
+end
+
+to test-iris
+  ask som:lnodes [
+    if member? "setosa" label [set color red]
+    if member? "virginica" label [set color green]
+    if member? "versicolor" label [set color blue]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -214,7 +242,7 @@ Size-World
 Size-World
 1
 400
-10.0
+30.0
 1
 1
 NIL
@@ -226,7 +254,7 @@ MONITOR
 181
 187
 Training Set Size
-length Header
+length Items
 17
 1
 11
@@ -240,7 +268,7 @@ Attribute
 Attribute
 0
 Att-size
-9.0
+0.0
 1
 1
 NIL
@@ -291,6 +319,13 @@ NIL
 NIL
 1
 
+OUTPUT
+593
+10
+1206
+415
+11
+
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -333,12 +368,17 @@ true
 0
 Polygon -7500403 true true 150 5 40 250 150 205 260 250
 
+circle
+true
+0
+Circle -7500403 true true 103 103 95
+
 hex
 false
 0
 Polygon -7500403 true true 0 150 75 30 225 30 300 150 225 270 75 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

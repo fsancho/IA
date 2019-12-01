@@ -1,28 +1,57 @@
 extensions [ CSV ]
 
-__includes ["ID3.nls" "LayoutSpace.nls" "DF.nls"]
+__includes ["ID3_C45.nls" "LayoutSpace.nls" "../DF.nls"]
 
 
-globals [decision-tree]
+globals [
+  decision-tree ; Node to store the produced Decision Tree
+  DataFrame     ; Dataframe to work
+]
 
-; Procedimiento principal q genera el árbol de decisión obtenido por ID3
-to main
+to load-DF
+  ; Clean everything
   ca
   ask patches [set pcolor white]
   set decision-tree nobody
-  let df DF:load
-  if df != false
+  ; Read the dataset file
+  set DataFrame DF:load user-file
+  if DataFrame != false [
+    ; Print the dataset
+    output-print "Original Dataset:"
+    output-print DF:output DataFrame
+  ]
+end
+
+; Demo function for ID3 Algorithm
+to main-ID3
+  ct
+  if DataFrame != false
   [
-    output-print DF:output df
-    set decision-tree ID3:ID3 df
+    ; Apply ID3 Algorithm
+    set decision-tree ID3:ID3 DataFrame (last DF:Header DataFrame)
+    layout
+  ]
+end
+
+; Demo function for C4.5 Algorithm
+to main-C4.5 [Num-att]
+  ct
+  if DataFrame != false
+  [
+    ; Apply C4.5 Algorithm
+    set decision-tree ID3:C4.5 DataFrame (last DF:Header DataFrame) Num-att
+    layout
+  ]
+end
+
+to layout
+    ; Layout the Decision Tree
     ID3:format
     set #LayoutNodes ID3:nodes
     set #LayoutEdges ID3:links
     set #LayoutNode0 ID3:node 0
     layout-space "V"
-  ]
 end
-
 
 to test
   ask decision-tree [show ID3:evaluate [["Outlook" "Rainy"] [ "Temp" "Hot"] ["Humidity" "High"] ["Windy" "True"] ]]
@@ -56,12 +85,12 @@ ticks
 30.0
 
 BUTTON
-139
+5
 10
-206
+72
 55
 ID3
-main
+main-ID3
 NIL
 1
 T
@@ -79,15 +108,50 @@ OUTPUT
 483
 11
 
-CHOOSER
-5
+BUTTON
+72
 10
-139
+145
 55
-Max.Metodo
-Max.Metodo
-"Ganancia Información" "Razón de Ganancia"
+C4.5
+main-C4.5 (read-from-string Numerical-attributes)
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+INPUTBOX
+145
+10
+508
+79
+Numerical-attributes
+[\"AGE\" \"BILIRUBIN\" \"ALK PHOSPHATE\" \"SGOT\" \"ALBUMIN\" \"PROTIME\"]
+1
 0
+String
+
+BUTTON
+1124
+16
+1187
+49
+Load
+load-df
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -185,10 +249,10 @@ Circle -7500403 true true 195 195 58
 circle
 false
 0
-Circle -7500403 true true 0 0 300
-Circle -1 true false 29 29 242
-Circle -7500403 true true 58 58 182
-Circle -1 true false 88 88 124
+Circle -7500403 true true 30 0 240
+Circle -1 true false 60 30 180
+Circle -7500403 true true 88 58 122
+Circle -1 true false 120 90 60
 
 circle 2
 false
@@ -211,10 +275,10 @@ Circle -7500403 true true 0 0 300
 decision
 false
 0
-Polygon -7500403 true true 0 150 150 0 300 150 150 300 0 150
-Polygon -1 true false 30 150 150 30 270 150 150 270 30 150
-Polygon -7500403 true true 105 120 105 90 195 90 195 165 165 165 165 210 135 210 135 150 180 150 180 105 120 105 120 120
-Rectangle -7500403 true true 135 225 165 240
+Polygon -7500403 true true 0 135 150 0 300 135 150 255 0 135
+Polygon -1 true false 30 135 150 30 270 135 150 225 30 135
+Polygon -7500403 true true 105 105 105 75 195 75 195 150 165 150 165 180 135 180 135 135 180 135 180 90 120 90 120 105
+Rectangle -7500403 true true 135 195 165 210
 
 dot
 false
@@ -353,10 +417,8 @@ Rectangle -7500403 true true 30 30 270 270
 square 2
 false
 0
-Rectangle -7500403 true true 30 30 270 270
-Rectangle -1 true false 60 60 240 240
-Polygon -7500403 true true 60 75 225 240 255 240 255 240 60 45 45 45
-Polygon -7500403 true true 60 255 255 60 240 45 45 240
+Rectangle -7500403 true true 30 30 270 210
+Rectangle -1 true false 60 60 240 180
 
 star
 false

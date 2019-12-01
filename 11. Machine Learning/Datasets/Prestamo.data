@@ -1,0 +1,15 @@
+Edad,Ingresos,Informe,Otro prestamo,Conceder
+joven,altos,negativo,no,no
+joven,altos,negativo,si,no
+mediano,altos,negativo,no,si
+mayor,medios,negativo,no,si
+mayor,bajos,positivo,no,si
+mayor,bajos,positivo,si,no
+mediano,bajos,positivo,si,si
+joven,medios,negativo,no,no
+joven,bajos,positivo,si,si
+mayor,medios,positivo,no,si
+joven,medios,positivo,si,si
+mediano,medios,negativo,si,si
+mediano,altos,positivo,no,si
+mayor,medios,negativo,si,no

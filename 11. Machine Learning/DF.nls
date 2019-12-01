@@ -79,6 +79,23 @@ to-report DF:n-of [N df]
   report fput (DF:header df) (n-of N DF:data df)
 end
 
+; Reports a random split of DF into two new DFs: rat in [0,1]
+; First DF will have rat of df and the other (1-rat)
+to-report DF:split [df rat]
+  let N first DF:size df
+  let N1 floor (rat * N)
+  let N2 N - N1
+  set df DF:shuffle df
+  let df1 fput (df:header df) (sublist (df:data df) 0 N1)
+  let df2 fput (df:header df) (sublist (df:data df) N1 N)
+  report (list df1 df2)
+end
+
+; Random shuffle of the elements of a DF
+to-report DF:shuffle [df]
+  report fput (DF:Header df) (shuffle DF:data df)
+end
+
 ; Reports the size (N-rows x N-columns) of a DF
 to-report DF:size [df]
   report (list (length DF:data df) (length DF:header df) )

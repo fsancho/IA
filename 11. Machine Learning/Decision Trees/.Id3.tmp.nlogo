@@ -1,116 +1,78 @@
-__includes ["ANN.nls"]
+extensions [ CSV ]
 
-globals [
-  data-list    ; List of pairs [Input Output] to train the network
-]
-
-;;;
-;;; Setup Procedure
-;;;
-
-to setup
-  clear-all
-  ; Building the Front Panel
-  ask patches [ set pcolor 39 ]
-  ask patches with [pxcor > -8] [set pcolor 38]
-  ask patches with [pxcor > 7] [set pcolor 37]
-
-  ask patch -9 10 [ set plabel-color 32 set plabel "Input"]
-  ask patch  1 10 [ set plabel-color 32 set plabel "Hidden Layers"]
-  ask patch  10 10 [ set plabel-color 32 set plabel "Output"]
-
-  ; Building the network
-  ANN:create read-from-string Arquitecture
-  ANN:format
-  ; Recolor of neurons and links
-  ANN:recolor-links
-
-  ; Initializing global variables
-  set data-list []
-
-  create-samples
-
-  reset-ticks
-end
-
-to ANN:external-update [params]
-  ANN:recolor-links
-  plotxy (first params) (last params)
-end
-
-to create-samples
-  let inputs (n-values num-samples [ (n-values (first read-from-string Arquitecture) [one-of [0 1]])])
-  let outputs map [ x -> (list evaluate Function x)] inputs
-  set data-list (map [[x y] -> (list x y)] inputs outputs)
-end
+__includes ["ID3.nls" "LayoutSpace.nls" "DF.nls"]
 
 
-; Test Procedures
+globals [decision-tree]
 
-; The input neurons are read and the signal propagated with the current weights
+; Demo function for ID3 Algorithm
+to main-ID3
+  ; Clean everything
+  ca
+  ask patches [set pcolor white]
+  set decision-tree nobody
 
-to-report  one-test
-  let inp n-values (first read-from-string Arquitecture) [one-of [0 1]]
-  let out (list evaluate Function inp)
-  let o ANN:compute inp
-  report (list out o)
-end
+  ; Read the dataset file
+  let df DF:load user-file
+  if df != false
+  [
+    ; Print the datset
+    output-print DF:output df
 
-to-report Multi-test [n]
-  let er 0
-  repeat n [
-    let t one-test
-    set er er + abs ((first first t) - (step first last t)) ;^ 2
-    ;show (word t " " abs ((first first t) - (step first last t)) )
-    ;show er
-  ]
-  report er / n
-;  report (sqrt er) / n
-end
+    ; Apply ID3 Algorithm
+    set decision-tree ID3:ID3 df (last DF:Header df)
 
-; Recolor neurons using activation value in a continuous way
-to recolor-c
-  ask ANN:neurons with [ANN:layer > 0] [
-    set color scale-color yellow ANN:activation 0 .5
+    ; Layout the Decision Tree
+    ID3:format
+    set #LayoutNodes ID3:nodes
+    set #LayoutEdges ID3:links
+    set #LayoutNode0 ID3:node 0
+    layout-space "V"
   ]
 end
 
-; Test Functions
+; Demo function for C4.5 Algorithm
+to main-C4.5 [Num-att]
+  ; Clean everything
+  ca
+  ask patches [set pcolor white]
+  set decision-tree nobody
 
-to-report evaluate [f x]
-  report runresult (word f x)
+  ; Read the dataset file
+  let df DF:load user-file
+  if df != false
+  [
+    ; Print the dataset
+    output-print "Original Dataset:"
+    output-print DF:output df
+
+    ; Apply C4.5 Algorithm
+    set decision-tree ID3:C4.5 df (last DF:Header df) Num-att
+
+    ; Layout the Decision Tree
+    ID3:format
+    set #LayoutNodes ID3:nodes
+    set #LayoutEdges ID3:links
+    set #LayoutNode0 ID3:node 0
+    layout-space "V"
+  ]
 end
 
-to-report Majority [x]
-  let ones length filter [ y -> y = 1 ] x
-  let ceros length filter [ y -> y = 0 ] x
-  report ifelse-value (ones > ceros) [1] [0]
-end
 
-to-report Even [x]
-  let ones length filter [ y -> y = 1 ] x
-  report ifelse-value (ones mod 2 = 1) [1] [0]
-end
-
-to prueba-carga
-  let W ANN:read-weights
-  ct
-  ANN:create read-from-string Arquitecture
-  ; Recolor of neurons and links
-  ANN:recolor-links
-  ANN:load-weights W
+to test
+  ask decision-tree [show ID3:evaluate [["Outlook" "Rainy"] [ "Temp" "Hot"] ["Humidity" "High"] ["Windy" "True"] ]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-225
-10
-708
-494
+6
+56
+508
+483
 -1
 -1
-22.62
+12.67
 1
-15
+12
 1
 1
 1
@@ -118,193 +80,58 @@ GRAPHICS-WINDOW
 0
 0
 1
--10
-10
--10
-10
+-19
+19
+-16
+16
 0
 0
 1
-Ticks
+ticks
 30.0
 
 BUTTON
-15
-235
-80
-268
-setup
-setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-15
-115
-215
-148
-Learning-rate
-Learning-rate
-0.0
-1.0
-0.2
-1.0E-4
-1
-NIL
-HORIZONTAL
-
-PLOT
-15
-270
-215
-420
-Train Error
-Epochs
-Error
-0.0
-10.0
-0.0
-0.5
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" ""
-
-BUTTON
-150
-235
-215
-268
-Train
-ANN:train 1000 data-list Learning-rate
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-715
-80
-785
-113
-One Test
-show one-test
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-715
-45
-785
-78
-See Weights
-recolor-c
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-CHOOSER
-15
-185
-215
-230
-Function
-Function
-"Majority" "Even"
-0
-
-SLIDER
-15
-150
-215
-183
-Num-samples
-Num-samples
-0
-1000
-100.0
+139
 10
-1
+206
+55
+ID3
+main-ID3
 NIL
-HORIZONTAL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
-MONITOR
-40
-420
-190
-465
-NIL
-ANN:epoch-error
-17
-1
+OUTPUT
+509
+10
+1208
+483
 11
 
-SLIDER
-785
-115
-877
-148
-Num-tests
-Num-tests
-1
-1000
-991.0
+CHOOSER
+5
 10
-1
-NIL
-HORIZONTAL
+139
+55
+Max.Metodo
+Max.Metodo
+"Ganancia Información" "Razón de Ganancia"
+0
 
 BUTTON
-715
-115
-785
-148
-Multi-Test
-show Multi-test Num-tests
+206
+10
+279
+55
+C4.5
+main-C4.5 (read-from-string Numerical-attributes)
 NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-725
-170
-787
-203
-NIL
-layout
-T
 1
 T
 OBSERVER
@@ -315,17 +142,52 @@ NIL
 1
 
 INPUTBOX
-15
+279
 10
-215
+509
 70
-Arquitecture
-[11 5  4 1]
+Numerical-attributes
+[\"age\"]
 1
 0
 String
 
 @#$#@#$#@
+## WHAT IS IT?
+
+(a general understanding of what the model is trying to show or explain)
+
+## HOW IT WORKS
+
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -341,16 +203,6 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
-
-bias-node
-false
-0
-Circle -16777216 true false 0 0 300
-Circle -7500403 true true 30 30 240
-Circle -16777216 true false 90 120 120
-Circle -7500403 true true 105 135 90
-Polygon -16777216 true false 90 60 120 60 135 60 135 225 150 225 150 240 105 240 105 225 120 225 120 75 105 75 120 60
-Rectangle -7500403 true true 90 120 120 225
 
 box
 false
@@ -397,6 +249,9 @@ circle
 false
 0
 Circle -7500403 true true 0 0 300
+Circle -1 true false 29 29 242
+Circle -7500403 true true 58 58 182
+Circle -1 true false 88 88 124
 
 circle 2
 false
@@ -416,15 +271,18 @@ false
 0
 Circle -7500403 true true 0 0 300
 
+decision
+false
+0
+Polygon -7500403 true true 0 150 150 0 300 150 150 300 0 150
+Polygon -1 true false 30 150 150 30 270 150 150 270 30 150
+Polygon -7500403 true true 105 120 105 90 195 90 195 165 165 165 165 210 135 210 135 150 180 150 180 105 120 105 120 120
+Rectangle -7500403 true true 135 225 165 240
+
 dot
 false
 0
 Circle -7500403 true true 90 90 120
-
-drawer
-false
-0
-Rectangle -7500403 true true 0 0 300 300
 
 face happy
 false
@@ -484,14 +342,6 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
-hidden-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Polygon -16777216 true false 135 75 60 75 120 150 60 225 135 225 135 210 135 195 120 210 90 210 135 150 90 90 120 90 135 105 135 90
-Polygon -16777216 true false 255 75 210 75 180 210 150 210 150 225 195 225 225 90 240 90 255 90
-
 house
 false
 0
@@ -499,15 +349,6 @@ Rectangle -7500403 true true 45 120 255 285
 Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
-
-input-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Rectangle -16777216 true false 180 15 210 285
-Rectangle -16777216 true false 15 135 120 165
-Polygon -16777216 true false 120 105 120 195 180 150
 
 leaf
 false
@@ -524,22 +365,6 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
-
-link
-true
-0
-Line -7500403 true 150 0 150 300
-
-link direction
-true
-0
-
-output-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Polygon -16777216 true false 195 75 90 75 150 150 90 225 195 225 195 210 195 195 180 210 120 210 165 150 120 90 180 90 195 105 195 75
 
 pentagon
 false
@@ -567,17 +392,34 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
+sheep
+false
+15
+Circle -1 true true 203 65 88
+Circle -1 true true 70 65 162
+Circle -1 true true 150 105 120
+Polygon -7500403 true false 218 120 240 165 255 165 278 120
+Circle -7500403 true false 214 72 67
+Rectangle -1 true true 164 223 179 298
+Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
+Circle -1 true true 3 83 150
+Rectangle -1 true true 65 221 80 296
+Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
+Polygon -7500403 true false 276 85 285 105 302 99 294 83
+Polygon -7500403 true false 219 85 210 105 193 99 201 83
+
 square
 false
 0
-Rectangle -16777216 true false 0 0 300 300
-Rectangle -7500403 true true 15 15 285 285
+Rectangle -7500403 true true 30 30 270 270
 
 square 2
 false
 0
 Rectangle -7500403 true true 30 30 270 270
-Rectangle -16777216 true false 60 60 240 240
+Rectangle -1 true false 60 60 240 240
+Polygon -7500403 true true 60 75 225 240 255 240 255 240 60 45 45 45
+Polygon -7500403 true true 60 255 255 60 240 45 45 240
 
 star
 false
@@ -652,6 +494,13 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
+wolf
+false
+0
+Polygon -16777216 true false 253 133 245 131 245 133
+Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
+Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
+
 x
 false
 0
@@ -660,7 +509,6 @@ Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
 NetLogo 6.1.1
 @#$#@#$#@
-setup repeat 100 [ train ]
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -673,6 +521,8 @@ default
 link direction
 true
 0
+Line -7500403 true 150 30 105 150
+Line -7500403 true 150 30 195 150
 @#$#@#$#@
-1
+0
 @#$#@#$#@

@@ -1,0 +1,11 @@
+COLOR,ALAS,TAMAÑO,VELOCIDAD,LEPISTO
+negro,sí,pequeño,alta,sí
+amarillo,no,grande,media,no
+amarillo,no,grande,baja,no
+blanco,sí,medio,alta,sí
+negro,no,medio,alta,no
+rojo,sí,pequeño,alta,sí
+rojo,sí,pequeño,baja,no
+negro,no,medio,media,no
+negro,sí,pequeño,media,no
+amarillo,sí,grande,media,no

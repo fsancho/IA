@@ -6,9 +6,9 @@ globals [
   ]
 
 ; Setup procedure: initially, a weight is assigned to every node.
-;   It can be done randomly, or using a grey gradient
 to setup
   ca
+  ; Create the colors to learn
   set TSet n-values TSet-size [n-values 3 [random-float 1]]
   create-ordered-turtles TSet-size [
     fd 15
@@ -18,12 +18,13 @@ to setup
     set color rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w)
   ]
 
-  if (Init = "Random")
-  [
-    SOM:setup-Lnodes world-width "SqGrid" 3 "R"
-    ask patches [
-      let w [weight] of one-of SOM:Lnodes-here
-      set pcolor rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w) ]
+  ; Create the learning nodes and distribute them in the world
+  SOM:setup-Lnodes world-width "SqGrid" 3 "R"
+  ; Update the patches with the color/weight vector of the learning node
+  ; in it
+  ask patches [
+    let w [weight] of one-of SOM:Lnodes-here
+    set pcolor rgb (255 * item 0 w) (255 * item 1 w) (255 * item 2 w)
   ]
   reset-ticks
 end
@@ -135,7 +136,7 @@ TSet-size
 TSet-size
 0
 100
-6.0
+7.0
 1
 1
 NIL
@@ -167,16 +168,6 @@ Initial-Learning-Rate
 NIL
 HORIZONTAL
 
-CHOOSER
-10
-76
-182
-121
-Init
-Init
-"Random" "Gradient"
-0
-
 @#$#@#$#@
 @#$#@#$#@
 default
@@ -190,7 +181,7 @@ false
 Circle -7500403 true true 0 0 300
 Circle -16777216 false false 0 0 300
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

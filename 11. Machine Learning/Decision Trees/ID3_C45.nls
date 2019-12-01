@@ -89,8 +89,14 @@ end
 ;; Reports the main root node 
 ;; (later, we can ask this node to evaluate new data)
 
-to-report ID3:ID3 [df]
+to-report ID3:ID3 [df att-target]
   let rep nobody
+
+  ; Move the target attribute to the last column  
+  let target DF:column att-target df
+  set df DF:remove att-target df
+  set df DF:add-column att-target df (bf target)
+
   create-ID3:nodes 1 [
     set ID3:node-type 0
     set ID3:value (last first df)
@@ -129,7 +135,7 @@ to-report ID3:ID3_aux [df]
       set depth depth + 1
       foreach (remove-duplicates bf (DF:column mx df))
       [ x ->
-        create-ID3:link-to (ID3:ID3_aux DF:filtra df mx x)
+        create-ID3:link-to (ID3:ID3_aux DF:filter-att df mx x)
         [
           set ID3:att_value x
         ]
@@ -138,6 +144,14 @@ to-report ID3:ID3_aux [df]
   ]
   report r
 end
+
+; The C4.5 Algorithm can be obtained from standard ID3 by previously transforming the numerical
+; attributes to categorical decisions.
+to-report ID3:C4.5 [df target-att Num-att]
+  set df (ID3:num2att df Num-att)
+  report ID3:ID3 df target-att
+end
+
 
 ; Reports if a dataframe is classified or not
 to-report ID3:classified? [df]
@@ -157,7 +171,7 @@ to ID3:format
     set label-color black
   ]
   ask ID3:links [
-    set color gray - 2
+    set color gray + 2
     set label ID3:att_value
     set label-color gray - 2
   ]
@@ -197,5 +211,20 @@ to-report ID3:value-of [att dat]
   [ 
     report "ID3:Failure"
   ]
+end
+
+; Transform the attributes from Latt (numerical) into a set of 
+; categorical attributes (of the form "att <= val")
+to-report ID3:num2att [df Latt]
+  foreach Latt [
+    att ->
+    let vals sort DF:values df att
+    foreach vals [
+      v -> 
+      set df DF:add-calculated-column (word att "<=" v) df [r -> (DF:value att df r <= v)]
+    ]
+    set df DF:remove att df
+  ]
+  report df
 end
 

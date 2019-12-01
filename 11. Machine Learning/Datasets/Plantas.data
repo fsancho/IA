@@ -1,0 +1,17 @@
+Tamaño,Flores,Ambiente,Estación,Sobrevive
+grande,si,interior,verano,no
+grande,si,interior,verano,no
+grande,si,exterior,primavera,no
+grande,si,exterior,invierno,no
+grande,no,interior,otoño,no
+grande,no,exterior,primavera,no
+medio,si,interior,verano,si
+medio,si,interior,verano,si
+medio,no,interior,primavera,si
+medio,no,exterior,otoño,no
+medio,no,exterior,verano,no
+pequeño,si,interior,invierno,no
+pequeño,si,exterior,verano,si
+pequeño,no,interior,primavera,no
+pequeño,no,interior,verano,si
+pequeño,no,exterior,otoño,no
