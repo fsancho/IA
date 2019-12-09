@@ -6,7 +6,7 @@ Contenido aproximado de los ficheros de esta carpeta:
 + `SOM-color.nlogo`: Un ejemplo de aplicación de SOM para la aproximación de colores RGB.
 + `SOM-hexaClassifier.nlogo`: Ejemplo de aplicación de SOM (con topología hexagonal) para la clasificación de objetos.
 + `SOM-TSP.nls`: Ejemplo de aplicación de SOM (con topología de anillo) para la resolción de TSP.
-+ `****.txt`: Diversas tablas de objetos para ser usados con SOM-hexaClassifier.
++ `****.data`: Diversas tablas de objetos para ser usados con SOM-hexaClassifier.
 
 ## Instrucciones de Uso de SOM:
 
