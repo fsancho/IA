@@ -155,8 +155,6 @@ to ANN:train [num-epochs data lr]
   ]
 end
 
-
-
 ; Back Propagation from the output error
 to ANN:Back-propagation [output]
   let error-sample 0
@@ -180,11 +178,12 @@ to ANN:Back-propagation [output]
   ask ANN:links [
     set ANN:weight ANN:weight + ANN:Learning-rate * [ANN:grad] of end2 * [ANN:activation] of end1
   ]
-  ;set ANN:epoch-error ANN:epoch-error / 2
 end
 
 ;; Procedures to load/save weights of the network
 ;; Weights will be stored as a big vector of values (sorted)
+;; Note that the arquitecture of the network is needed to
+;; recover it correctly
 
 to ANN:load-weights [W]
   ; Sort the links (Netlogo will do it lexically by end1 end2
@@ -192,16 +191,6 @@ to ANN:load-weights [W]
   (foreach W (sort ANN:links) [
     [wij c] -> ask c [set ANN:weight wij]
   ])
-;  (foreach W (range length W) [
-;    [wi i] ->
-;    foreach (sort ANN:neurons-layer i) [
-;      ni ->
-;      (foreach wi (sort ANN:neurons-layer (i + 1)) [
-;        [wij  nj] -> 
-;        ask ANN:link ni nj [set ANN:weight wij]
-;      ])
-;    ]
-;  ])
 end   
 
 to-report ANN:read-weights
@@ -209,7 +198,7 @@ to-report ANN:read-weights
 end
 
 ;; Procedure to pretty display the ANN
-to layout
+to ANN:layout
   no-display
   let incx (world-width - 1) / (ANN:Depth - 1)
   layout-spring ANN:neurons ANN:links .1 (.5 * incx) 3
@@ -227,7 +216,7 @@ to ANN:format
   ask ANN:input-neurons [set shape "input-neuron" set color green]
   ask ANN:output-neurons [set shape "output-neuron" set color blue]
   ask ANN:links [show-link]
-  repeat 100 [layout]
+  repeat 100 [ANN:layout]
 end
 
 to ANN:recolor-links
