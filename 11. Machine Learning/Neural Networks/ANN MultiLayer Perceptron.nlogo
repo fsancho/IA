@@ -71,7 +71,7 @@ end
 ; Recolor neurons using activation value in a continuous way
 to recolor-c
   ask ANN:neurons with [ANN:layer > 0] [
-    set color scale-color yellow ANN:activation 0 .5
+    set color scale-color yellow ANN:activation -.1 1.1
   ]
 end
 
@@ -155,7 +155,7 @@ Learning-rate
 0.0
 1.0
 0.2
-1.0E-4
+1.0E-2
 1
 NIL
 HORIZONTAL
@@ -248,7 +248,7 @@ Num-samples
 Num-samples
 0
 1000
-100.0
+210.0
 10
 1
 NIL
@@ -272,9 +272,9 @@ SLIDER
 148
 Num-tests
 Num-tests
-1
+0
 1000
-991.0
+1000.0
 10
 1
 NIL
@@ -320,7 +320,7 @@ INPUTBOX
 215
 70
 Arquitecture
-[11 5  4 1]
+[10 5 1]
 1
 0
 String
@@ -489,8 +489,9 @@ false
 1
 Circle -16777216 true false 0 0 300
 Circle -2674135 true true 15 15 270
-Polygon -16777216 true false 135 75 60 75 120 150 60 225 135 225 135 210 135 195 120 210 90 210 135 150 90 90 120 90 135 105 135 90
-Polygon -16777216 true false 255 75 210 75 180 210 150 210 150 225 195 225 225 90 240 90 255 90
+Polygon -16777216 true false 120 75 45 75 90 150 45 225 120 225 120 210 120 195 105 210 75 210 105 150 75 90 105 90 120 105 120 90
+Rectangle -16777216 true false 150 15 165 300
+Polygon -16777216 true false 195 225 195 90 210 75 255 75 255 90 225 90 210 105 210 135 210 135 255 135 255 150 210 150 210 225
 
 house
 false
@@ -540,6 +541,15 @@ false
 Circle -16777216 true false 0 0 300
 Circle -2674135 true true 15 15 270
 Polygon -16777216 true false 195 75 90 75 150 150 90 225 195 225 195 210 195 195 180 210 120 210 165 150 120 90 180 90 195 105 195 75
+
+output-neuron2
+false
+1
+Circle -16777216 true false 0 0 300
+Circle -2674135 true true 15 15 270
+Rectangle -16777216 true false 75 15 105 285
+Rectangle -16777216 true false 105 135 210 165
+Polygon -16777216 true false 210 105 210 195 270 150
 
 pentagon
 false

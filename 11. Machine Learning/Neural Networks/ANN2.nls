@@ -9,7 +9,7 @@ ANN:neurons-own [
 
 ; Family of connections in the ANN
 directed-link-breed [ANN:links ANN:link]
-ANN:links-own [ANN:weight]
+ANN:links-own [ANN:weight ANN:dw]
 
 ; Global variables for the library
 globals [
@@ -115,6 +115,26 @@ to-report sigmoid [x]
   report 1 / (1 + e ^ (- x))
 end
 
+to-report sigmoid' [x]
+  report x * (1 - x)
+end
+
+to-report tanh [x]
+  report ((e ^ x) - (e ^ (- x))) / ((e ^ x) + (e ^ (- x)))
+end
+
+to-report tanh' [x]
+  report 1 - x ^ 2
+end
+
+to-report LRELU [x]
+  report ifelse-value (x < 0) [0.1 * x] [x]
+end
+  
+to-report LRELU' [x]
+  report ifelse-value (x <= 0) [0.1] [1]
+end
+
 ; Step Function
 to-report step [x]
   ifelse x > 0.5
@@ -124,7 +144,7 @@ end
 
 ;; Training Procedure
 ;;    Receives the number of epochs for training, the data to be used and learning rate
-to ANN:train [num-epochs data lr]
+to ANN:train [num-epochs batch-size data lr]
   set ANN:learning-rate lr
   let t 0
   set ANN:epoch-error 0
@@ -132,21 +152,27 @@ to ANN:train [num-epochs data lr]
   ; Loop for num-epochs iteration
   repeat num-epochs [
     ; For every trainig data
-    foreach (shuffle data) [ 
-      datum ->
+    foreach (divide (shuffle data) batch-size) [
+      d -> 
+      ask ANN:links [set ANN:dw 0]
+      foreach d [ 
+        datum ->
+        
+        ; Take the input and correct output
+        let input first datum
+        let output last datum
+        
+        ; Set inputs on input layer
+        ANN:set-input input
       
-      ; Take the input and correct output
-      let input first datum
-      let output last datum
+        ; Forward step
+        ANN:Forward-Propagation
+        
+        ; Back Propagation from the output error
+        ANN:Back-propagation output
+      ]
+      ask ANN:links [set ANN:weight ANN:Weight + ANN:dw]
       
-      ; Set inputs on input layer
-      ANN:set-input input
-      
-      ; Forward step
-      ANN:Forward-Propagation
-
-      ; Back Propagation from the output error
-      ANN:Back-propagation output
     ]
     set ANN:epoch-error ANN:epoch-error / (length data)
     ANN:external-update (list t ANN:epoch-error)
@@ -155,13 +181,21 @@ to ANN:train [num-epochs data lr]
   ]
 end
 
+; Divide a list in parts of size N (the last one is the rest)
+to-report divide [L N]
+  ifelse length L <= N 
+  [report (list L)]
+  [report fput (sublist L 0 N) (divide (sublist L N (length L)) N)]
+end
+  
+
 ; Back Propagation from the output error
 to ANN:Back-propagation [output]
   let error-sample 0
   ; Compute error and gradient of every output neurons
   (foreach (sort ANN:output-neurons) output [
     [n_i o_i] ->
-    ask n_i [ set ANN:grad ANN:activation * (1 - ANN:activation) * (o_i - ANN:activation) ]
+    ask n_i [ set ANN:grad (sigmoid' ANN:activation) * (o_i - ANN:activation) ]
     set error-sample error-sample + ( (o_i - [ANN:activation] of n_i) ^ 2 )
   ])
   ; Average error of the output neurons in this epoch
@@ -171,12 +205,12 @@ to ANN:Back-propagation [output]
   [
     n -> 
     ask ANN:neurons-layer n [
-      set ANN:grad ANN:activation * (1 - ANN:activation) * sum [ANN:weight * [ANN:grad] of end2] of my-out-ANN:links
+      set ANN:grad (sigmoid' ANN:activation) * sum [ANN:weight * [ANN:grad] of end2] of my-out-ANN:links
     ]
   ]
   ; Update link weights
   ask ANN:links [
-    set ANN:weight ANN:weight + ANN:Learning-rate * [ANN:grad] of end2 * [ANN:activation] of end1
+    set ANN:dw ANN:dw + ANN:Learning-rate * [ANN:grad] of end2 * [ANN:activation] of end1
   ]
 end
 
@@ -237,7 +271,6 @@ to ANN:layout
   display
 end
 
-; ANN:format needs some shapes 
 to ANN:format
   ask ANN:neurons [set shape "hidden-neuron" st set color white]
   ask ANN:neurons with [ANN:neuron-type = "bias"] [set shape "bias-node" set color white]

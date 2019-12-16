@@ -1,6 +1,6 @@
 extensions [CSV]
 
-__includes ["ANN.nls"]
+__includes ["ANN2.nls"]
 
 globals [
   data-train    ; List of pairs [Input Output] to train the network
@@ -21,7 +21,7 @@ links-own [weight]
 to setup
   clear-all
 
-  ANN:create [64 5 10]
+  ANN:create [64 10 10]
   load "../Datasets/optdigits.tes"
 end
 
@@ -30,18 +30,29 @@ end
 ;;
 
 to load [f]
+  ; Read dataset
   let data csv:from-file f
+  ;Normalize and transform output
   set data map [x -> (list (map [z -> z / 16] (bl x)) (to-binary last x))] data
   set data-train sublist data 0 1000
   set data-test sublist data 1000 (length data)
 end
 
+; Takes a number in 0-9 and report the associated output:
+;   0 -> [1 0 0 0 0 0 0 0 0 0]
+;   1 -> [0 1 0 0 0 0 0 0 0 0]
+;    ...
+;   9 -> [0 0 0 0 0 0 0 0 0 1]
 to-report to-binary [x]
   report replace-item x (n-values 10 [0]) 1
 end
 
+; Plot the train error in every step
 to ANN:external-update [params]
+  set-current-plot-pen "Train"
   plotxy (first params) (last params)
+  set-current-plot-pen "Test"
+  plotxy (first params) test
 end
 
 
@@ -52,7 +63,7 @@ end
 ;; The input neurons are read and the signal propagated with the current weights
 
 to train
-  ANN:train number-of-epochs data-train Learning-rate
+  ANN:train number-of-epochs 50 data-train Learning-rate
 end
 
 to-report test
@@ -61,7 +72,7 @@ to-report test
 end
 
 to-report dif [v1 v2]
-  report sum (map [[x y] -> abs (x - y)] v1 v2)
+  report 0.5 * sum (map [[x y] -> abs (x - y)] v1 v2)
 end
 
 to-report discretize [x]
@@ -122,8 +133,8 @@ Learning-rate
 Learning-rate
 0.0
 1.0
-0.2
-1.0E-4
+0.1
+1.0E-2
 1
 NIL
 HORIZONTAL
@@ -141,10 +152,11 @@ Error
 0.0
 0.5
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" ""
+"Train" 1.0 0 -16777216 true "" ""
+"Test" 1.0 0 -2674135 true "" ""
 
 SLIDER
 15
@@ -155,8 +167,8 @@ Number-of-epochs
 Number-of-epochs
 0
 2000.0
-300.0
-100
+100.0
+25
 1
 NIL
 HORIZONTAL
