@@ -14,37 +14,54 @@ globals [
 
 links-own [weight]
 
-;;;
-;;; Setup Procedure
-;;;
+;; Setup Procedure
 
 to setup
   clear-all
-
-  ANN:create [64 10 10]
+  ask patches [set pcolor white]
+  ANN:create read-from-string Network
   load "../Datasets/optdigits.tes"
+  repeat 100 [ANN:layout]
+  ask ANN:Neurons[st]
+  ask ANN:links [show-link]
+  ANN:Format
 end
 
-;;
-;; Input Procedures
-;;
+;; Data Procedures
 
 to load [f]
   ; Read dataset
   let data csv:from-file f
+
   ;Normalize and transform output
-  set data map [x -> (list (map [z -> z / 16] (bl x)) (to-binary last x))] data
-  set data-train sublist data 0 1000
-  set data-test sublist data 1000 (length data)
+  set data shuffle bf data
+
+  ; Number of elements in Train Dataset
+  let sdtrain floor (length data) * Train-Test / 100
+
+  ; Classes to be classified
+  let classes sort remove-duplicates map last data
+
+  ; Normalize the data
+  set data map [x -> (list (map [z -> z / 16] (bl x)) (cat-to-bin (last x) classes))] data
+
+  ; Train Dataset
+  set data-train sublist data 0 sdtrain
+
+  ; Test Dataset
+  set data-test sublist data sdtrain (length data)
 end
 
-; Takes a number in 0-9 and report the associated output:
-;   0 -> [1 0 0 0 0 0 0 0 0 0]
-;   1 -> [0 1 0 0 0 0 0 0 0 0]
+; Takes a value of a categorical field and returns a binary output
+; with length equals to the number of different values it can take
+;   v_0 -> [1 0 0 0 0 0 0 0 0 0]
+;   v_1 -> [0 1 0 0 0 0 0 0 0 0]
 ;    ...
-;   9 -> [0 0 0 0 0 0 0 0 0 1]
-to-report to-binary [x]
-  report replace-item x (n-values 10 [0]) 1
+;   v_9 -> [0 0 0 0 0 0 0 0 0 1]
+
+to-report cat-to-bin [v L]
+  let pos position v L
+  report replace-item pos (n-values (length L) [0]) 1
 end
 
 ; Plot the train error in every step
@@ -55,19 +72,15 @@ to ANN:external-update [params]
   plotxy (first params) test
 end
 
-
-;;;
-;;; Test Procedures
-;;;
-
-;; The input neurons are read and the signal propagated with the current weights
+;;; Train and Test Procedures
 
 to train
-  ANN:train number-of-epochs 50 data-train Learning-rate
+  ANN:train number-of-epochs Batch data-train Learning-rate
 end
 
 to-report test
   let suma sum (map [d -> (dif (discretize ANN:compute (first d)) (last d))] data-test)
+;  let suma sum (map [d -> (dif (ANN:compute (first d)) (last d))] data-test)
   report suma / (length data-test)
 end
 
@@ -109,9 +122,9 @@ ticks
 
 BUTTON
 15
-110
+230
 75
-143
+263
 setup
 setup
 NIL
@@ -126,9 +139,9 @@ NIL
 
 SLIDER
 15
-40
+75
 215
-73
+108
 Learning-rate
 Learning-rate
 0.0
@@ -141,9 +154,9 @@ HORIZONTAL
 
 PLOT
 15
-180
+265
 215
-330
+415
 Error vs. Epochs
 Epochs
 Error
@@ -155,19 +168,19 @@ true
 true
 "" ""
 PENS
-"Train" 1.0 0 -16777216 true "" ""
 "Test" 1.0 0 -2674135 true "" ""
+"Train" 1.0 0 -16777216 true "" ""
 
 SLIDER
 15
-75
+110
 214
-108
+143
 Number-of-epochs
 Number-of-epochs
 0
 2000.0
-100.0
+775.0
 25
 1
 NIL
@@ -175,9 +188,9 @@ HORIZONTAL
 
 BUTTON
 80
-110
+230
 145
-143
+263
 Train
 train
 NIL
@@ -192,9 +205,9 @@ NIL
 
 BUTTON
 150
-110
+230
 215
-143
+263
 Test
 show test
 NIL
@@ -206,6 +219,47 @@ NIL
 NIL
 NIL
 1
+
+INPUTBOX
+15
+10
+215
+70
+Network
+[64 10 10]
+1
+0
+String
+
+SLIDER
+15
+145
+215
+178
+Batch
+Batch
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+15
+180
+215
+213
+Train-Test
+Train-Test
+0
+100
+66.0
+1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 @#$#@#$#@
@@ -229,7 +283,10 @@ false
 0
 Circle -16777216 true false 0 0 300
 Circle -7500403 true true 30 30 240
-Polygon -16777216 true false 120 60 150 60 165 60 165 225 180 225 180 240 135 240 135 225 150 225 150 75 135 75 150 60
+Circle -16777216 true false 90 120 120
+Circle -7500403 true true 105 135 90
+Polygon -16777216 true false 90 60 120 60 135 60 135 225 150 225 150 240 105 240 105 225 120 225 120 75 105 75 120 60
+Rectangle -7500403 true true 90 120 120 225
 
 box
 false
@@ -363,6 +420,15 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
+hidden-neuron
+false
+1
+Circle -16777216 true false 0 0 300
+Circle -2674135 true true 15 15 270
+Polygon -16777216 true false 120 75 45 75 90 150 45 225 120 225 120 210 120 195 105 210 75 210 105 150 75 90 105 90 120 105 120 90
+Rectangle -16777216 true false 150 15 165 300
+Polygon -16777216 true false 195 225 195 90 210 75 255 75 255 90 225 90 210 105 210 135 210 135 255 135 255 150 210 150 210 225
+
 house
 false
 0
@@ -370,6 +436,15 @@ Rectangle -7500403 true true 45 120 255 285
 Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
+
+input-neuron
+false
+1
+Circle -16777216 true false 0 0 300
+Circle -2674135 true true 15 15 270
+Rectangle -16777216 true false 180 15 210 285
+Rectangle -16777216 true false 15 135 120 165
+Polygon -16777216 true false 120 105 120 195 180 150
 
 leaf
 false
@@ -402,6 +477,15 @@ false
 Circle -7500403 true false 0 0 300
 Circle -2674135 true true 30 30 240
 Polygon -7500403 true false 195 75 90 75 150 150 90 225 195 225 195 210 195 195 180 210 120 210 165 150 120 90 180 90 195 105 195 75
+
+output-neuron2
+false
+1
+Circle -16777216 true false 0 0 300
+Circle -2674135 true true 15 15 270
+Rectangle -16777216 true false 75 15 105 285
+Rectangle -16777216 true false 105 135 210 165
+Polygon -16777216 true false 210 105 210 195 270 150
 
 pentagon
 false

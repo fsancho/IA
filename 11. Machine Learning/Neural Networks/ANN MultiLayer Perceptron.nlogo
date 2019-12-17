@@ -1,4 +1,4 @@
-__includes ["ANN.nls"]
+__includes ["ANN2.nls"]
 
 globals [
   data-list    ; List of pairs [Input Output] to train the network
@@ -184,7 +184,7 @@ BUTTON
 215
 268
 Train
-ANN:train 1000 data-list Learning-rate
+ANN:train Epochs 1 data-list Learning-rate
 NIL
 1
 T
@@ -324,6 +324,21 @@ Arquitecture
 1
 0
 String
+
+SLIDER
+15
+80
+215
+113
+Epochs
+Epochs
+0
+1000
+1000.0
+50
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 @#$#@#$#@

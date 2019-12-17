@@ -9,7 +9,10 @@ ANN:neurons-own [
 
 ; Family of connections in the ANN
 directed-link-breed [ANN:links ANN:link]
-ANN:links-own [ANN:weight ANN:dw]
+ANN:links-own [
+  ANN:weight       ; Weight of the link
+  ANN:dw           ; Delta of changes in the link over a Batch
+]
 
 ; Global variables for the library
 globals [
