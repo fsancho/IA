@@ -39,7 +39,7 @@ to load [f]
   let classes sort remove-duplicates map last data
 
   ; Normalize the data
-  set data map [x -> (list (map [z -> z / 16] (bl x)) (cat-to-bin (last x) classes))] data
+  set data map [x -> (list (map [z -> z / 16] (bl x)) (map [z -> z / 16] (bl x)))] data
 
   ; Train Dataset
   set data-train sublist data 0 sdtrain
@@ -65,7 +65,7 @@ to ANN:external-update [params]
   set-current-plot-pen "Train"
   plotxy (first params) (last params)
   set-current-plot-pen "Test"
-  plotxy (first params) test
+  ;plotxy (first params) test
 end
 
 ;;; Train and Test Procedures
@@ -75,13 +75,13 @@ to train
 end
 
 to-report test
-  let suma sum (map [d -> (dif (discretize ANN:compute (first d)) (last d))] data-test)
+  let suma sum (map [d -> (dif (ANN:compute (first d)) (last d))] data-test)
 ;  let suma sum (map [d -> (dif (ANN:compute (first d)) (last d))] data-test)
   report suma / (length data-test)
 end
 
 to-report dif [v1 v2]
-  report 0.5 * sum (map [[x y] -> abs (x - y)] v1 v2)
+  report sum (map [[x y] -> (x - y) ^ 2] v1 v2)
 end
 
 to-report discretize [x]
@@ -222,7 +222,7 @@ INPUTBOX
 215
 70
 Network
-[64 10 10]
+[64 10 64]
 1
 0
 String
@@ -236,7 +236,7 @@ Batch
 Batch
 0
 100
-50.0
+1.0
 1
 1
 NIL
@@ -251,7 +251,7 @@ Train-Test
 Train-Test
 0
 100
-66.0
+30.0
 1
 1
 %

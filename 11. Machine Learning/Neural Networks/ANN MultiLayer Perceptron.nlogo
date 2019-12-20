@@ -1,4 +1,4 @@
-__includes ["ANN2.nls"]
+__includes ["ANN.nls"]
 
 globals [
   data-list    ; List of pairs [Input Output] to train the network

@@ -1,6 +1,6 @@
 extensions [CSV]
 
-__includes ["ANN2.nls"]
+__includes ["ANN.nls"]
 
 globals [
   data-train    ; List of pairs [Input Output] to train the network
@@ -8,11 +8,7 @@ globals [
   inputs       ; List with the binary inputs in the training
   outputs      ; List with the binary output in the training
   epoch-error  ; error in every epoch during training
-  data-counter ; stores the number of samples to be used in training
-  drawer       ; auxiliary turtle to draw the patterns to be recognized
 ]
-
-links-own [weight]
 
 ;; Setup Procedure
 
