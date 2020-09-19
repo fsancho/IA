@@ -305,8 +305,8 @@ SLIDER
 Max_iterations
 Max_iterations
 0
-30000
-5000.0
+50000
+50000.0
 5000
 1
 NIL

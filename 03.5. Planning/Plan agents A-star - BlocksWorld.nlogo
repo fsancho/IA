@@ -59,7 +59,7 @@ end
 to-report AI:heuristic [#Goal]
   let c [content] of current-state
   let rep filter [x -> member? x c]  #Goal
-  report (length #Goal) - (length rep)
+  report abs ((length #Goal) - (length rep))
 end
 
 ; Auxiliary procedure the highlight the path when it is found. It makes use of reduce procedure with

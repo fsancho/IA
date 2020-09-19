@@ -39,7 +39,9 @@ to test
   let goal one-of nodes with [distance start > max-pxcor]
   ask goal [set color green set size 1]
   ; We compute the path with A*
+  let ti timer
   let path (A* start goal)
+  show timer - ti
   ; if any, we highlight it
   if path != false [highlight-path path]
 end
@@ -215,7 +217,7 @@ radius
 radius
 0
 10
-1.4
+1.5
 .1
 1
 NIL
@@ -248,7 +250,7 @@ false
 0
 Circle -7500403 true true 0 0 300
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

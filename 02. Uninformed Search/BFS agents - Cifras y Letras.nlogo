@@ -15,13 +15,12 @@ globals [ops]
 ; Si no se puede aplicar, devuelve false (dividir por 0, división no entera...)
 to-report aplica [op i j s]
   if i = j [report false]
-  let inds reverse sort (list i j)
+  let inds (list i j)
   set i min inds
   set j max inds
-  let nums reverse sort (list (item i s) (item j s))
-  let res (run-result op (first nums) (last nums))
+  let res (run-result op (item j s) (item i s))
   if res = false or res != int res  [report false]
-  report (lput res  (remove-item i (remove-item j s)))
+  report sort (lput res  (remove-item i (remove-item j s)))
 end
 
 
@@ -84,11 +83,12 @@ end
 
 to test
   ca
+  let ti timer
   set ops (list (list [[x y] -> x + y] "+")
     (list [[x y] -> x - y] "-")
     (list [[x y] -> x * y] "*")
     (list [[x y] -> ifelse-value (y = 0) [false] [x / y]] "/"))
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
+  let p BFS (read-from-string Initial_State) (read-from-string Final_State) false false;True True
   if p != false [
     ask p [
       set color red
@@ -104,6 +104,7 @@ to test
     ]
     style
   ]
+  show (word "Searching time: " (timer - ti))
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -167,7 +168,7 @@ INPUTBOX
 180
 70
 Initial_State
-[2 5 7 10 50]
+[2 5 10 15 21 50]
 1
 0
 String
@@ -178,7 +179,7 @@ INPUTBOX
 180
 130
 Final_State
-27
+113
 1
 0
 String

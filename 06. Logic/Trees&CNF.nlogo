@@ -6,7 +6,7 @@ __includes ["LP.nls"]
 to test [f]
   let a LP:parse-to-tree f
   LP:TreeLayout f
-  Output-print (word "List Format: ")
+  Output-print (word "Tree Format: ")
   foreach (cut (word a) 46) Output-print
   Output-print ""
   let pret LP:pretty-formula a

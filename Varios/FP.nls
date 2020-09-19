@@ -31,6 +31,9 @@ end
 
 ;; ---------------------- APPLY ------------------------------
 
+;; __apply 
+;; __apply-result
+
 ; Report that apply a function (as string name) to inputs
 ;   apply "approximate-rgb" [100 100 100]
 ; instead-of

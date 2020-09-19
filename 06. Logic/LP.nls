@@ -18,7 +18,7 @@ LP:links-own [ LP:link-content ]
 ; Parse formulas as trees
 ;--------------------------------------------------------------------
 
-; Transform  a fórmula (as a string) into a tree (list of lists) 
+; Transform a fórmula (as a string) into a tree (list of lists) 
 ; In this tree, operators are in the head of the list
 ;
 ; Operators: - (neg), & (and), | (or), -> (if), <-> (iff)
@@ -462,7 +462,7 @@ end
 ;------------------------------------------------------------------------
 
 ; DPLL report: receives a set of clauses (each clause is a set (list) of
-; literals, and the clause-set y a list of lists), and a #debub boolean
+; literals, and the clause-set y a list of lists), and a #debug boolean
 ; to indicate if the process will be shown or not.
 
 to-report LP:DPLL [S #debug]

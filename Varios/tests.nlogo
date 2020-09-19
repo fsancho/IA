@@ -76,7 +76,7 @@ to Table:test
   let uppletters "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
   show T
   table:foreach T [ [k v] -> print (word k " :-> " v)]
-  show table:map [ [k v] -> (list (item k lowletters) (-1 * v))] T
+  show table:map [ [k v] -> (list (item k Lowletters) (-1 * v))] T
   show table:filter [[k v] -> (k < 4)] T
 end
 

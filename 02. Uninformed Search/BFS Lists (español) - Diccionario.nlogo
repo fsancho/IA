@@ -127,12 +127,12 @@ Escribir la función GML (Generadora de Movimientos Legales), de debe tener en c
 ### Paso 3
 Aplicar la función BFS a los datos:
 
-    observer> BFS "coat" lost" false
+    observer> BFS "coat" "lost" false
     observer: [["" "lost"] ["" "cost"] ["coat"]]
    
 O si se quiere mostrar la traza de construcción:
 
-    observer> show BFS "coat" "lost"
+    observer> show BFS "coat" "lost" true
     Explorando... "coat",...
 @#$#@#$#@
 default
@@ -426,7 +426,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -1,0 +1,143 @@
+extensions [table]
+; Variable global en la que se almacenan los nodos que se van calculando
+; Se ha decidido que sea global para facilitar notación y (quizás) usarlo
+; en procesos más complejos en los que conviene tener precalculado algo.
+globals [
+  A*:nodes
+]
+
+; Main procedure to apply A* algorithm:
+; nodes are stored in a table:
+;   {{ state -> [g h [parent action] open/close] }}
+;
+; Additionally, we mantain a list of nodes (states) for open nodes
+
+to-report A* [start goal]
+  ; Initially, only the start node is open (and it is the only node)
+  let open (list start)
+  set A*:nodes table:make
+  A*:add-node start 0 (AI:heuristic start goal) false 1
+
+  ; Main loop, active while there are nodes to explore (we can quit
+  ; if the goal is reached)
+  while [not empty? open]
+  [
+    ; The first step is to obtain one open node where the f function is minimal
+    ; In this implementatio we use the list of open nodes to partition the nodes
+    ; through the value of f by using table:group-items
+    let group-open-by-f table:group-items open [ n -> (f* (content-of n))]
+    let v-min min table:keys group-open-by-f
+    let cs one-of table:get group-open-by-f v-min
+    
+    ; Quit the loop if the goal is reached. From current state we produce the path 
+    ; of actions    
+    if AI:final-state? cs goal [report get-A*path cs]
+    
+    ; If it is not the goal, then the node is closed (and removed from open list)
+    close-node cs
+    set open remove cs open
+        
+    ; Then, we process its children (obtained from AI:children-of from the user)
+    foreach AI:children-of cs [
+      child -> 
+      ; A child is a list of the form [new-state action]
+      ; We use several auxiliar getters and setters to easier the read of the code
+      let s-child state-of  child
+      let ac action-of child
+      ; Compute the value of g through this new path (maybe, the node has been reached in
+      ; the past through a different path, and with a different g value)
+      let new-g (g-of cs) + (weight-of ac)
+      
+      ; If the state already exists...
+      ifelse A*:node-exist? s-child
+      [
+        ; We compare the olg g-value with the new one
+        let gsuc g-of s-child
+        ; If the new is better (if not, ignore it)
+        if new-g < gsuc 
+        [
+          ; change the node: new g-value, new parent/action, and it get open
+          A*:add-node s-child new-g (h-of s-child) (list cs ac) 1
+          ; If it was open yet, then use remove-duplicates to keep it single
+          set open remove-duplicates lput s-child open 
+        ]
+      ]
+      [
+        ; If the node is new, the we add it, open it (the heuristic must be computed)
+        A*:add-node s-child new-g (AI:heuristic s-child goal) (list cs ac) 1
+        set open lput s-child open
+      ]
+    ]
+  ]
+  ; if there is no more open nodes, there is no path to reach the goal
+  report false
+end
+
+; Auxiliary functions
+
+; extract the state of a child (when obtained from AI:children-of)
+to-report state-of [ch]
+  report first ch
+end
+; extract the action of a child (when obtained from AI:children-of)
+to-report action-of [ch]
+  report last ch
+end
+; extract the weight of an action (when obtained from AI:children-of)
+to-report weight-of [ac]
+  report item 1 ac
+end
+
+; extract the content of a state (from the table of nodes)
+to-report content-of [state]
+  report table:get A*:nodes state
+end
+
+; extract the g-value of a state
+to-report g-of [cs]
+  report item 0 (content-of cs)
+end
+
+; extract the h-value of a state
+to-report h-of [cs]
+  report item 1 (content-of cs)
+end
+
+; extract the f-value of a state
+to-report f* [c]
+  report (item 0 c) + (item 1 c)
+end
+
+; extract the parent of a state
+to-report parent-of [cs]
+  report item 2 (content-of cs)
+end
+
+; Add a node to the table
+to A*:add-node [s g h p oc]
+  table:put A*:nodes s (list g h p oc)
+end
+
+; Check if a node exists in the table
+to-report A*:node-exist? [ns]
+  report table:has-key? A*:nodes ns
+end
+  
+; Close a node
+to close-node [n]
+  let value table:get A*:nodes n
+  table:put A*:nodes n (lput 0 (bl value))
+end
+
+; Obtain the path from the start node to the goal when reached
+to-report get-A*path [current]
+  let rep []
+;  print current
+  while [ parent-of current != false]
+  [
+;    print state-of (parent-of current)
+    set rep fput (first (action-of (parent-of current))) rep
+    set current state-of (parent-of current)
+  ]
+  report rep
+end

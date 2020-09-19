@@ -94,7 +94,8 @@ end
 
 to test
   ca
-  let p BFS (read-from-string Initial_State) (read-from-string Final_State) True True
+  let ti timer
+  let p BFS (read-from-string Initial_State) (read-from-string Final_State) true True
   if p != nobody [
     ask p [
       set color red
@@ -113,6 +114,7 @@ to test
     ]
     style
   ]
+  show (word "Searching time: " (timer - ti))
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -176,7 +178,7 @@ INPUTBOX
 180
 70
 Initial_State
-[[1 2 3] [] []]
+[[1 2 3 4 5 6 7] [] []]
 1
 0
 String
@@ -187,7 +189,7 @@ INPUTBOX
 180
 130
 Final_State
-[[] [] [1 2 3]]
+[[] [] [1 2 3 4 5 6 7]]
 1
 0
 String

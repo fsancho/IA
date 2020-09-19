@@ -89,6 +89,7 @@ end
 ; Return the best move from the root-state. 
 ; The games results is in the range [0.0, 1.0]
 to-report MCTS:UCT [root-state iter]
+  let ti timer
   ask MCTSnodes [die]
   ; Create the root node (with the input state)
   let rootnode MCTS:create-MCTSnode root-state
@@ -149,5 +150,6 @@ to-report MCTS:UCT [root-state iter]
     ; return the move that was most visited
     set rep max-one-of out-MCTSrule-neighbors [visits]
   ]
+  show timer - ti
   report [rule] of MCTSrule [who] of rootnode [who] of rep
 end

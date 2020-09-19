@@ -1,0 +1,157 @@
+;---------------------------------------------------------------------------
+; Nodes to build de Tree Search
+;---------------------------------------------------------------------------
+extensions [table]
+
+to-report state-of [N]
+  report table:get N "state"
+end
+
+to-report untriedRules-of [N]
+  report table:get N "untriedRules"
+end
+
+to-report children-of [N]
+  report table:get N "children"
+end
+
+to-report visits-of [N]
+  report table:get N "visits"
+end
+
+to-report wins-of [N]
+  report table:get N "wins"
+end
+
+to-report parent-of [N]
+  report table:get N "parent"
+end
+
+;---------------------------------------------------------------------------
+; MCTS Nodes Procedures
+;---------------------------------------------------------------------------
+
+; Create a new node from state s. This node will be the root of the search (the current game state)
+; s -> N
+to-report MCTS:new-node [s]
+  let rep table:make
+  table:put rep "state" s
+  table:put rep "parent" []
+  table:put rep "children" []
+  table:put rep "wins" 0
+  table:put rep "visits" 0
+  table:put rep "untriedRules" MCTS:get-rules s
+  report rep
+end
+
+; Use the UCB1 formula to return the child with highest UCB value (after the previous simulations)
+; The 2 summands try to balance between explotation and exploration
+; N -> N
+to-report MCTS:UCTSelectChild [Node]
+  let v  visits-of Node
+  let M  0 
+  let MN 0
+  foreach children-of Node
+  [
+    ch -> 
+    let chNode first     ch
+    let wins   wins-of   chNode
+    let visits visits-of chNode
+    let calc   (wins / visits) + sqrt(2 * (ln v) / visits)
+    if calc > M [
+      set M  calc
+      set MN chNode]
+  ]
+  report MN
+end
+
+; Creates a new child from the current node by applying the rule r, then it removes this rule from 
+; untriedRules
+; N r -> N
+to-report MCTS:AddChild [Node r]
+  let state    state-of Node
+  let newState MCTS:apply r state
+  let newChild MCTS:new-node newState
+  table:put Node "children"     (lput (list newChild r) (children-of Node))
+  table:put newChild   "parent"       (list Node r)
+  table:put Node "untriedRules" remove r (untriedRules-of Node)
+  report    newChild
+end
+
+; Update the wins/visits values for the current node 
+to MCTS:Update [Node result]
+  table:put Node "visits" (visits-of Node) + 1
+  table:put Node "wins"   (wins-of Node)   + result
+end
+
+
+;---------------------------------------------------------------------------
+; UCT Algorithm
+;---------------------------------------------------------------------------
+
+; Execute a UCT search for iter iterations starting from root-state.
+; Return the best move from the root-state. 
+; The games results is in the range [0.0, 1.0]
+to-report MCTS:UCT [root-state iter]
+  ; Create the root node (with the input state)
+  let root-node MCTS:new-node root-state
+  
+  ;Main loop for iter iterations
+  repeat iter [
+    ; Start again from the root node
+    let cnode root-node
+    ; Selection stage: 
+    ;   Using UCT selection. we go from the root node to a current leaf that 
+    ;   has to be expanded
+    
+    while [empty? (untriedRules-of cnode) and not empty? (children-of cnode)]
+    [
+      set cnode MCTS:UCTSelectChild cnode
+    ]
+
+    ; Expand stage: 
+    ;   Expand the previous node with one child (any of them)    
+    ;   if we can expand (i.e. state/node is non-terminal)
+    if not empty? (untriedRules-of cnode)
+    [
+      let rule  one-of untriedRules-of cnode
+      set cnode MCTS:AddChild cnode rule
+    ]
+
+    ; Simulation/Rollout stage: 
+    ;   From this new node we play a random complete game (we use only states, 
+    ;   not nodes, because we only need to know the final state and who is the 
+    ;   winnner)
+    let s state-of cnode
+    while [not empty? MCTS:get-rules s]
+    [
+      let r one-of (MCTS:get-rules s)
+      set s (MCTS:apply r s)
+    ]
+    
+    ; Backpropagate stage: 
+    ;   Update the nodes from the expanded one to the root  
+    while [cnode != []] 
+    [
+      let cstate  state-of cnode
+      MCTS:Update cnode MCTS:get-result s (MCTS:get-playerJustMoved cstate)
+      let par     parent-of cnode
+      set cnode   ifelse-value par != [] [first par] [[]]
+    ]
+  ]
+  ; Return the best found rule
+  let M        0
+  let r        0
+  let children children-of root-node
+  foreach children
+  [
+    ch -> 
+    let Nch    first ch
+    let visits visits-of Nch
+    if visits > M [
+      set M visits
+      set r last ch
+    ]
+  ]
+  report r
+end

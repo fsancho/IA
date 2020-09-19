@@ -1,12 +1,18 @@
 ; Global variable to store the symbols of ASCII Table
 globals [
   ASCII_Table
+  ASCII_Lowletters
+  ASCII_Upletters
+  ASCII_Digits
 ]
 
 
 ; Setup procedure to load the symbols on ASCII_Table
 to setupASCII
   set ASCII_Table " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+  set ASCII_Lowletters "abcdefghijklmnopqrstuvwxyz"
+  set ASCII_Upletters "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  set ASCII_Digits "0123456789"
 end
 
 ; Report the char from the ascii code
