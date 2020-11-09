@@ -23,6 +23,11 @@ globals [Board]
 ; [ 0 1 2 ]
 ; [ 3 4 5 ]
 ; [ 6 7 8 ]
+
+; [ 4 2 0 ]
+; [ 1 3 5 ]
+; [ 6 7 8 ]
+
 ; where 0 is the hole. And we will use lists [0 1 2 3 4 5 6 7 8]
 
 ; For a given position, h, (movements h) reports the list of possible swaps with
@@ -68,6 +73,10 @@ end
 ; Searcher report to compute the heuristic for this searcher.
 ; We use the sum of manhattan distances between the current 2D positions of every
 ; tile and the goal position of the same tile.
+
+; d_e([x1,y1], [x2,y2]) = sqrt ((x1-x2)^2+ ((y1-y2)^2))
+; d_m([x1,y1], [x2,y2])  = |x1-x2| + |y1-y2|
+
 
 to-report AI:heuristic [#Goal]
   let pos [[0 0] [0 1] [0 2] [1 0] [1 1] [1 2] [2 0] [2 1] [2 2]]

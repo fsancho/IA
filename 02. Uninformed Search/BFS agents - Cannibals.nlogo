@@ -2,47 +2,57 @@
 
 __includes [ "BFS.nls" "LayoutSpace.nls"]
 
-
-; [J3 J4]
-
 ;--------------- Customizable Reports -------------------
 
 ; These reports must be customized in order to solve different problems using the
 ; same BFS function.
 
-; Rules are represented by using pairs [ "representation" f ]
-; in such a way that f allows to transform states (it is the transition function)
-; and "representation" is a string to identify the rule. We will use tasks in
-; order to store the transition functions.
+; In our BFS implementation we need the new states to be pair-lists [s r], where
+; s is the content of the new state, and r is a list with information about how to
+; get this state from the current one. This rule-list usually can be one of the next two
+; options:
+; a.- ["rep"], a representation of the rule, or
+; b.- ["rep" f], one extra member with the function itself that transform the state
 
-to-report applicable-transitions
-  report (list
-           (list "Empty(1)" ([ s -> (list 0 (last s)) ]))
-           (list "Empty(2)" ([ s -> (list (first s) 0) ]))
-           (list "Pour 1 to 2" ([ s -> pour1-2 (first s) (last s) ]))
-           (list "Pour 2 to 1" ([ s -> pour2-1 (first s) (last s) ]))
-           (list "Fill(1)" ([ s -> (list 3 (last s)) ]))
-           (list "Fill(2)" ([ s -> (list (first s) 4) ]))
-  )
+; Un estado es [ [ ml cl] [mr cr] b]
+;  donde ml y cl son los misioneros y caníbales en el lado izquierdo
+;        mr y cr son los misioneros y caníbales en el lado derecho
+;        b = 1  si el bote está en la izquierda
+;        b = -1 si el bote esta en la derecha
+
+to-report all-states-from [s]
+  let movs [[1 0] [0 1] [1 1] [2 0] [0 2]]
+  ; s = [L R b]
+  let L item 0 s
+  let R item 1 s
+  let b item 2 s
+  ; s' = [L-b*m R+b*m -b]
+  ; t  = [[m b]]
+  report map [m -> (list
+                      (list (map [[x y] -> x - b * y] L m);L-b*m
+                            (map [[x y] -> x + b * y] R m);R+b*m
+                            (-1 * b))                     ;-b
+                      (list rep m b))]                    ;<->m
+             movs
 end
 
-to-report pour1-2 [x1 x2]
-  let dif 4 - x2
-  ifelse dif <= x1
-  [report (list (x1 - dif) 4)]
-  [report (list 0 (x2 + x1))]
+to-report rep [m b]
+  let rb ifelse-value (b = 1) ["->"]["<-"]
+  report (word rb m)
 end
 
-to-report pour2-1 [x1 x2]
-  let dif 3 - x1
-  ifelse dif <= x2
-  [report (list 3 (x2 - dif))]
-  [report (list (x2 + x1) 0)]
-end
+; valid? is a boolean report to say which states are valid. In this case we
+; must check if, when the boat is in one side, the objects in the other side
+; of the river are compatible.
 
-; valid? is a boolean report to say which states are valid
-to-report valid? [x]
-  report ((first x <= 3) and (last x <= 4) and (first x >= 0) and (last x >= 0))
+to-report valid? [s]
+  let L item 0 s
+  let R item 1 s
+  let b item 2 s
+  report (first L = 0 or (first L) >= (last L)) and
+         (first R = 0 or (first R) >= (last R)) and
+         (first L >= 0) and (last L >= 0) and
+         (first R >= 0) and (last R >= 0)
 end
 
 ; children-states is an agent report that returns the children for the current state.
@@ -52,14 +62,13 @@ end
 ; states that are valid.
 
 to-report AI:children-states
-  report filter [ s -> valid? (first s) ]
-                (map [ t -> (list (run-result (last t) content) t) ]
-                     applicable-transitions)
+  report filter [ ns -> valid? (first ns) ] (all-states-from content)
 end
 
 ; final-state? is an agent report that identifies the final states for the problem.
 ; It usually will be a property on the content of the state (for example, if it is
-; equal to the Final State).
+; equal to the Final State). It allows the use of parameters because maybe the
+; verification of reaching the goal depends on some extra information from the problem.
 
 to-report AI:final-state? [params]
   report ( content = params)
@@ -71,7 +80,6 @@ end
 
 
 ;-------- Customs visualization procedures -------------------------------------------
-
 
 to test
   ca
@@ -87,7 +95,7 @@ to test
         ]
       ]
       output-print "The solution is: "
-      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path)[
+      foreach (map [ t -> [first rule] of t ] extract-transitions-from-path) [
         t ->
         output-print t
       ]
@@ -157,7 +165,7 @@ INPUTBOX
 180
 70
 Initial_State
-[0 0]
+[[3 3] [0 0] 1]
 1
 0
 String
@@ -168,7 +176,7 @@ INPUTBOX
 180
 130
 Final_State
-[1 1]
+[[0 0] [3 3] -1]
 1
 0
 String

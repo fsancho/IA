@@ -20,7 +20,7 @@ globals [ I ]
 ; states that are valid.
 
 to-report AI:children-states
-  let indices n-values  (length I) [x -> x]
+  let indices range (length I)
   report filter [x -> valid? (first x)] (map [x -> (list (trans content x) (list x))] indices)
 end
 
@@ -136,7 +136,7 @@ INPUTBOX
 180
 70
 Initial_State
-[1 0 0 1 0 1 1 1 1 0 1 0 1 1 1 1 1 0 1 0]
+[1 1 0 0 1 0 0 1 0 1 0 0 0 0 1 1 1 1 0 1]
 1
 0
 String
@@ -177,9 +177,9 @@ OUTPUT
 10
 
 MONITOR
-485
+180
 10
-940
+615
 55
 NIL
 I
