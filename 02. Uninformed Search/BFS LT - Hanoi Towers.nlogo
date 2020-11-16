@@ -122,6 +122,7 @@ to test
   let ti timer
   let p BFS (read-from-string Initial_State) (read-from-string Final_State)
   show p
+  foreach (reverse map last  p) output-print
   show (word "Searching Time: " (timer - ti))
 end
 @#$#@#$#@

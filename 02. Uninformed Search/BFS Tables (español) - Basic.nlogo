@@ -88,24 +88,6 @@ to-report traza [nodes state]
   report rep
 end
 
-to-report select-path [paths]
-  ;;
-  ;; Dada una lista de caminos de estados, devuelve el siguiente estado que debe ser
-  ;;    explorado
-  ;;
-  report (first paths)           ;; así definido, implementa el BFS
-end
-
-
-to-report state-from [node]
-  ;;
-  ;; dado un estado, este filtro elimina todo aquello que no es necesario para
-  ;;    el GMN
-  ;;
-  report (first node)                   ;; en este caso no hace nada
-end
-
-
 to-report final-state? [state goal]
   ;;
   ;; Comprueba si el estado actual es el objetivo buscado
@@ -115,7 +97,7 @@ end
 
 to test
   let t timer
-  show BFS 2 50000
+  show BFS 2 50001
   show timer - t
 end
 @#$#@#$#@

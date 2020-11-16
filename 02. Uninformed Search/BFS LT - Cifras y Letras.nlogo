@@ -1,55 +1,50 @@
 extensions [table]
 
-;----------------- Include Algorithms Library --------------------------------
-
-;__includes [ "BFS.nls" "LayoutSpace.nls"]
-
-
 ;--------------- Customizable Reports -------------------
 
 ; These reports must be customized in order to solve different problems using the
 ; same BFS function.
 
-; Ops almacena las posibles operaciones como funciones lambda. Además, controla que no se divida por 0
-globals [ops]
+; Ops devuelve las posibles operaciones como funciones lambda. Además, controla que no se divida por 0
+
+to-report ops
+  report (list
+    (list [[x y] -> x + y] "+")
+    (list [[x y] -> x - y] "-")
+    (list [[x y] -> x * y] "*")
+    (list [[x y] -> ifelse-value (y = 0) [false] [x / y]] "/"))
+end
 
 ; Aplica la operacion op sobre los elementos i y j del estado s (siempre con el mismo orden).
 ; Si no se puede aplicar, devuelve false (dividir por 0, división no entera...).
 ; Las listas de números se trabajan siempre ordenadas para tener una representación canónica.
 to-report aplica [op i j s]
   if i = j [report false]
-  let inds (list i j)
-  set i min inds
-  set j max inds
+  ;let inds (list i j)
+  ;set i min inds
+  ;set j max inds
   let res (run-result op (item j s) (item i s))
   if res = false or res != int res  [report false]
   report sort (lput res  (remove-item i (remove-item j s)))
 end
-
 
 ; Un estado es válido si no es false
 to-report valid? [x]
   report (x != false)
 end
 
-; children-states is an agent report that returns the children for the current state.
-; it will return a list of pairs [ns tran], where ns is the content of the children-state,
-; and tran is the applicable transition to get it.
-; It maps the applicable transitions on the current content, and then filters those
-; states that are valid.
-
-; Por cada operación valida, y par de índices, calcula el siguiente estado aplicación la operación
+; Por cada operación valida, y par de índices, calcula el siguiente estado aplicando la operación
 ; sobre esos elementos
 to-report children-states [content]
-  let indices (n-values (length content) [x -> x])
+  let indices (range ((length content) - 1))
   let res []
   foreach ops
     [op ->
       foreach indices
         [ i ->
           let r (map [ j -> (list (aplica (first op) i j content)
-                                  (list (word (item i content) (last op) (item j content))))
-                     ] indices)
+                                  (list (word (item j content) (last op) (item i content))))
+                     ] (range (i + 1) (length content)))
           set res sentence r res
       ]
   ]
@@ -58,6 +53,10 @@ end
 
 to-report state-from [node]
   report (first node)                   ;; en este caso no hace nada
+end
+
+to-report final-state? [content params]
+  report ( member? params content)
 end
 
 to-report BFS [start goal]
@@ -85,25 +84,15 @@ to-report BFS [start goal]
 end
 
 
-;--------------------- State Explorer Print -----------------------------------------
-
-to-report final-state? [content params]
-  report ( member? params content)
-end
-
-
 ;-------- Customs visualization procedures -------------------------------------------
 
 
 to test
   ca
   let ti timer
-  set ops (list
-    (list [[x y] -> x + y] "+")
-    (list [[x y] -> x - y] "-")
-    (list [[x y] -> x * y] "*")
-    (list [[x y] -> ifelse-value (y = 0) [false] [x / y]] "/"))
-  show BFS (sort (read-from-string Initial_State)) (read-from-string Final_State)
+  let p BFS (sort (read-from-string Initial_State)) (read-from-string Final_State)
+  show p
+  foreach (reverse map last  p) output-print
   show (word "Searching time: " (timer - ti))
 end
 @#$#@#$#@
@@ -151,7 +140,7 @@ INPUTBOX
 180
 70
 Initial_State
-[2 5 10 15 21 50]
+[28 12 39 19 29 39]
 1
 0
 String
@@ -162,7 +151,7 @@ INPUTBOX
 180
 130
 Final_State
-113
+452
 1
 0
 String
