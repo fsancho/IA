@@ -1,14 +1,13 @@
-__includes ["MCTS.nls"]
+__includes ["MCTS-LT.nls"]
 
-breed [pieces piece]
-
-patches-own [
-  value   ; to store the piece (0/1/2) of this place
+globals [
+  game-state
 ]
 
 ; state: [content player]
 ;
-; In this case, the content is the configuration of the board, and the player will be 1 or 2.
+; In this case, the content is the list of number of chips in every group,
+; and the player will be 1 or 2.
 
 ; Get the content of the state
 to-report MCTS:get-content [s]
@@ -27,102 +26,81 @@ end
 
 ; Get the rules applicable to the state
 to-report MCTS:get-rules [s]
-  let c MCTS:get-content s
-  ; Filter the empty places in the board
-  report filter [x -> item x c = 0] (range 0 9)
+  let c (MCTS:get-content s)
+  ; We build the list of possible rules: take one non empty group,
+  ; and remove some chips (from 1 to the total size of the group)
+  let rep []
+  foreach (range length c) [
+    g ->
+    let chips item g c
+    foreach (range 1 (chips + 1)) [
+      i ->
+      set rep lput (list g i) rep
+    ]
+  ]
+  report rep
+  ;report reduce sentence (map [g -> map [i -> (list g i)] (range 1 ((item g c) + 1))] (range length c))
 end
 
 ; Apply the rule r to the state s
 to-report MCTS:apply [r s]
   let c MCTS:get-content s
   let p MCTS:get-playerJustMoved s
-  ; Fill the r place with the number of the current player
-  report MCTS:create-state (replace-item r c (3 - p)) (3 - p)
+  let gr first r
+  let chips last r
+  report MCTS:create-state (replace-item gr c ((item gr c) - chips)) (3 - p)
 end
 
 ; Move the result from the last state to the current one
 to-report MCTS:get-result [s p]
   let pl MCTS:get-playerJustMoved s
-  let c MCTS:get-content s
-  ; L will have the lines of the board
-  let L [[0 1 2] [3 4 5] [6 7 8] [0 3 6] [1 4 7] [2 5 8] [0 4 8] [2 4 6]]
-  ; For every line, we see if it is filled with the same player
-  foreach L [
-    lin ->
-    let val map [x -> (item x c)] lin
-    if first val = last val and first val = (first bf val) [
-      ifelse first val = p [report 1] [report 0]
-    ]
-  ]
-  ; if there is no winner lines, and the board is full, then it is a draw
-  if empty? MCTS:get-rules s [report 0.5]
-  report [false]
+  ifelse pl = p [report 1] [report 0]
 end
 
 ;; Interface
 
-to start
-  ca
-  ask patches [set value 0]
-  ask patches with [(pxcor + pycor) mod 2 = 0] [set pcolor grey]
+to-report start-config
+  let NumGroups 1 + random 10
+  ;report map [1 + random 10] (range NumGroups)
+  report n-values NumGroups [1 + random 10]
 end
 
-to go
-  let played? false
-  if mouse-down? [
-    ask patch mouse-xcor mouse-ycor [
-      if not any? pieces-here [
-        set value 1
-        sprout-pieces 1 [
-          set shape "o"
-          set color white]
-        set played? true
-      ]
-    ]
-    if MCTS:get-result (list (board-to-state) 1) 1 = 1 [
-      user-message "You win!!!"
-      stop
-    ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
-      user-message "Draw!!!"
-      stop
-    ]
+to setup
+  ca
+  set game-state (list start-config 1)
+  output-print (word "Initial state: " game-state)
+end
 
-    wait .1
-    if played? [
-      let m MCTS:UCT (list (board-to-state) 1) Max_iterations
-      ;show m
-      ask (item m (sort patches)) [
-        set value 2
-        sprout-pieces 1 [
-          set shape "x"
-          set color white]
-      ]
-    ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 1 [
-      user-message "I win!!!"
-      stop
-    ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
-      user-message "Draw!!!"
-      stop
+; A function that removes n chips (for human player). After that, it
+; tests if the game is over and, otherwise, let play the computer (with UCT).
+to play [r]
+  let gr first r
+  let chips last r
+  ifelse chips <= (item gr (MCTS:get-content game-state)) [
+    set game-state MCTS:apply r game-state
+    output-print (word "You move " r ", and the state is now " game-state)
+    ifelse sum (MCTS:get-content game-state) = 0
+    [ user-message "You Win!!!"]
+    [ let m MCTS:UCT game-state Max_iterations
+      set game-state MCTS:apply m game-state
+      output-print (word "I move " m ", and the state is now " game-state)
+      if sum (MCTS:get-content game-state) = 0 [user-message "I Win!!!"]
     ]
   ]
-end
-
-to-report board-to-state
-  let b map [x -> [value] of x] (sort patches)
-  report b
+  [
+    output-print (word "Invalid movement!!  Try again")
+    output-print (word "The state is now " game-state)
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-163
+210
 10
-535
-383
+251
+52
 -1
 -1
-121.33333333333333
+1.0
 1
 10
 1
@@ -132,64 +110,64 @@ GRAPHICS-WINDOW
 1
 1
 1
-0
-2
-0
-2
+-16
+16
+-16
+16
 0
 0
 1
 ticks
 30.0
 
-BUTTON
-21
-10
-84
-43
-Start
-start
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-91
-10
-154
-43
-Play!
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
-22
-52
-154
-85
+20
+10
+186
+43
 Max_iterations
 Max_iterations
 0
 1000
-600.0
+1000.0
 100
 1
 NIL
 HORIZONTAL
+
+BUTTON
+20
+44
+110
+77
+New Game
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+187
+10
+650
+365
+11
+
+TEXTBOX
+24
+84
+174
+112
+Write \"Play [g n]\" to remove n chips from the group g
+11
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -289,6 +267,12 @@ false
 0
 Circle -7500403 true true 0 0 300
 
+circle 2
+false
+0
+Circle -7500403 true true 0 0 300
+Circle -16777216 true false 30 30 240
+
 cow
 false
 0
@@ -387,12 +371,6 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
-
-o
-false
-0
-Circle -7500403 true true 30 30 240
-Circle -16777216 true false 60 60 180
 
 pentagon
 false

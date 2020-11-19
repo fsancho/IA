@@ -1,29 +1,14 @@
-__includes ["MCTS - LT2.nls"]
+__includes ["MCTS-LT.nls"]
 
-; Pieces of the game
 breed [pieces piece]
 
-pieces-own [
-  id ; will mantain the type of the piece (it identifies the piece)
-]
-
-; Patches: cells of the board
-;     0  1  2  3
-;     4  5  6  7
-;     8  9 10 11
-;    12 13 14 15
 patches-own [
-  value ; will mantain the id of the piece in it
+  value   ; to store the piece (0/1/2) of this place
 ]
 
 ; state: [content player]
-;    The content is a list with the contents of the cells of the board
-;    In every cell we have:
-;       0 : if there is no piece in it
-;      id : if the piece id is in it
-; rules: [ pie pos]
-;      piece: a piece available (not played)
-;      pos  : a cell available (no piece in it). From 0 to 15
+;
+; In this case, the content is the configuration of the board, and the player will be 1 or 2.
 
 ; Get the content of the state
 to-report MCTS:get-content [s]
@@ -40,214 +25,117 @@ to-report MCTS:create-state [c p]
   report (list c p)
 end
 
-; Report that returns the correct lines present in a content (if any)
-to-report get:solutions [c]
-  let L [[0 1 2 3] [4 5 6 7] [8 9 10 11] [12 13 14 15]
-    [0 4 8 12] [1 5 9 13] [2 6 10 14] [3 7 11 15] [0 5 10 15] [3 6 9 12]]
-  report filter solution? map [lin -> (map [i -> item i c] lin)] L
-end
-
-; Auxiliary report to know if a line is a solution
-to-report solution? [lin]
-  ; if the line is filled with pieces
-  ifelse fill? lin
-  [
-    ; Group by types:
-    ;   [[1 a] [2 b]] => [[1 2] [a b]]
-    let group-by-types (map [i -> (map [x -> item i x] lin)] (range 4))
-    ; Check every group tp be uniform (the exact same values)
-    let uniforms map uniform? group-by-types
-    ; Check if any of them is uniform
-    report reduce or uniforms
-  ]
-  [report false]
-end
-
-; Auxiliary report to know if a list has all their elements equal:
-to-report uniform? [lin]
-  let f first lin
-  report reduce and (map [x -> x = f] lin)
-end
-
-; Auxiliary report to know if a line is filled (all their elements must be lists)
-to-report fill? [lin]
-  report reduce and map is-list? lin
-end
-
-; Report the product of two lists:
-;   [a b c] times [1 2] = [ [a 1] [a 2] [b 1] [b 2] [c 1] [c 2] ]
-to-report times [L1 L2]
-  if empty? L1 or empty? L2 [report []]
-  report reduce sentence map [y -> map [x -> (list x y)] L1] L2
-end
-
 ; Get the rules applicable to the state
 to-report MCTS:get-rules [s]
-  ; the actions are the same for both players
-  ; so, it depends only on the content
   let c MCTS:get-content s
-  ; If there is any solution in c, then the game is finished
-  if not empty? (get:solutions c) [report []]
-  ; If there are no solutions, we can play, then...
-  ;   Filter the empty places in the board
-  let holes filter [x -> item x c = 0] (range 0 15)
-  ;   Take the free pieces
-  let ids [id] of pieces with [xcor > 4]
-  ;   Report the product of both lists
-  report times ids holes
+  ; Filter the empty places in the board
+  report filter [x -> item x c = 0] (range 0 9)
 end
 
 ; Apply the rule r to the state s
 to-report MCTS:apply [r s]
   let c MCTS:get-content s
   let p MCTS:get-playerJustMoved s
-  ; Fill the position with the piece and change the player
-  let pos last r
-  let pie first r
-  report MCTS:create-state (replace-item pos c pie) (3 - p)
+  ; Fill the r place with the number of the current player
+  report MCTS:create-state (replace-item r c (3 - p)) (3 - p)
 end
 
 ; Move the result from the last state to the current one
 to-report MCTS:get-result [s p]
   let pl MCTS:get-playerJustMoved s
   let c MCTS:get-content s
-  ; check if there is any solution, and report if it is a winning content or
-  ; not (for the current player)
-  if not empty? get:solutions c
-    [ ifelse pl = p [ report 1] [report 0]]
+  ; L will have the lines of the board
+  let L [[0 1 2] [3 4 5] [6 7 8] [0 3 6] [1 4 7] [2 5 8] [0 4 8] [2 4 6]]
+  ; For every line, we see if it is filled with the same player
+  foreach L [
+    lin ->
+    let val map [x -> (item x c)] lin
+    if first val = last val and first val = (first bf val) [
+      ifelse first val = p [report 1] [report 0]
+    ]
+  ]
   ; if there is no winner lines, and the board is full, then it is a draw
   if empty? MCTS:get-rules s [report 0.5]
-  report false
+  report [false]
 end
 
-;; ------------------------ Interface ---------------------------------------
+;; Interface
 
-; Start procedure. Prepares the board
 to start
   ca
-  ; Setup the board and place for pieces
-  ask patches with [pxcor < 4] [
-    set pcolor ifelse-value (pxcor + pycor) mod 2 = 0 [black][white]
-  ]
-  ask patches with [pxcor > 3] [
-    set pcolor lime - 2
-  ]
-  ; Setup pieces
-  let Piece-color [red blue]
-  let Piece-size [1 2]
-  let Piece-shape ["s" "c"]
-  let Piece-hole [1 0]
-  foreach Piece-color [ c ->
-    foreach Piece-size [ s ->
-      foreach Piece-shape [ sp ->
-        foreach Piece-hole [ h ->
-          create-pieces 1 [
-            set shape (word sp h)
-            set size s / 2
-            set color c
-            set id (list c s sp h)
-            move-to one-of patches with [not any? pieces-here and pxcor > 3]
-  ]]]]]
+  ask patches [set value 0]
+  ask patches with [(pxcor + pycor) mod 2 = 0] [set pcolor grey]
 end
 
-to play
+to go
   let played? false
-  let p nobody
-  let oldpos nobody
-  ; In the cycle, the human starts playing
-  ; Let's check if you click on a free piece
-  if mouse-down? and mouse-xcor > 3.5 [
-    if any? pieces-on patch mouse-xcor mouse-ycor [
-      set p one-of pieces-on patch mouse-xcor mouse-ycor
-      set oldpos patch mouse-xcor mouse-ycor
-      ; and move it on a free cell of the board
-      while [mouse-down?] [
-        ask p [setxy mouse-xcor mouse-ycor]
-      ]
-      ; when the mouse is released
-      ask p [
-        ifelse (not any? other pieces-on patch mouse-xcor mouse-ycor) and mouse-xcor < 3.5
-        [
-          ; move the piece over the cell and set its value
-          move-to patch mouse-xcor mouse-ycor
-          set value id
-          set played? true
-        ]
-        [
-          ; if you released the mouse in a wrong place, the piece is moved again
-          ; to its original location
-          move-to oldpos
-        ]
+  if mouse-down? [
+    ask patch mouse-xcor mouse-ycor [
+      if not any? pieces-here [
+        set value 1
+        sprout-pieces 1 [
+          set shape "o"
+          set color white]
+        set played? true
       ]
     ]
-    ; wait some time to allow a correct releasing of the mouse
-    wait .1
-    ; check if the current content is winner for the human
     if MCTS:get-result (list (board-to-state) 1) 1 = 1 [
       user-message "You win!!!"
       stop
     ]
-    ; or a draw
     if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
-  ]
-  ; if the human has played, it is the turn of the machine
-  if played? [
-    ; lets take the move from the MCTS algorithm
-    let tempo timer
-    let m MCTS:UCT (list (board-to-state) 1) Max_iterations
-    show timer - tempo
-    let pie first m
-    let pos last m
-    ; Make the move and update the board
-    ask one-of pieces with [id = pie]
-    [
-      move-to (item pos (sort patches with [pxcor < 4]))
-      set value id
+
+    wait .1
+    if played? [
+      let m MCTS:UCT (list (board-to-state) 1) Max_iterations
+      ;show m
+      ask (item m (sort patches)) [
+        set value 2
+        sprout-pieces 1 [
+          set shape "x"
+          set color white]
+      ]
     ]
-    ; check if the current content is winner for the machine
     if MCTS:get-result (list (board-to-state) 2) 2 = 1 [
       user-message "I win!!!"
       stop
     ]
-    ; or a draw
     if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
   ]
-  ; The cycle starts again...
 end
 
-; Auxiliary report to build the representation in list from the patches
 to-report board-to-state
-  let b map [x -> [value] of x] (sort patches with [pxcor < 4])
+  let b map [x -> [value] of x] (sort patches)
   report b
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-16
-57
-718
-413
+163
+10
+535
+383
 -1
 -1
-86.8
+121.33333333333333
 1
 10
 1
 1
 1
 0
-0
-0
+1
+1
 1
 0
-7
+2
 0
-3
+2
 0
 0
 1
@@ -255,28 +143,11 @@ ticks
 30.0
 
 BUTTON
-112
+21
 10
-175
+84
 43
-Play!
-Play
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-16
-10
-106
-43
-New Game
+Start
 start
 NIL
 1
@@ -288,17 +159,34 @@ NIL
 NIL
 1
 
-SLIDER
-426
+BUTTON
+91
 10
-598
+154
 43
+Play!
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+22
+52
+154
+85
 Max_iterations
 Max_iterations
 0
-50000
-50000.0
-5000
+1000
+1000.0
+100
 1
 NIL
 HORIZONTAL
@@ -306,49 +194,39 @@ HORIZONTAL
 @#$#@#$#@
 ## WHAT IS IT?
 
-A demo of Monte Carlo Tree Search algorithm applied to the game **Quarto**.
+(a general understanding of what the model is trying to show or explain)
 
-Following information has been extracted from  [Ludoteka](http://www.ludoteka.com/quarto.html).
+## HOW IT WORKS
 
-## ORIGIN AND HISTORY
+(what rules the agents use to create the overall behavior of the model)
 
-**Quarto** is a recent board game created by Blaise Muller (blaise.muller@9online.fr) and edited by Gigamic.
+## HOW TO USE IT
 
-## DESCRIPTION
+(how to use the model, including a description of each of the items in the Interface tab)
 
-This is a game that takes place on a square board divided into 16 squares (4X4) in which 2 players face each other. In addition 16 pieces are used that combine the following characteristics giving as a result of this combination all the possible variations:
+## THINGS TO NOTICE
 
-+ **Size** (big/small)
-+ **Color** (red/blue)
-+ **Shape** (square/circle)
-+ **Hole** (piece with a hole/or not)
+(suggested things for the user to notice while running the model)
 
-## GOAL
+## THINGS TO TRY
 
-The goal of the game for each player is to try to finish in turn a row of four pieces that have in common at least one of the characteristics described (four large, four small, four blue, four red, four round, four square, four with hole or four without hole). The rows may be horizontal, vertical or diagonal. The winner is the player who manages to place the fourth piece of one of the rows on the board.
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
 
-## DEVELOPMENT
+## EXTENDING THE MODEL
 
-The game is played by adding pieces to the board in alternate turns of each of the two opponents. In each of their turns each player adds a new piece to a square on the board. The piece added to the board will no longer move throughout the game.
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
 
-In this demo a **simplified version** is presented, in which in each turn the corresponding player decides which piece he places (from among the free pieces) and where.
+## NETLOGO FEATURES
 
-In the original version of the game, the player who incorporates a piece decides in which square it is incorporated, but not which piece it is incorporated into, since the opponent makes the concrete choice of the piece. Therefore, each player's turn consists of two decisions:
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
 
-1. Place the piece indicated by the opponent on the board in the previous turn.
+## RELATED MODELS
 
-2. Indicate to the opponent the piece that he will have to place in his next move.
-
-At the beginning of the game, the player who has the first turn only indicates to the opponent the piece that will be placed on the board.
-
-## FINAL
-
-If all 16 pieces are placed on the board without either player achieving the goal, the game ends in a draw.
+(models in the NetLogo Models Library and elsewhere which are of related interest)
 
 ## CREDITS AND REFERENCES
 
-Model created by: [Fernando Sancho Caparrini](https://www.cs.us.es/~fsancho/)
-This game can be found in [IA Github Repository](https://github.com/fsancho/IA) and it makes use of some libraries you can find there.
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -396,17 +274,6 @@ Circle -16777216 true false 135 90 30
 Line -16777216 false 150 105 195 60
 Line -16777216 false 150 105 105 60
 
-c0
-false
-0
-Circle -7500403 true true 15 15 270
-
-c1
-false
-0
-Circle -7500403 true true 15 15 270
-Circle -16777216 true false 88 88 124
-
 car
 false
 0
@@ -421,12 +288,6 @@ circle
 false
 0
 Circle -7500403 true true 0 0 300
-
-circle 2
-false
-0
-Circle -7500403 true true 0 0 300
-Circle -16777216 true false 30 30 240
 
 cow
 false
@@ -527,6 +388,12 @@ true
 0
 Line -7500403 true 150 0 150 150
 
+o
+false
+0
+Circle -7500403 true true 30 30 240
+Circle -16777216 true false 60 60 180
+
 pentagon
 false
 0
@@ -552,17 +419,6 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
-
-s0
-false
-0
-Rectangle -7500403 true true 30 30 270 270
-
-s1
-false
-0
-Rectangle -7500403 true true 30 30 270 270
-Rectangle -16777216 true false 90 90 210 210
 
 sheep
 false

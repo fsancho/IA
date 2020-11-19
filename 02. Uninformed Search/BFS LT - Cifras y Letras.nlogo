@@ -19,10 +19,6 @@ end
 ; Si no se puede aplicar, devuelve false (dividir por 0, división no entera...).
 ; Las listas de números se trabajan siempre ordenadas para tener una representación canónica.
 to-report aplica [op i j s]
-  if i = j [report false]
-  ;let inds (list i j)
-  ;set i min inds
-  ;set j max inds
   let res (run-result op (item j s) (item i s))
   if res = false or res != int res  [report false]
   report sort (lput res  (remove-item i (remove-item j s)))
@@ -35,6 +31,7 @@ end
 
 ; Por cada operación valida, y par de índices, calcula el siguiente estado aplicando la operación
 ; sobre esos elementos
+; hijos: [ [ns r] [ns r] ... [ns r]]
 to-report children-states [content]
   let indices (range ((length content) - 1))
   let res []
@@ -55,8 +52,8 @@ to-report state-from [node]
   report (first node)                   ;; en este caso no hace nada
 end
 
-to-report final-state? [content params]
-  report ( member? params content)
+to-report final-state? [content goal]
+  report ( member? goal content)
 end
 
 to-report BFS [start goal]
@@ -140,7 +137,7 @@ INPUTBOX
 180
 70
 Initial_State
-[28 12 39 19 29 39]
+[1 5 10 20 25 50]
 1
 0
 String
@@ -151,7 +148,7 @@ INPUTBOX
 180
 130
 Final_State
-452
+10002
 1
 0
 String
