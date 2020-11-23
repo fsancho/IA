@@ -3,12 +3,12 @@ __includes ["MCTS-LT.nls"]
 breed [pieces piece]
 
 patches-own [
-  value   ; to store the piece (0/1/2) of this place
+  value   ; to store the piece (0/1/2) of this cell
 ]
 
 ; state: [content player]
-;
-; In this case, the content is the configuration of the board, and the player will be 1 or 2.
+; content [a1 ... a9] ai = 0/1/2
+; player = 1/2
 
 ; Get the content of the state
 to-report MCTS:get-content [s]
@@ -29,7 +29,7 @@ end
 to-report MCTS:get-rules [s]
   let c MCTS:get-content s
   ; Filter the empty places in the board
-  report filter [x -> item x c = 0] (range 0 9)
+  report filter [x -> item x c = 0] (range 9)
 end
 
 ; Apply the rule r to the state s
@@ -70,6 +70,7 @@ end
 to go
   let played? false
   if mouse-down? [
+    ; Player 1 is playing
     ask patch mouse-xcor mouse-ycor [
       if not any? pieces-here [
         set value 1
@@ -79,19 +80,20 @@ to go
         set played? true
       ]
     ]
-    if MCTS:get-result (list (board-to-state) 1) 1 = 1 [
+    ; Player 1 has just played
+    let result_for_1 MCTS:get-result (list (board-to-state) 1) 1
+    if result_for_1 = 1 [
       user-message "You win!!!"
       stop
     ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
+    if result_for_1 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
-
     wait .1
     if played? [
+      ; Player 2 is playing
       let m MCTS:UCT (list (board-to-state) 1) Max_iterations
-      ;show m
       ask (item m (sort patches)) [
         set value 2
         sprout-pieces 1 [
@@ -99,11 +101,13 @@ to go
           set color white]
       ]
     ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 1 [
+    ; Player 2 has just played
+    let result_for_2 MCTS:get-result (list (board-to-state) 2) 2
+    if result_for_2 = 1 [
       user-message "I win!!!"
       stop
     ]
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
+    if result_for_2 = 0.5 [
       user-message "Draw!!!"
       stop
     ]

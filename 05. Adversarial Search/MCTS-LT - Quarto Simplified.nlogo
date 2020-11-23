@@ -22,7 +22,7 @@ patches-own [
 ;       0 : if there is no piece in it
 ;      id : if the piece id is in it
 ; rules: [ pie pos]
-;      piece: a piece available (not played)
+;      pie  : a piece available (not played)
 ;      pos  : a cell available (no piece in it). From 0 to 15
 
 ; Get the content of the state
@@ -157,6 +157,7 @@ to play
   ; In the cycle, the human starts playing
   ; Let's check if you click on a free piece
   if mouse-down? and mouse-xcor > 3.5 [
+    ; Player 1 (human) is playing
     if any? pieces-on patch mouse-xcor mouse-ycor [
       set p one-of pieces-on patch mouse-xcor mouse-ycor
       set oldpos patch mouse-xcor mouse-ycor
@@ -182,19 +183,22 @@ to play
     ]
     ; wait some time to allow a correct releasing of the mouse
     wait .1
+    ; Player 1 has just played
     ; check if the current content is winner for the human
-    if MCTS:get-result (list (board-to-state) 1) 1 = 1 [
+    let result_for_1 MCTS:get-result (list (board-to-state) 1) 1
+    if result_for_1 = 1 [
       user-message "You win!!!"
       stop
     ]
     ; or a draw
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
+    if result_for_1 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
   ]
   ; if the human has played, it is the turn of the machine
   if played? [
+    ; Player 2 (machine) is playing
     ; lets take the move from the MCTS algorithm
     let tempo timer
     let m MCTS:UCT (list (board-to-state) 1) Max_iterations
@@ -207,13 +211,15 @@ to play
       move-to (item pos (sort patches with [pxcor < 4]))
       set value id
     ]
+    ; Player 2 has just played
     ; check if the current content is winner for the machine
-    if MCTS:get-result (list (board-to-state) 2) 2 = 1 [
+    let result_for_2 MCTS:get-result (list (board-to-state) 2) 2
+    if result_for_2 = 1 [
       user-message "I win!!!"
       stop
     ]
     ; or a draw
-    if MCTS:get-result (list (board-to-state) 2) 2 = 0.5 [
+    if result_for_2 = 0.5 [
       user-message "Draw!!!"
       stop
     ]
@@ -296,8 +302,8 @@ SLIDER
 Max_iterations
 Max_iterations
 0
-50000
-50000.0
+20000
+5000.0
 5000
 1
 NIL
