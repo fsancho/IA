@@ -19,7 +19,9 @@ to-report MCTS:create-state [c p]
   report (list c p)
 end
 
-; Get the rules applicable to the state
+; rules = number of chips to remove
+
+; Get the rules applicable to the state: range 1 4 = [1 2 3]
 to-report MCTS:get-rules [s]
   report (range 1 (min (list 4 (1 + MCTS:get-content s))))
 end
