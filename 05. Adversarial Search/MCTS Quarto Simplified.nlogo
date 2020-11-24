@@ -1,5 +1,9 @@
 __includes ["MCTS.nls"]
 
+globals [
+  AllPieces ; Ids of all the pieces
+]
+
 ; Pieces of the game
 breed [pieces piece]
 
@@ -92,7 +96,8 @@ to-report MCTS:get-rules [s]
   ;   Filter the empty places in the board
   let holes filter [x -> item x c = 0] (range 0 15)
   ;   Take the free pieces
-  let ids [id] of pieces with [xcor > 4]
+  let idc filter is-list? c    ; Pieces in s
+  let ids filter [x -> not member? x idc] AllPieces
   ;   Report the product of both lists
   report times ids holes
 end
@@ -148,6 +153,7 @@ to start
             set id (list c s sp h)
             move-to one-of patches with [not any? pieces-here and pxcor > 3]
   ]]]]]
+  set AllPieces [id] of pieces
 end
 
 to play
@@ -306,7 +312,7 @@ Max_iterations
 Max_iterations
 0
 50000
-50000.0
+20000.0
 5000
 1
 NIL
