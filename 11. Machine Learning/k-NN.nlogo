@@ -22,11 +22,11 @@ to setup
   ]
 end
 
-to k-vecinos
+to k-NN [k-par]
   ask patches with [not member? self clases]
   [
    ; let distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
-    let d map [ x -> last x ] toma k distancias
+    let d map [ x -> last x ] toma k-par distancias
     let c first modes d
     set pcolor c
   ]
@@ -130,8 +130,8 @@ BUTTON
 76
 208
 109
-NIL
-k-vecinos
+k-NN
+K-NN K
 T
 1
 T
