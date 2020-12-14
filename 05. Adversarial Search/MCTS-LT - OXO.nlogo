@@ -50,7 +50,9 @@ to-report MCTS:get-result [s p]
   foreach L [
     lin ->
     let val map [x -> (item x c)] lin
-    if first val = last val and first val = (first bf val) [
+    let pval reduce * val
+    ; * [1 1 1] = 1, * [2 2 2] = 8
+    if pval = 1 or pval = 8 [
       ifelse first val = p [report 1] [report 0]
     ]
   ]
@@ -188,8 +190,8 @@ SLIDER
 Max_iterations
 Max_iterations
 0
-1000
-1000.0
+2000
+0.0
 100
 1
 NIL

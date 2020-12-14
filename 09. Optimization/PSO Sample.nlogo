@@ -97,8 +97,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
+1
+1
 1
 -100
 100
@@ -168,7 +168,7 @@ atraccion-mejor-personal
 atraccion-mejor-personal
 0
 5
-0.1
+0.4
 0.1
 1
 NIL

@@ -2,9 +2,13 @@ globals [
   clases
 ]
 
+patches-own [
+  distancias
+]
+
 to setup
   ca
-  crt 1 [set shape "circle 2"]
+  crt 1 [set shape "circle 2" set size 3]
   let colores n-of N_clases base-colors
   ask n-of poblacion_inicial patches
   [
@@ -12,14 +16,18 @@ to setup
     ask turtle 0 [move-to myself set color pcolor stamp]
   ]
   set clases patches with [pcolor != black]
+  ask patches with [not member? self clases]
+  [
+    set distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
+  ]
 end
 
 to k-vecinos
   ask patches with [not member? self clases]
   [
-    let distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
-    set distancias map [ x -> last x ] toma k distancias
-    let c first modes distancias
+   ; let distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
+    let d map [ x -> last x ] toma k distancias
+    let c first modes d
     set pcolor c
   ]
 end
@@ -31,11 +39,11 @@ end
 GRAPHICS-WINDOW
 210
 10
-622
-423
+620
+421
 -1
 -1
-4.0
+2.0
 1
 10
 1
@@ -45,10 +53,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--50
-50
--50
-50
+-100
+100
+-100
+100
 0
 0
 1
@@ -476,7 +484,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.4
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
