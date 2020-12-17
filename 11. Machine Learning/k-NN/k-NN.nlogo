@@ -1,5 +1,5 @@
 globals [
-  clases
+  datos
 ]
 
 patches-own [
@@ -15,17 +15,16 @@ to setup
     set pcolor one-of colores
     ask turtle 0 [move-to myself set color pcolor stamp]
   ]
-  set clases patches with [pcolor != black]
-  ask patches with [not member? self clases]
+  set datos patches with [pcolor != black]
+  ask patches with [not member? self datos]
   [
-    set distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
+    set distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of datos
   ]
 end
 
 to k-NN [k-par]
-  ask patches with [not member? self clases]
+  ask patches with [not member? self datos]
   [
-   ; let distancias sort-by [ [x y] -> first x < first y ] [(list (distance myself) pcolor)] of clases
     let d map [ x -> last x ] toma k-par distancias
     let c first modes d
     set pcolor c
@@ -87,7 +86,7 @@ Poblacion_inicial
 Poblacion_inicial
 0
 100
-100.0
+29.0
 1
 1
 NIL
@@ -102,7 +101,7 @@ N_Clases
 N_Clases
 0
 13
-2.0
+10.0
 1
 1
 NIL
