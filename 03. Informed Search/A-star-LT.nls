@@ -7,10 +7,14 @@ globals [
 ]
 
 ; Main procedure to apply A* algorithm:
-; nodes are stored in a table:
+; nodes are stored in a table indexed by state content:
 ;   {{ state -> [g h [parent action] open/close] }}
 ;
 ; Additionally, we mantain a list of nodes (states) for open nodes
+
+; Note: This version only works with states that can be represented as 
+; valid keys for tables. Probably, for the cases we use in the course, this
+; will not be a problem.
 
 to-report A* [start goal]
   ; Initially, only the start node is open (and it is the only node)
@@ -130,14 +134,14 @@ to close-node [n]
 end
 
 ; Obtain the path from the start node to the goal when reached
+; and the cost: [path cost]  (path = [action1 ... actionN])
 to-report get-A*path [current]
   let rep []
-;  print current
+  let cost g-of current
   while [ parent-of current != false]
   [
-;    print state-of (parent-of current)
     set rep fput (first (action-of (parent-of current))) rep
     set current state-of (parent-of current)
   ]
-  report rep
+  report (list rep cost)
 end

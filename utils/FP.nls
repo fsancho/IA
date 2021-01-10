@@ -1,0 +1,174 @@
+;;--------------------------- LISTS -------------------------
+
+; Take the first n items of list L
+to-report take [n L]
+  report sublist L 0 n
+end
+
+; Take the first items of L while they verify f
+to-report takewhile [f L]
+  ifelse (run-result f (first L))
+  [ report fput (first L) takewhile f (bf L) ]
+  [ report [] ]
+end
+
+; Drop the first n items of list L
+to-report drop [n L]
+  report sublist L n (length L)
+end
+
+; Drop the first items of L while they verify f
+to-report dropwhile [f L]
+  ifelse (run-result f (first L))
+  [ report dropwhile f (bf L) ]
+  [ report L ]
+end
+
+; Zip two lists with the same length
+to-report zip [L1 L2]
+  report (map [[x y] -> (list x y)] L1 L2)
+end
+
+;; ---------------------- APPLY ------------------------------
+
+;; __apply 
+;; __apply-result
+
+; Report that apply a function (as string name) to inputs
+;   apply "approximate-rgb" [100 100 100]
+; instead-of
+;     approximate-rgb 100 100 100
+; useful when multiple data comes from other report as a 
+; vector and we need to pass to a second procedure as 
+; individual data.
+;
+;    apply "f" [a0 ... an] = (f a0 ... an)
+;
+; Two versions are provided: as report, and as procedure.
+; They don't allow anonymous procedures.
+
+to-report apply-report [f v]
+  if not is-list? v [set v (list v)]
+  ifelse is-anonymous-reporter? f 
+  [report apply-anon-report f v]
+  [report (runresult bf bl (word fput f v))]
+end
+
+to apply [f v]
+  run (bf bl (word fput f v))
+end
+
+to-report apply-anon-report [f v]
+  let sv ifelse-value (is-list? v) [bf bl (word v)][(word v)]
+  show sv
+  if is-anonymous-reporter? f [set f bl string:from 21 (word f)]
+  show (word "( runresult " f " " sv ")")
+  report (runresult (word "( runresult " f " " sv ")"))
+end
+
+; La siguiente composición tiene sentido cuando f1 y f2 son reports anónimos
+; que reciben un solo dato de entrada, pero no sé cómo definirlo con apply 
+; cuando tienen más.
+to-report composition-anon [f1 f2]
+  let ff1  bl (string:from 21 (word f1))
+  let ff2  bl (string:from 21 (word f2))
+  ;show ff1
+  report [x -> (apply-anon-report f1 (apply-anon-report f2 x))]
+end
+to-report composition [f1 f2]
+  ifelse is-anonymous-reporter? f1
+  [ ifelse is-anonymous-reporter? f2
+    [report [x -> (runresult f1 (runresult f2 x))]]
+    [report [x -> (runresult f1 (apply-report f2 x))]]
+  ]
+  [ ifelse is-anonymous-reporter? f2
+    [report [x -> apply-report f1 (runresult f2 x)]]
+    [report [x -> apply-report f1 (apply-report f2 x)]]
+  ]
+end
+    
+
+;;;---------------- Functional Schemas for TABLES ----------------------
+
+; Foreach schema for tables. Receives a table T and
+; a procedure that takes a pair [key value] and does 
+; something, and apply the procedure to every element
+; in the table
+
+to table:foreach [T f]
+  foreach (table:to-list T) [
+    pair ->
+    let k first pair
+    let v last pair
+    (run f k v)
+  ]
+end
+
+; Map schema for tables. Receives a table T and a 
+; report (f: [k v] -> [k' v']), and returns the new 
+; table obtained from applying f to every original 
+; pair. You must take care of injectivity for new 
+; keys (otherwise, you can loose some new pairs).
+
+to-report table:map [f T]
+  let TL table:to-list T
+  report table:from-list (map [pair -> (runresult f (first pair) (last pair))] TL)
+end
+
+; Filter schema for tables. Receives a table T and a
+; boolean report (f: [k v] -> bool), and returns the 
+; new table by filtering the elements of T verifying 
+; f.
+
+to-report table:filter [f T]
+  let rep table:make
+  table:foreach T [
+    [k v] ->
+    if (runresult f k v) [ table:put rep k v ]
+  ]
+  report rep
+end
+
+;;--------------------- Functional Schemas for STRINGS ----------------------
+
+; Converts a string into a list of chars
+to-report string:to-list [S]
+  report map [i -> (item i S)] (range length S)
+end
+
+; Foreach schema for strings. Apply f to every char
+to string:foreach [S f]
+  foreach (string:to-list S) [
+    c -> (run f c)
+  ]
+end
+
+; Map schema for strings. Report the list of results of applying
+; f to every char in S.
+; If f: char->char, then you can obtain a string by reducing with word.
+to-report string:map [f S]
+  report map [ c -> (runresult f c)] (string:to-list S)
+end
+
+; Filter schema for strings. Report the chars verifying f
+to-report string:filter [f S]
+  report reduce word filter [ c -> (runresult f c)] (string:to-list S)
+end
+
+; Report the substring from position 0 to n - 1
+to-report string:upto [n S]
+  report substring S 0 n
+end
+
+; Report the substring from position n to the end
+to-report string:from [n S]
+  report substring S n (length S)
+end
+
+; Report the split of S by position n: S->(S1 S2)
+to-report string:split-by [n S]
+  report (list (string:upto n S) (string:from n S))
+end
+
+;;--------------------- MORE FUNCTIONAL -----------------------
+

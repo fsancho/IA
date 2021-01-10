@@ -25,7 +25,7 @@ ID3:nodes-own [
 directed-link-breed [ID3:links ID3:link]
 ID3:links-own [ID3:att_value]
 
-;; Dataframes ar data matrix where the first row is the head. For our ID3, last column is 
+;; Dataframes are data matrix where the first row is the head. For our ID3, last column is 
 ;; the attribute to classify.
 
 ; Entropy of a list (according to the frequency of their elements)
@@ -42,24 +42,20 @@ to-report frec [el L]
 end
 
 ; Report Relative Entropy of an attribute in a dataframe
-to-report entropy-rel [df atr]
-  ; Extract the list of attributes from dataframe
-  let atrs first df
+to-report entropy-rel [atr att-target df]
   ; Extract values of the attribute
-  let val  bf (DF:column atr df)
-  ; Take the index of the associated column
-  let p position atr atrs
-  ; Acumulador para calcular la entropia relativa
+  let vals  (DF:col atr df)
+  ; Acumulator for the relative entropy
   let ent-rel 0
   ; Para cada posible valor del atributo:
-  foreach remove-duplicates val
+  foreach remove-duplicates vals
   [ x ->
     ; Compute the relative frec of x
-    let f frec x val
+    let f frec x vals
     ; Take only rows with x in this column, and build a new dataframe with those rows
-    let df2 (fput (first df) filter [ y -> (item p y) = x ] (bf df))
+    let df2 DF:filter-col atr x df
     ; Compute the entropy of the last column in this new dataframe
-    let ex entropy  bf (DF:column (last atrs) df2)
+    let ex entropy  (DF:col att-target df2)
     ; Accumulate it
     set ent-rel ent-rel + f * ex
   ]
@@ -67,20 +63,21 @@ to-report entropy-rel [df atr]
 end
 
 ;; Gain Information in a dataframe for an attribute
-to-report GI [df atr]
-  let atrs first df
-  report (entropy bf (DF:column (last atrs) df)) - (entropy-rel df atr)
+to-report GI [atr att-target df]
+  report (entropy  (DF:col att-target df)) - (entropy-rel atr att-target df)
 end
 
 ; Report the attribute with max Gain Information in a dataframe
-to-report Max-GI [df]
-  let atr1 map [ x -> (list x (GI df x) ) ] (bl first df)
+to-report Max-GI [att-target df]
+  let other-atrs (remove att-target DF:header df)
+  let atr1 map [ x -> (list x (GI x att-target df) ) ] other-atrs
   report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
 end
 
 ; Report the attribute with max Gain Information Ratio in a dataframe
-to-report Max-GR [df]
-  let atr1 map [ x -> (list x (ifelse-value ((entropy bf DF:column x df) = 0) [0] [(GI df x) / (entropy bf DF:column x df)])) ] (bl first df)
+to-report Max-GR [df att-target]
+  let other-atrs (remove att-target DF:header df)
+  let atr1 map [ x -> (list x (ifelse-value ((entropy DF:col x df) = 0) [0] [(GI df x att-target) / (entropy DF:col x df)])) ] other-atrs
   report first first sort-by [ [x y] -> (last x) > (last y) ] atr1
 end
 
@@ -89,18 +86,18 @@ end
 ;; Reports the main root node 
 ;; (later, we can ask this node to evaluate new data)
 
-to-report ID3:ID3 [df att-target]
+to-report ID3:ID3 [att-target df]
   let rep nobody
 
   ; Move the target attribute to the last column  
-  let target DF:column att-target df
-  set df DF:remove att-target df
-  set df DF:add-column att-target df (bf target)
+  ;let target DF:col att-target df
+  ;set df DF:rem-col att-target df
+  ;set df DF:add-col att-target df (bf target)
 
   create-ID3:nodes 1 [
     set ID3:node-type 0
-    set ID3:value (last first df)
-    create-ID3:link-to (ID3:ID3_aux df) [set ID3:att_value ""]
+    set ID3:value att-target
+    create-ID3:link-to (ID3:ID3_aux att-target df) [set ID3:att_value ""]
     set rep self
     set depth 1
   ]
@@ -113,31 +110,43 @@ end
 ;               and Decision-node (to be classified)
 ;  Returns the node and, if it is Decision, then it generates the branches
 ;  and resursively call itself with the new dataframes.
-to-report ID3:ID3_aux [df]
+to-report ID3:ID3_aux [att-target df]
   let r nobody
-  ifelse ID3:classified? df
+  ifelse length (DF:header df) = 1 
   [
     hatch-ID3:nodes 1
     [
       set ID3:node-type 2
-      set ID3:value (word last last df)
+      set ID3:value "Failure"
       set r self
       set depth depth + 1
     ]
   ]
-  [
-    let mx Max-GI df
-    hatch-ID3:nodes 1
+  [ 
+    ifelse ID3:classified? att-target df
     [
-      set ID3:node-type 1
-      set ID3:value mx
-      set r self
-      set depth depth + 1
-      foreach (remove-duplicates bf (DF:column mx df))
-      [ x ->
-        create-ID3:link-to (ID3:ID3_aux DF:filter-att df mx x)
-        [
-          set ID3:att_value x
+      hatch-ID3:nodes 1
+      [
+        set ID3:node-type 2
+        set ID3:value one-of (DF:col att-target df);(word last last df)
+        set r self
+        set depth depth + 1
+      ]
+    ]
+    [
+      let mx Max-GI att-target df
+      hatch-ID3:nodes 1
+      [
+        set ID3:node-type 1
+        set ID3:value mx
+        set r self
+        set depth depth + 1
+        foreach (DF:col-values mx df)
+        [ x ->
+          create-ID3:link-to (ID3:ID3_aux att-target (DF:rem-col mx (DF:filter-col mx x df)))
+          [
+            set ID3:att_value x
+          ]
         ]
       ]
     ]
@@ -147,18 +156,21 @@ end
 
 ; The C4.5 Algorithm can be obtained from standard ID3 by previously transforming the numerical
 ; attributes to categorical decisions.
-to-report ID3:C4.5 [df target-att Num-att]
-  set df (ID3:num2att df Num-att)
-  report ID3:ID3 df target-att
+to-report ID3:C4.5 [att-target Num-atts df]
+  print "Preparing Dataframe..."
+  set df (ID3:num2att Num-atts df)
+  ;output-print DF:pp df
+  print "Computing ID3..."
+  report ID3:ID3 att-target df
 end
 
 
 ; Reports if a dataframe is classified or not
-to-report ID3:classified? [df]
-  let clas (last first df)
-  let val bf (DF:column clas df)
-  let vals length remove-duplicates val
-  report ifelse-value (vals = 1) [true] [false]
+to-report ID3:classified? [att-target df]
+;  let clas (last first df)
+  let #vals length (DF:col-values att-target df)
+;  let vals length remove-duplicates val
+  report (#vals = 1)
 end
 
 ; Format the ID3 network 
@@ -187,7 +199,6 @@ to-report ID3:evaluate [datum]
     [
       let val ID3:value-of ID3:value datum
       let next-branch my-out-ID3:links with [ID3:att_value = val]
-      ;show next-branch
       ifelse any? next-branch 
         [
           let next-node [end2] of one-of next-branch
@@ -215,15 +226,15 @@ end
 
 ; Transform the attributes from Latt (numerical) into a set of 
 ; categorical attributes (of the form "att <= val")
-to-report ID3:num2att [df Latt]
-  foreach Latt [
+to-report ID3:num2att [Num-atts df]
+  foreach Num-atts [
     att ->
-    let vals sort DF:values df att
+    let vals sort DF:col-values att df
     foreach vals [
       v -> 
-      set df DF:add-calculated-column (word att "<=" v) df [r -> (DF:value att df r <= v)]
+      set df DF:add-calc-col (word att "<=" v) [r -> (DF:value att r df <= v)] df
     ]
-    set df DF:remove att df
+    set df DF:rem-col att df
   ]
   report df
 end

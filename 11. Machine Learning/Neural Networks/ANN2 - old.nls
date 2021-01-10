@@ -1,0 +1,473 @@
+; N-Layer Neural Network matricial implementation in NetLogo 6 by Fernando Sancho
+;   (over a work of Stephen Larroque)
+
+extensions [matrix]
+
+
+
+;==============================================================
+;=================       EXAMPLE USAGE        =================
+;==============================================================
+
+to-report random-matrix
+  report matrix:map [random 10] matrix:make-constant 3 4 0
+end
+
+to test3
+  let A random-matrix
+  print matrix:pretty-print-text A
+  print matrix:pretty-print-text matrix:bfc A
+  print matrix:pretty-print-text matrix:from-row-list (list matrix:get-row A 1)
+end
+
+; Real example for learning a neural network, either in debug mode (weights fixed and stochasticity removed) or not
+to go-learn
+  clear-all
+
+  ;====== CONFIGURATION ======
+
+  ; Parameters
+  ;let neurons_per_layer (list 2 5 2) ; you can directly specify all the neurons if you want
+  let Architecture []
+  let lambda 0 ; to reduce overfitting, this is the cost of parameters complexity
+  let epsilon 0 ; gradient step, use smaller values if using stochastic gradient descent. May need a bit lower epsilon than in the Octave code because here the precision is more by default
+  let nIterMax 5000
+  let learnPart 0.6 ; 0.6 = 60% points will be attributed to learning and the rest to the test set, 0 to disable
+  let checkGrad false ; Check the gradient at the end?
+
+  ; Toy datasets
+  let X []
+  let y []
+
+
+  ;====== PROGRAM ======
+
+
+  let useCrossval false
+  if learnPart > 0 and learnPart < 1 [
+    set useCrossval true
+  ]
+
+  let init_Ws (ANN:InitializeWs Architecture)
+  let Ws (matrix:copy-recursive init_Ws)
+
+  ; Splitting dataset and then learning the neural network
+  let Xtrain []
+  let Ytrain []
+  let Xtest []
+  let Ytest []
+  ifelse useCrossval [
+    let onecross (crossval X y learnPart)
+    set Xtrain (item 0 onecross)
+    set Ytrain (item 1 onecross)
+    set Xtest (item 2 onecross)
+    set Ytest (item 3 onecross)
+  ]
+  ; No splitting
+  [
+    set Xtrain X
+    set Ytrain y
+    set Xtest []
+    set Ytest []
+  ]
+
+  ; Train
+  let Fit-Train (ANN:Train 3 Ws Architecture lambda Xtrain Ytrain Xtest Ytest epsilon nIterMax)
+
+  set Ws (item 0 Fit-Train)
+  let errtrain (item 1 Fit-Train)
+  let errtest (item 2 Fit-Train)
+  plot-learning-curve "Train" errtrain
+  plot-learning-curve "Test" errtest
+
+
+  ; Check on Train Data
+  let check-Train (ANN:ForwardProp Ws Xtrain)
+  let OTrain (item 0 check-Train)
+  let Atrain (item 1 check-Train)
+
+  let Otest []
+  let Atest []
+  if useCrossval [
+    let check-Test (ANN:ForwardProp Ws Xtest)
+    set Otest (item 0 check-Test)
+    set Atest (item 1 check-Test)
+  ]
+
+  ; Cost
+  let M (item 0 matrix:dimensions Xtrain)
+  let Jtrain (ANN:ComputeError Ytrain Otrain Ws lambda)
+
+  let Mtest 0
+  let Jtest 0
+  if useCrossval [
+      set Mtest (item 0 matrix:dimensions Xtest)
+      set Jtest (ANN:ComputeError Ytest Otest Ws lambda)
+  ]
+
+
+  ; Printing infos
+  print "Xtrain:"
+  print matrix:pretty-print-text Xtrain
+  print "Ytrain:"
+  print matrix:pretty-print-text Ytrain
+  if useCrossval [
+    print "Xtest:"
+    print matrix:pretty-print-text Xtest
+    print "Ytest:"
+    print matrix:pretty-print-text Ytest
+  ]
+
+  print (word "Otrain:\n" matrix:pretty-print-text Otrain "\n")
+  if useCrossval [
+    print (word "Otest:\n" matrix:pretty-print-text Otest "\n")
+  ]
+  print (word "Train error:" Jtrain "\n")
+  if useCrossval [
+     print (word "Test error:" Jtest "\n")
+  ]
+  print "---------------------------------\n"
+end
+
+
+;==============================================================
+;=================  NEURAL NETWORK FUNCTIONS  =================
+;==============================================================
+
+; Add a column of 1's at the beginning
+to-report ANN:addBias [A]
+  let dim matrix:dimensions A
+  let N item 0 dim
+  report matrix:prepend-column A (n-values N [1])
+end
+
+; Compute the sigmoid function: R -> R
+to-report ANN:sigm2 [x]
+  let ret 0
+  carefully [
+    set ret 1 / (1 + e ^ (- x)) ; use e ^ (-x) so as to show to user that some values are too big and may produce weird results in the learning
+  ]
+  [
+    show (word "Number too big for NetLogo, produces infinity in sig_aux with e ^ (- x): -x = " (- x))
+    set ret 1 / (1 + exp (- x)) ; prefer using (exp x) rather than (e ^ x) because the latter can produce an error (number is too big) while exp will produce Infinity without error
+  ]
+  report ret
+end
+
+to-report ANN:sigm [x]
+  report ANN:relu x
+end
+
+; RELU function
+to-report ANN:relu [x]
+  ifelse x > 0 [report x] [report 0]
+end
+
+to-report ANN:relu' [x]
+  ifelse x > 0 [report 1] [report 0]
+end
+
+
+; RELU derivative function
+to-report ANN:sigm' [x]
+  ifelse x > 0 [report 1] [report 0]
+end
+
+; Compute the matricial sigmoid (element-wise)
+to-report ANN:sigmoid [A]
+  report matrix:map ANN:sigm A
+end
+
+; Compute the matricial sigmoid derivative (element-wise)
+to-report ANN:sigmoid2' [A]
+  let sigA ANN:sigmoid A
+  report matrix:times-element-wise sigA (1 matrix:- sigA)
+end
+
+to-report ANN:sigmoid' [A]
+  report matrix:map ANN:sigm' A
+end
+
+
+; Initialize all the weights matrices
+to-report ANN:InitializeWs [Architecture]
+  let Ws (map [[i j] -> (ANN:RandInitializeW i j)] (bl Architecture) (bf Architecture))
+  report Ws
+end
+
+; Rand initilization of one weight matrix
+to-report ANN:RandInitializeW [L_in L_out]
+  let W matrix:make-constant L_out (L_in + 1) 0
+  let epsilon_init ((sqrt 6) / (sqrt (L_in + L_out))) ; or 0.12, both are magic values anyway, so you can change that to anything you want
+  set W matrix:map [((random-float 1) * 2 * epsilon_init - epsilon_init)] W
+  report W
+end
+
+to-report crossval [X y learnPart]
+  let dim matrix:dimensions X
+  let M item 0 dim
+  let N item 1 dim
+
+  ; Generate list of indexes and shuffle it
+  let indlist range M
+  let indrand (shuffle indlist)
+
+  ; Get the index where we must split the two datasets
+  let numlearn (round (learnPart * M)) ; Be careful with round: round a * b = (round a) * b != (round (a * b))
+
+  let indrandlearn sort (sublist indrand 0 numlearn)
+  let indrandtest sort (sublist indrand numlearn M)
+
+  ; Split the dataset in two
+  let Xlearn (matrix:somerows X indrandlearn)
+  let Ylearn (matrix:somerows Y indrandlearn)
+  let Xtest (matrix:somerows X indrandtest)
+  let Ytest (matrix:somerows Y indrandtest)
+
+  report (list Xlearn Ylearn Xtest Ytest)
+end
+
+to-report ANN:Train [MiniBatch Ws Architecture lambda Xtrain Ytrain Xtest Ytest  epsilon nIterMax ]
+
+  let dim matrix:dimensions Xtrain
+  let M item 0 dim
+
+  let Layers (length Architecture)
+
+  let t 1
+  let errtrain []
+  let errtest []
+
+  let temp []
+  let porc 0
+  while [t < nIterMax] [
+    ; == Preparing for stochastic gradient (pick only one example for each iteration instead of all examples at once)
+    let samples n-of MiniBatch (range M)
+    let XBatch select-samples samples Xtrain
+    let YBatch select-samples samples Ytrain
+
+    ; == Forward propagating + Computing cost
+    ; = Learning dataset
+    let forward-train (ANN:ForwardProp Ws XBatch)
+    let Out (item 0 forward-train)
+    let As (item 1 forward-train)
+    let Zs (item 2 forward-train)
+
+
+    ; == Train and Test error
+    set errtrain lput (ANN:ComputeError YBatch Out Ws lambda) errtrain
+
+    let forward-test (ANN:ForwardProp Ws Xtest)
+    let Otest (item 0 forward-test)
+    let Atest (item 1 forward-test)
+    let Ztest (item 2 forward-test)
+
+    set errtest lput (ANN:ComputeError Ytest Otest Ws lambda) errtest
+
+    ; == Back propagating
+    ; Computing gradient
+    let Ws_grad (ANN:BackwardProp lambda Ws As Zs YBatch)
+    ; Update Ws
+    let epsi (epsilon / (1 + (t - 1) * 0)) ; Implementing learning rate decay (aka gradient step decay) so that the network converges faster
+    set Ws (map [[W W'] -> (W matrix:- (epsi matrix:* W'))] Ws (bl Ws_grad))
+
+    ; Force refreshing of the plots
+    display
+
+    ; Increment t (iteration counter)
+    set t (t + 1)
+    
+    let pas floor (100 * (t / nIterMax))
+    if (pas mod 10 = 0) and  (pas > porc) [set porc porc + 10 print (word pas "%")]
+  ]
+  report (list Ws errtrain errtest)
+end
+
+to-report select-samples [samples X]
+  report matrix:from-row-list (map [i -> matrix:get-row X i] samples)
+end
+
+; Forward Propagation of ANN
+to-report ANN:ForwardProp [Ws X]
+  let Layers (length Ws) + 1
+  let As (list ANN:addBias(X))
+  let Zs [0]
+  let Z 0
+  foreach (range 1 Layers) [
+    L ->
+    let A last As
+    let W (item (L - 1) Ws)
+    set Z A matrix:* (matrix:transpose W)
+    set Zs lput Z Zs
+    set As lput (ANN:addBias (ANN:sigmoid Z)) As
+  ]
+  set As lput Z (bl As) ; Change the last activation for the same but without sigmoid
+  let O Z
+  report (list O As Zs)
+end
+
+to-report ANN:ComputeError [Y O Ws lambda]
+
+  ; First, the Predictive error: (O - Y)^2
+  if is-number? Y [ set Y matrix:from-row-list (list (list Y)) ] ; Convert to a matrix if it's only a number
+  if is-number? O [ set O matrix:from-row-list (list (list O)) ] ; Convert to a matrix if it's only a number
+  let Y-O (Y matrix:- O)
+  let J1 sum matrix:to-list (matrix:times-element-wise Y-O Y-O) ; First we must sum over the features to compute some kind of euclidian distance,
+                                                                   ; then we can sum over all examples errors
+  let M item 0 matrix:dimensions Y
+  set J1 (1 / (2 * M) * J1) ; scale cost relatively to the size of the dataset
+
+  ; Second, the Regularization factor (if lambda > 0, then small values in Ws are choosen)
+  let Ws_red map [th -> matrix:bfc th] Ws
+  let sum_Ws sum (map [ th -> sum matrix:to-list (matrix:times-element-wise th th)] Ws_red)
+  let J2 lambda / (2 * M) * sum_Ws
+
+  ; Sum
+  let J (J1 + J2)
+
+  report J
+end
+
+to-report ANN:BackwardProp [lambda Ws As Zs Y]
+  let Layers length As
+  let M item 0 matrix:dimensions Y
+
+  let deltas (n-values Layers [0])
+  let O (item (Layers - 1) As)
+
+  if is-number? Y [ set Y matrix:from-row-list (list (list Y)) ] ; Convert to a matrix if it's only a number
+
+  ; == backpropagate delta values
+  set deltas (replace-item (Layers - 1) deltas (O matrix:- Y))
+  foreach (range (Layers - 2) 0 -1) [
+    L ->
+    let W_L item L Ws
+    let Z_L item L Zs
+    let delta_L+1 item (L + 1) deltas
+    let delta_L (delta_L+1 matrix:* (matrix:bfc W_L))
+    set delta_L (matrix:times-element-wise delta_L (ANN:sigmoid' Z_L))
+    set deltas (replace-item L deltas delta_L)
+  ]
+
+  ; == Backpropagating error gradient (for the weights) from last layer towards first layer
+  let Ws_grad (n-values Layers [0])
+  foreach (range (Layers - 2) -1 -1) [
+    L ->
+    let A item L As
+    let delta_L+1 item (L + 1) deltas
+    let W_L_grad (matrix:times (1 / M) (matrix:transpose delta_L+1) A)
+    set Ws_grad (replace-item L Ws_grad W_L_grad)
+  ]
+
+  ; == Regularize the gradient
+  foreach (range (Layers - 2) -1 -1) [
+    L ->
+    let W_L_grad (item L Ws_grad)
+    let Wn_L_grad matrix:bfc W_L_grad
+    let W1_L_grad (matrix:get-column W_L_grad 0)
+    let W_L (item L Ws)
+    set W_L_grad Wn_L_grad matrix:+ ((lambda / M)  matrix:* (matrix:bfc W_L))
+    set Ws_grad (replace-item L Ws_grad (matrix:prepend-column W_L_grad W1_L_grad))
+  ]
+
+  report Ws_grad
+end
+
+to plot-learning-curve [pen cost]
+  set-current-plot "Error vs. Epochs"
+  set-current-plot-pen pen
+  foreach cost plot
+;  plot cost
+end
+
+;==============================================================
+;================= MATRIX AUXILIARY FUNCTIONS =================
+;==============================================================
+
+; row is a list
+to-report matrix:prepend-row [X row]
+  report matrix:from-row-list fput row (matrix:to-row-list X)
+end
+
+; column is a list
+to-report matrix:prepend-column [X column]
+  report matrix:from-column-list fput column (matrix:to-column-list X)
+end
+
+; Semi-vectorized procedure to sum a matrix over rows or columns
+; If the matrix is not summable or there is only one element, it will return the same matrix
+to-report matrix:sum [X columnsOrRows?] ; columnsOrRows? 2 = over columns
+  if is-number? X [report X] ; if it's already a number, we've got nothing to do, just return it
+  if is-list? X [report sum X] ; if it's a list we use the built-in function
+  if columnsOrRows? = 2 [ report map sum matrix:to-column-list X ] ; Columns
+  if columnsOrRows? = 1 [ report map sum matrix:to-row-list X ] ; Rows
+end
+
+; Semi-vectorized procedure to return the max value of a matrix over rows or columns
+; If the matrix is not summable or there is only one element, it will return the same matrix
+; NB: it's a copy-cat of matrix:sum
+to-report matrix:max [X columnsOrRows?] ; columnsOrRows? 2 = over columns
+  if is-number? X [report X] ; if it's already a number, we've got nothing to do, just return it
+  if is-list? X [report max X] ; if it's a list we use the built-in function
+  if columnsOrRows? = 2 [ report map max matrix:to-column-list X ] ; Columns
+  if columnsOrRows? = 1 [ report map max matrix:to-row-list X ] ; Rows
+end
+
+; Semi-vectorized procedure to return the min value of a matrix over rows or columns
+; If the matrix is not summable or there is only one element, it will return the same matrix
+; NB: it's a copy-cat of matrix:sum
+to-report matrix:min [X columnsOrRows?] ; columnsOrRows? 2 = over columns
+  if is-number? X [report X] ; if it's already a number, we've got nothing to do, just return it
+  if is-list? X [report min X] ; if it's a list we use the built-in function
+  if columnsOrRows? = 2 [ report map min matrix:to-column-list X ] ; Columns
+  if columnsOrRows? = 1 [ report map min matrix:to-row-list X ] ; Rows
+end
+
+; Deep recursive copy of a megamatrix (list of matrix)
+to-report matrix:copy-recursive [megamatrix]
+  ; Entry point: if it's a list, we will recursively copy everything inside (deep copy)
+  ifelse is-list? megamatrix [
+    let n (length megamatrix)
+    let m2 (n-values n [0])
+
+    let i 0
+    while [i < n] [
+      set m2 (replace-item i m2 (matrix:copy-recursive (item i megamatrix)))
+      set i (i + 1)
+    ]
+    report m2
+  ]
+  ; Recursively called from here
+  [
+    ; If it's a number or string we just report it
+    ifelse is-number? megamatrix or is-string? megamatrix [
+      report  megamatrix
+    ]
+    ; Else if it's a matrix (we have no other way to check it but by default), then we make a copy and report it
+    [
+      report matrix:copy megamatrix
+    ]
+  ]
+end
+
+; Devuelve la misma matriz, pero eliminando la primera columna
+to-report matrix:bfc [X]
+  let dim matrix:dimensions X
+  let N first dim
+  let M last dim
+  report matrix:submatrix X 0 1 N M
+end
+
+; Devuelve una matriz con una sola fila de i (pero es matriz)
+to-report matrix:1row [X i]
+  report matrix:from-row-list (list matrix:get-row X i)
+end
+
+to-report matrix:somerows [X indx]
+  let Xlist map [i -> matrix:get-row X i] indx
+  report matrix:from-row-list Xlist
+end
+
+to-report matrix:to-list [X]
+  report reduce sentence matrix:to-row-list X
+end

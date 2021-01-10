@@ -176,7 +176,7 @@ Number-of-epochs
 Number-of-epochs
 0
 2000.0
-775.0
+2000.0
 25
 1
 NIL
@@ -222,7 +222,7 @@ INPUTBOX
 215
 70
 Network
-[4 10 3]
+[4 10 5 3]
 1
 0
 String

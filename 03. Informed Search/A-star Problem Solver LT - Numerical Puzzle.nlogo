@@ -15,7 +15,7 @@ __includes [ "A-star-LT.nls" ]
 
 to-report applicable-transitions
   report (list
-           (list "*3" 3 ([ x -> x * 3 ]))
+           (list "*3" 1 ([ x -> x * 3 ]))
            (list "+7" 1 ([ x -> x + 7 ]))
            (list "-2" 1 ([ x -> x - 2 ]))
            )
@@ -49,7 +49,8 @@ end
 ; Searcher report to compute the heuristic for this searcher
 to-report AI:heuristic [content #Goal]
   let d abs (content - #Goal)
-  report ifelse-value (d > 1) [log d 3][d]
+  ;report d
+  report ifelse-value (d > 3) [log d 3][d]
 end
 
 to-report AI:equal? [a b]
@@ -122,7 +123,7 @@ Initial
 Initial
 0
 100
-2.0
+3.0
 1
 1
 NIL

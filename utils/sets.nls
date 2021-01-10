@@ -1,0 +1,96 @@
+to-report set:from-list [l]
+  report remove-duplicates l
+end
+
+to-report set:empty
+  report []
+end
+
+to-report set:add [el s]
+  ifelse set:is-set? s
+  [ report ifelse-value (member? el s) [s][fput el s] ]
+  [ error "set:add only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:remove [el s]
+  ifelse set:is-set? s
+  [ report remove el s ]
+  [ error "set:add only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:union [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report set:from-list (sentence s1 s2) ]
+  [ error "set:union only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:intersection [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report filter [ ?1 -> member? ?1 s2 ] s1 ]
+  [ error "set:intersection only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:subset? [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [
+    ifelse empty? s1
+    [ report true]
+    [ report reduce and (map [ ?1 -> member? ?1 s2 ] s1) ]
+  ]
+  [ error "set:subset? only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:equal? [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report (set:subset? s1 s2) and (set:subset? s2 s1) ]
+  [ error "set:equal? only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:dif [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report filter [ ?1 -> not member? ?1 s2 ] s1 ]
+  [ error "set:dif-set? only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:sym-dif [s1 s2]
+  ifelse set:is-set? s1 and set:is-set? s2
+  [ report set:union (set:dif s1 s2) (set:dif s2 s1) ]
+  [ error "set:sym-dif only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:member? [x s]
+  ifelse set:is-set? s
+  [ report member? x s ]
+  [ error "set:member? only works on sets. Please, verify that second argument is a set" ]
+end
+
+to-report set:is-set? [s]
+  report s = (set:from-list s)
+end
+
+to-report set:is-empty? [s]
+  report empty? s
+end
+
+to-report set:one-of [s]
+  ifelse set:is-set? s
+  [ report one-of s ]
+  [ error "set:one-of only works on sets. Please, verify that arguments are sets" ]
+end
+
+to-report set:size [s]
+  ifelse set:is-set? s
+  [ report length s ]
+  [ error "set:size only works on sets. Please, verify that the argument is a set" ]
+end
+
+to-report set:power [s]
+  ifelse set:is-set? s
+  [ if set:is-empty? s [ report set:add set:empty set:empty ]
+    let x set:one-of s
+    let p1 set:power (set:remove x s)
+    let p2 map [s1 -> set:add x s1] p1
+    report set:union p1 p2
+  ]
+  [ error "set:power only works on sets. Please, verify that the argument is a set" ]
+end

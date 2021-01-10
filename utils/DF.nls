@@ -1,0 +1,384 @@
+extensions [csv]
+
+;; A Dataframe Library
+;; 
+;; Something like:
+;│ Outlook  │ Temp │ Humidity │ Windy │ PlayGolf │ 
+;├──────────┼──────┼──────────┼───────┼──────────┤
+;├──────────┼──────┼──────────┼───────┼──────────┤
+;│ Rainy    │ Hot  │ High     │ false │ false    │ 
+;├──────────┼──────┼──────────┼───────┼──────────┤
+;│ Rainy    │ Hot  │ High     │ true  │ false    │ 
+;├──────────┼──────┼──────────┼───────┼──────────┤
+;│ Overcast │ Hot  │ High     │ false │ true     │ 
+;├──────────┼──────┼──────────┼───────┼──────────┤
+;│ Sunny    │ Mild │ High     │ false │ true     │ 
+;├──────────┼──────┼──────────┼───────┼──────────┤
+;│ Sunny    │ Cool │ Normal   │ false │ true     │ 
+;└──────────┴──────┴──────────┴───────┴──────────┘
+;
+; It has a header row, with attributes names and
+; columns with values for the different attributes.
+
+; To do:
+; 1. Dividir un DF en N DFs para train/test/validation. Considerar métodos de división (random, balanceado respecto de un atributo, etc)
+; 2. Dar métodos de imputación. Considerar un representante de valor faltante.
+; 3. Join Vertical/Horizontal de dos DFs. Decidir qué hacer con los atributos comunes/distintos.
+;   Vertical: vcat:
+;    The cols keyword argument determines the columns of the returned data frame:
+;      ++ :equal: require all data frames to have the same column names. If they appear in different orders, the order of the first provided data frame is used.
+;      ++ :intersect: only the columns present in all provided data frames are kept. If the intersection is empty, an empty data frame is returned.
+;      ++ :union: columns present in at least one of the provided data frames are kept. Columns not present in some data frames are filled with missing where necessary.
+;      ++ A vector of Symbols: only listed columns are kept. Columns not present in some data frames are filled with missing where necessary.
+
+; Load a CSV file into a DF
+to-report DF:load [f]
+  ifelse is-string? f
+  [
+    if not file-exists? f [report false]
+    report csv:from-file f
+  ]
+  [report false]
+end
+
+; Save a DF into a CSV file
+to-report DF:save [f df]
+  if file-exists? f [report false]
+  csv:to-file f df
+  report true
+end
+
+; Reports the header of the DF
+to-report DF:header [df]
+  report first df
+end
+
+; Reports the data of the DF
+to-report DF:data [df]
+  report bf df
+end
+
+; Reports the N first rows in DF
+to-report DF:first [N df]
+  report sublist df 0 (N + 1)
+end
+
+; Reports the N last rows in DF
+to-report DF:last [N df]
+  let ss length df
+  report fput (DF:header df) (sublist df (ss - N) ss)
+end
+
+; Reports N random rows of DF
+to-report DF:n-of [N df]
+  report fput (DF:header df) (n-of N DF:data df)
+end
+
+; Reports a random split of DF into two new DFs: rat in [0,1]
+; First DF will have rat of df and the other (1-rat)
+to-report DF:split [rat df]
+  let N first DF:shape df
+  let N1 floor (rat * N)
+  let N2 N - N1
+  set df DF:shuffle df
+  let df1 fput (df:header df) (sublist (df:data df) 0 N1)
+  let df2 fput (df:header df) (sublist (df:data df) N1 N)
+  report (list df1 df2)
+end
+
+; Enumerate the rows of a Dataframe (following the current order)
+to-report DF:enum [df]
+  let n-rows first Df:shape df
+  report DF:add-col "#-row" (range 1 ((n-rows) + 1)) df
+end
+  
+
+; Random shuffle of the elements of a DF
+to-report DF:shuffle [df]
+  report fput (DF:Header df) (shuffle DF:data df)
+end
+
+; Reports the size (N-rows x N-columns) of a DF
+to-report DF:shape [df]
+  report (list (length DF:data df) (length DF:header df) )
+end
+
+; Reports a DF with the name of the column changed
+to-report DF:ren-col [oldcolumn newcolumn df]
+  let head DF:header df
+  ifelse member? oldcolumn head 
+  [ 
+    let i position oldcolumn head
+    report fput (replace-item i head newcolumn) (df:data df)
+  ]
+  [ report false ]
+end
+
+; Add new column/attribute to a DF
+to-report DF:add-col [newcolumn newcontent df]
+  let aux fput newcolumn newcontent
+  report (map [[x y] -> (lput y x)] df aux)
+end
+
+; Add a new column that is calculated from the previous 
+; ones. It receives the name of the new column, the DF
+; and a reporter that takes a list (with the content of
+; the row) and compute the value of the new column.
+to-report DF:add-calc-col [newcolumn f df]
+  let newcontent DF:map [r -> (runresult f r)] df
+  report DF:add-col newcolumn newcontent df
+end 
+
+; Reports the column of an attribute (only data)
+to-report DF:col [at df]
+  let ats first df
+  let p position at ats
+  report map [ x -> item p x ] (DF:data df)
+end
+
+; Reports for a row the value of an attribute
+to-report DF:value [attr r df]
+  let i position attr DF:header df
+  report item i r
+end
+
+
+; Reports the dataframe filtering the rows verifying f
+to-report DF:filter [f df]
+  report fput (df:header df) filter [r -> (runresult f r)] (DF:data df)
+end
+
+to-report DF:map [f df]
+  report map [r -> (runresult f r)] (DF:data df)
+end
+
+to DF:foreach [df f]
+  foreach (DF:data df) [r -> (run f r)]
+end
+
+; Report the values (list with no duplicates) of an attribute
+to-report DF:col-values [att df]
+  let i position att DF:header df
+  report remove-duplicates map [r -> item i r] (DF:data df)
+end
+
+; Reports the dataframe filtering one attribute with one value
+to-report DF:filter-col [att val df]
+  let atrs DF:header df
+  let p position att atrs
+  let df2 (fput (first df) filter [ x -> (item p x) = val ] (Df:data df))
+  report df2
+end
+
+; Remove a column
+to-report DF:rem-col [att df]
+  let atrs DF:header df
+  let i position att atrs
+  let df2 map [x -> remove-item i x] df
+  report df2
+end
+
+; Move column att to index (0,...) pos in df
+to-report DF:move-col [att pos df]
+  let atrs DF:header df
+  let i position att atrs
+  let df2 map [x -> insert i pos x] df
+  report df2
+end
+
+to-report insert [i j L]
+  let Li item i L
+  set L remove-item i L
+  let Lini sublist L 0 j
+  let Lfin sublist L j (length L)
+  report (sentence Lini Li Lfin)
+end
+
+
+; Sort a DF using a column
+to-report DF:sort-col [att df]
+  let atrs DF:header df
+  let i position att atrs
+  let df2 (fput atrs sort-by [ [r1 r2] -> (item i r1) < (item i r2) ] (Df:data df))
+  report df2
+end
+  
+; Sort a Df using a procedure
+to-report DF:sort-by [f df]
+  let atrs DF:header df
+  let df2 (fput atrs sort-by f (Df:data df))
+  report df2
+end
+
+; Categorical to Binary: Substitute a categorical column, c, with N distinct values (v1...vn) into 
+; N binary columns with names c-a1,...,c-an showing if the row is one type or another
+
+; Binarias: 0/1 (dependientes), -1/1 (independientes)
+; Categóricas: e_1,...,e_n (dependientes), e_1,...,e_n-1,(-1,...,-1) (independientes)
+
+to-report DF:Cat2NumDep [att df]
+  let rep df
+  let vals DF:col-values att df
+  foreach vals [
+    v ->    
+    set rep DF:add-calc-col (word att "-" v) [ r -> ifelse-value (DF:value att r df) = v [1][0]] rep
+  ]
+  report rep
+end
+
+to-report DF:Cat2NumInDep [att df]
+  let rep df
+  let vals DF:col-values att df
+  let lv last vals
+  foreach (bl vals) [
+    v ->    
+    set rep DF:add-calc-col (word att "-" v) [ r -> ifelse-value (DF:value att r df) = v [1][ifelse-value (DF:value att r df) = lv [-1] [0]]] rep
+  ]
+  report rep
+end
+
+to-report DF:Bin2NumInDep [att df]
+  let rep df
+  set rep DF:add-calc-col (word att "-bin") [ r -> ifelse-value (DF:value att r df) [1] [-1]] rep
+  report rep
+end
+
+to-report DF:Bin2NumDep [att df]
+    let rep df
+  set rep DF:add-calc-col (word att "-bin") [ r -> ifelse-value (DF:value att r df) [1] [0]] rep
+  report rep
+end
+
+; Normalization:
+; Scale a numeric column to take values in [a,b]
+to-report DF:scale [att a b df]
+  let vals DF:col-values att df
+  let att-max max vals
+  let att-min min vals
+  let att-amp (att-max - att-min)
+  let df2 DF:add-calc-col (word att "-scale") [ r -> ((DF:value att r df) - att-min) /  att-amp * (b - a) + a] df
+  report df2
+end
+
+; Normalize a numeric column to average 0, sd 1
+to-report DF:normalize [att df]
+  let vals DF:col-values att df
+  let att-mu mean vals
+  let att-sigma standard-deviation vals
+  let df2 DF:add-calc-col (word att "-norm") [ r -> ((DF:value att r df) - att-mu) /  att-sigma] df
+  report df2
+end
+
+; Summary of a column: 
+;   - numerical: min, max, mean, sd, var.
+;   - categorical: Num-distinct-values, values.
+;   - boolean: T/F
+
+to-report DF:col-summary [att df]
+  let vals DF:col att df
+  ifelse reduce and (map is-number? vals) 
+  [; Numerical: 1
+    let vmin min vals
+    let vmax max vals
+    let vmean mean vals
+    let vsd standard-deviation vals
+    let vvar variance vals
+    report (list 1 vmin vmax vmean vsd vvar)
+  ]
+  [
+    ifelse reduce and (map is-boolean? vals)
+    [; Boolean: 2
+      let trues filter [x -> x] vals
+      let falses filter [x -> not x] vals
+      report (list 2 (length trues) (length falses))
+    ]
+    [; Categorical: 3
+      let dvals DF:col-values att df
+      report (list 3 (length dvals) dvals)
+    ]
+  ]
+end
+
+to DF:summary [df]
+  let header DF:header df
+  output-print (word "Size: " (item 0 DF:shape df) " x " (item 1 DF:shape df))
+  output-print (word "Header: " header)
+  output-print (word "Column Info:")
+  foreach header [
+    h -> 
+    output-type "    "
+    let summ DF:col-summary h df
+    let datatype first summ
+    if datatype = 1
+    [ ; Numerical
+      output-print (word h " (Num.): " bf summ )
+    ]
+    if datatype = 2
+    [ ; Boolean
+      let ts item 1 summ
+      let fs item 2 summ
+      output-print (word h " (Bool.): True/" ts " False/" fs  )
+    ]
+
+    if datatype = 3
+    [ ; Categorical
+      let nvals item 1 summ
+      let vals map [x -> (word x"/" (length DF:filter-col h x df - 1))] item 2 summ
+      output-print (word h " (Cat.): " nvals " dist.vals = " vals)
+    ]
+  ]
+end
+
+; Prints Dataframe in Output: reports a string to be printed.
+to-report DF:pp [df]
+  let s ""
+  let atrs (DF:header df)
+  let long map [ x -> 1 + max map [ y -> length (word y) ] (fput x (DF:col x df)) ] atrs
+  set s (word s "\n")
+  ;; Lineas
+  let lin "├"
+  foreach long
+  [ x ->
+    set lin (word lin (hline (1 + x)) "┼")
+  ]
+  set lin (word (bl lin) "┤\n")
+  ;; Cabecera
+  let row "│ "
+  (foreach (DF:header df) long
+    [ [x y] ->
+      set row (word row  x  (spaces (y - length (word x))) "│ ")
+    ])
+  set s (word s row "\n" lin)
+  ; Cuerpo
+  foreach (DF:data df)
+  [ x ->
+    set row ""
+    (foreach x long
+    [ [y z] ->
+      set row (word row y (spaces (z - length (word y))) "│ ")
+    ])
+    set s (word s lin "│ " row "\n")
+  ]
+  ;; Linea final
+  let lin2 "└"
+  foreach long
+  [ x ->
+    set lin2 (word lin2 (hline (1 + x)) "┴")
+  ]
+  set lin2 (word (bl lin2) "┘\n")
+  set s (word s lin2)
+  ; Devolución
+  report s
+end
+
+to-report spaces [n]
+  let sp "                                                                                                           "
+  report substring sp 0 n
+end
+
+to-report hline [n]
+  let hl "————————————————————————————————————————————————————————————————————————————————————————————————————"
+  ifelse n > 100 
+  [report (word hl (hline (n - 100)))]
+  [report substring hl 0 n]
+end

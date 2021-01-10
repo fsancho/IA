@@ -1,0 +1,52 @@
+; Global variable to store the symbols of ASCII Table
+globals [
+  ASCII_Table
+  ASCII_Lowletters
+  ASCII_Upletters
+  ASCII_Digits
+]
+
+
+; Setup procedure to load the symbols on ASCII_Table
+to setupASCII
+  set ASCII_Table " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+  set ASCII_Lowletters "abcdefghijklmnopqrstuvwxyz"
+  set ASCII_Upletters "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  set ASCII_Digits "0123456789"
+end
+
+; Report the char from the ascii code
+; If the input is a list of numbers, it will return
+; the string obtained from all the codes
+to-report chr [n]
+  ifelse is-number? n 
+  [report item (n - 32) ASCII_Table]
+  [report reduce word map chr n]
+end
+
+; Report the code for a char.
+; If the input is a string, it will return the list
+; of codes.
+to-report asc [c]
+  ifelse length c = 1 
+  [report 32 + position c ASCII_Table]
+  [report map [i -> asc (item i c)] (range length c)] 
+end
+
+to-report is-letter? [c]
+  let cod asc c
+  report (cod >= 65 and cod <= 90) or (cod >= 97 and cod <= 122)
+end
+
+to-report is-digit? [c]
+  let cod asc c
+  report cod >= 48 and cod <= 57
+end
+
+to-report lowercase [s]
+  report reduce word string:map [c -> ifelse-value ((asc c) >= 65 and (asc c) <= 90) [chr ((asc c) + 32)][c]] s
+end
+
+to-report uppercase [s]
+  report reduce word string:map [c -> ifelse-value ((asc c) >= 97 and (asc c) <= 122) [chr ((asc c) - 32)][c]] s
+end

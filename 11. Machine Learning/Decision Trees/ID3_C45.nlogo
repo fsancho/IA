@@ -1,6 +1,6 @@
 extensions [ CSV ]
 
-__includes ["ID3_C45.nls" "LayoutSpace.nls" "../DF.nls"]
+__includes ["ID3_C45.nls" "LayoutSpace.nls" "../../utils/DF.nls"]
 
 
 globals [
@@ -14,32 +14,34 @@ to load-DF
   ask patches [set pcolor white]
   set decision-tree nobody
   ; Read the dataset file
-  set DataFrame DF:load user-file
+  let fname user-file
+  set DataFrame DF:load fname
   if DataFrame != false [
     ; Print the dataset
-    output-print "Original Dataset:"
-    output-print DF:output DataFrame
+    output-print (word "Original Dataset: " fname)
+    output-print DF:pp DataFrame
+    set Numerical-attributes (word (map [x -> (word "\"" x "\"")] DF:header DataFrame))
   ]
 end
 
 ; Demo function for ID3 Algorithm
-to main-ID3
+to main-ID3 [att-target]
   ct
   if DataFrame != false
   [
     ; Apply ID3 Algorithm
-    set decision-tree ID3:ID3 DataFrame (last DF:Header DataFrame)
+    set decision-tree ID3:ID3 att-target DataFrame
     layout
   ]
 end
 
 ; Demo function for C4.5 Algorithm
-to main-C4.5 [Num-att]
+to main-C4.5 [att-target Num-att]
   ct
   if DataFrame != false
   [
     ; Apply C4.5 Algorithm
-    set decision-tree ID3:C4.5 DataFrame (last DF:Header DataFrame) Num-att
+    set decision-tree ID3:C4.5 att-target Num-att DataFrame
     layout
   ]
 end
@@ -87,10 +89,10 @@ ticks
 BUTTON
 5
 10
-72
+75
 55
 ID3
-main-ID3
+main-ID3 Target-Attribute\n
 NIL
 1
 T
@@ -109,12 +111,12 @@ OUTPUT
 11
 
 BUTTON
-72
-10
-145
+5
 55
+75
+100
 C4.5
-main-C4.5 (read-from-string Numerical-attributes)
+main-C4.5 Target-Attribute (read-from-string Numerical-attributes)
 NIL
 1
 T
@@ -126,12 +128,12 @@ NIL
 1
 
 INPUTBOX
-145
+180
 10
-508
-79
+510
+90
 Numerical-attributes
-[\"AGE\" \"BILIRUBIN\" \"ALK PHOSPHATE\" \"SGOT\" \"ALBUMIN\" \"PROTIME\"]
+[\"ag\" \"at\" \"as\" \"an\" \"ai\" \"eag\" \"eat\" \"eas\" \"ean\" \"eai\" \"abrg\" \"abrt\" \"abrs\" \"abrn\" \"abri\" \"hic\" \"mhcg\" \"mhct\" \"mhcs\" \"mhcn\" \"mhci\" \"phcg\" \"phct\" \"phcs\" \"phcn\" \"phci\" \"hvc\" \"vbsg\" \"vbst\" \"vbss\" \"vbsn\" \"vbsi\" \"vasg\" \"vast\" \"vass\" \"vasn\" \"vasi\" \"vbrg\" \"vbrt\" \"vbrs\" \"vbrn\" \"vbri\" \"varg\" \"vart\" \"vars\" \"varn\" \"vari\" \"mdg\" \"mdt\" \"mds\" \"mdn\" \"mdi\" \"tmg\" \"tmt\" \"tms\" \"tmn\" \"tmi\" \"mr\" \"rnf\" \"mdic\" \"emd\" \"mv\"]
 1
 0
 String
@@ -152,6 +154,17 @@ NIL
 NIL
 NIL
 1
+
+INPUTBOX
+75
+10
+180
+70
+Target-Attribute
+Class
+1
+0
+String
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -506,7 +519,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -523,5 +536,5 @@ true
 Line -7500403 true 150 30 105 150
 Line -7500403 true 150 30 195 150
 @#$#@#$#@
-0
+1
 @#$#@#$#@

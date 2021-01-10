@@ -20,8 +20,8 @@ to setup
     set color blue]
   ask nodes [
     create-links-with other nodes in-radius radius]
-  ask n-of 8 patches [set weight 1]
-  ;ask patches [ set weight random-float 1]
+;  ask n-of 8 patches [set weight 1]
+  ask patches [ set weight random-float 1]
   repeat 300 [ diffuse weight 1]
   let maxw max [weight] of patches
   let minw min [weight] of patches
@@ -42,19 +42,21 @@ to test
   let ti timer
   set tipo 0
   let path (A* [who] of start [who] of goal)
+  print path
   ; if any, we highlight it
   ;show path
   if path != false [
+    set path first path
     highlight-path0 path
   ]
 
-  set tipo 1
-  set path (A* [who] of start [who] of goal)
-  ; if any, we highlight it
-  ;show path
-  if path != false [
-    highlight-path1 path
-  ]
+;  set tipo 1
+;  set path (A* [who] of start [who] of goal)
+;  ; if any, we highlight it
+;  ;show path
+;  if path != false [
+;    highlight-path1 path
+;  ]
 
   show timer - ti
 end
@@ -186,7 +188,7 @@ radius
 radius
 0
 10
-4.0
+1.0
 .1
 1
 NIL
@@ -200,8 +202,8 @@ SLIDER
 Num-Nodes
 Num-Nodes
 0
-2000
-2000.0
+20000
+20000.0
 50
 1
 NIL
