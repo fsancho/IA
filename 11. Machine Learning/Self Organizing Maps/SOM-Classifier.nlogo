@@ -1,4 +1,4 @@
-__includes ["SOM.nls" "../DF.nls"]
+__includes ["SOM.nls" "../../utils/DF.nls"]
 
 globals [
   TSet      ; Training set
@@ -57,26 +57,20 @@ end
 to read-data
   let df df:load user-file
   output-print "Original Data:"
-  output-print df:output df
-  set Items bf df:column "Item" df
-  set Tset df:data (normalize-df (df:remove "Item" df))
-  set Att-name remove "Item" DF:header df
-end
-
-to-report normalize-df [df]
-  foreach (df:header df)[
+  output-print df:pp df
+  set Items df:col "Item" df
+  set df df:rem-col "Item" df
+  foreach (df:header df) [
     att ->
-    let newatt (word "N" att)
-    let Mmax max DF:values df att
-    let Mmin min DF:values df att
-    set df df:add-calculated-column newatt df [r -> ((DF:value att df r) - Mmin) / (Mmax - Mmin)]
-    set df df:remove att df
+    set df df:scale att 0 1 df
+    set df df:rem-col att df
+    set df df:ren-col (word att "-scale") att df
   ]
-  output-print "Normalized Data:"
-  output-print DF:output df
-  report df
+  ;output-print df:pp df
+  set Att-name DF:header df
+  set Tset df:data df
+  set Attribute 0
 end
-
 
 to refresh [i]
   ask SOM:Lnodes [
@@ -242,7 +236,7 @@ Size-World
 Size-World
 1
 400
-30.0
+25.0
 1
 1
 NIL
@@ -378,7 +372,7 @@ false
 0
 Polygon -7500403 true true 0 150 75 30 225 30 300 150 225 270 75 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
