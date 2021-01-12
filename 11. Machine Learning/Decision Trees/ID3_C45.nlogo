@@ -133,7 +133,7 @@ INPUTBOX
 510
 90
 Numerical-attributes
-[\"ag\" \"at\" \"as\" \"an\" \"ai\" \"eag\" \"eat\" \"eas\" \"ean\" \"eai\" \"abrg\" \"abrt\" \"abrs\" \"abrn\" \"abri\" \"hic\" \"mhcg\" \"mhct\" \"mhcs\" \"mhcn\" \"mhci\" \"phcg\" \"phct\" \"phcs\" \"phcn\" \"phci\" \"hvc\" \"vbsg\" \"vbst\" \"vbss\" \"vbsn\" \"vbsi\" \"vasg\" \"vast\" \"vass\" \"vasn\" \"vasi\" \"vbrg\" \"vbrt\" \"vbrs\" \"vbrn\" \"vbri\" \"varg\" \"vart\" \"vars\" \"varn\" \"vari\" \"mdg\" \"mdt\" \"mds\" \"mdn\" \"mdi\" \"tmg\" \"tmt\" \"tms\" \"tmn\" \"tmi\" \"mr\" \"rnf\" \"mdic\" \"emd\" \"mv\"]
+[\"Temp\" \"Humidity\"]
 1
 0
 String
@@ -161,7 +161,7 @@ INPUTBOX
 180
 70
 Target-Attribute
-Class
+PlayGolf
 1
 0
 String

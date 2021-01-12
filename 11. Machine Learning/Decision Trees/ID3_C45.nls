@@ -157,10 +157,10 @@ end
 ; The C4.5 Algorithm can be obtained from standard ID3 by previously transforming the numerical
 ; attributes to categorical decisions.
 to-report ID3:C4.5 [att-target Num-atts df]
-  print "Preparing Dataframe..."
+  output-print "Preparing Dataframe..."
   set df (ID3:num2att Num-atts df)
-  ;output-print DF:pp df
-  print "Computing ID3..."
+  output-print DF:pp df
+  output-print "Computing ID3..."
   report ID3:ID3 att-target df
 end
 
