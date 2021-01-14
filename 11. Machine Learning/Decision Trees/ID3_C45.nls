@@ -89,11 +89,6 @@ end
 to-report ID3:ID3 [att-target df]
   let rep nobody
 
-  ; Move the target attribute to the last column  
-  ;let target DF:col att-target df
-  ;set df DF:rem-col att-target df
-  ;set df DF:add-col att-target df (bf target)
-
   create-ID3:nodes 1 [
     set ID3:node-type 0
     set ID3:value att-target
@@ -224,7 +219,7 @@ to-report ID3:value-of [att dat]
   ]
 end
 
-; Transform the attributes from Latt (numerical) into a set of 
+; Transform the attributes from Num-atts (numerical) into a set of 
 ; categorical attributes (of the form "att <= val")
 to-report ID3:num2att [Num-atts df]
   foreach Num-atts [
