@@ -20,7 +20,7 @@ to train
   clear-all
 
   ;Load data
-  load "../Datasets/iris.data"
+  load "../Datasets/Glass.csv"
 
   ; Taking Network Architecture from Interface
   let Net (read-from-string Network)
@@ -67,18 +67,19 @@ end
 to load [f]
   ; Read dataset
   let data DF:load f
-
   ; Classes to be classified
-  let classes DF:col-values "class" data
+  let classes DF:col-values "Type" data
   ; Scale input columns and binarize class column
-  let atts remove "class" (DF:header data)
+  let atts remove "Type" (DF:header data)
   foreach atts [
     att ->
     set data DF:scale att 0 1 data
     set data DF:rem-col att  data
   ]
   set data DF:add-calc-col "temp" [r -> cat-to-bin-v (first r) classes] data
-  set data DF:rem-col "class" data
+  set data DF:rem-col "Type" data
+
+  ;print DF:pp data
 
   ; Separate Train ans Test data
   let data_size first DF:shape data
@@ -206,7 +207,7 @@ Number-of-epochs
 Number-of-epochs
 0
 15000.0
-2500.0
+7675.0
 25
 1
 NIL
@@ -218,7 +219,7 @@ INPUTBOX
 215
 70
 Network
-[4 10 3]
+[9 10 20 5 6]
 1
 0
 String
@@ -231,8 +232,8 @@ SLIDER
 Batch
 Batch
 0
-100
-100.0
+150
+150.0
 1
 1
 NIL
@@ -247,7 +248,7 @@ Train-Test
 Train-Test
 0
 100
-67.0
+75.0
 1
 1
 %

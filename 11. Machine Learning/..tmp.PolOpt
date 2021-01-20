@@ -1,132 +1,110 @@
-extensions [CSV]
-
-__includes ["ANN2.nls" "../../utils/DF.nls"]
+breed [drawers drawer]
+breed [points point]
 
 globals [
-  data-train    ; List of pairs [Input Output] to train the network
-  data-test
-  Xtr
-  Ytr
-  Xte
-  Yte
-  inputs       ; List with the binary inputs in the training
-  outputs      ; List with the binary output in the training
-  epoch-error  ; error in every epoch during training
+data
 ]
 
-;; Setup Procedure
-
-to train
+to clear-data
   clear-all
-
-  ;Load data
-  load "../Datasets/iris.data"
-
-  ; Taking Network Architecture from Interface
-  let Net (read-from-string Network)
-
-  ; Training from randomized weights
-  let Ws (ANN:InitializeWs Net)
-  let Fit-Train (ANN:Train Batch Ws Net 0 Xtr Ytr Xte Yte Learning-rate Number-of-epochs true)
-
-  ; Reading outputs from Training
-  set Ws (item 0 Fit-Train)
-  let errtrain (item 1 Fit-Train)
-  let errtest (item 2 Fit-Train)
-  plot-learning-curve "Train" errtrain
-  plot-learning-curve "Test" errtest
-
-
-  ; Re-computing Network on Train and Test Data
-  let check-Train (ANN:ForwardProp Ws Xtr)
-  let OTrain (item 0 check-Train)
-
-  let check-Test (ANN:ForwardProp Ws Xte)
-  let Otest (item 0 check-Test)
-
-  ; Compute Train and Test errors
-  let Jtrain (ANN:ComputeError Ytr Otrain Ws 0)
-  let Jtest (ANN:ComputeError Yte Otest Ws 0)
-
-
-  ; Printing infos
-  print "Train:"
-  (foreach (matrix:to-row-list Ytr) (matrix:to-row-list Otrain) [
-    [y o] -> print (word (y = (discretize o)) "--" y "--" (discretize o)"--" o )])
-  print "Test:"
-  (foreach (matrix:to-row-list Yte) (matrix:to-row-list Otest) [
-    [y o] -> print (word (y = (discretize o)) "--" y  "--" (discretize o)"--" o )])
-  print (word "Train error:" Jtrain "\n")
-  print (word "Test error:" Jtest "\n")
-  print "---------------------------------\n"
-
+  ask patches [set pcolor white]
+  set-weights (n-values 5 [0])
+  set data []
+  create-drawers 1 [set color blue ht set pen-size 2 ]
+  draw-axis
 end
 
-;; Data Procedures
-
-to load [f]
-  ; Read dataset
-  let data DF:load f
-
-  ; Classes to be classified
-  let classes DF:col-values "class" data
-  ; Scale input columns and binarize class column
-  let atts remove "class" (DF:header data)
-  foreach atts [
-    att ->
-    set data DF:scale att 0 1 data
-    set data DF:rem-col att  data
+to add-data
+  let new-data (list (1.499 * ((random-float 2) - 1)) (1.499 * ((random-float 2) - 1)))
+  set data lput  new-data data
+  create-points 1 [
+    set color red
+    set size 0.1
+    set shape "x"
+    setxy' (first new-data) (last new-data)
   ]
-  set data DF:add-calc-col "temp" [r -> cat-to-bin-v (first r) classes] data
-  set data DF:rem-col "class" data
-
-  ; Separate Train ans Test data
-  let data_size first DF:shape data
-  let rtrain Train-Test / 100
-  let data_split DF:split rtrain data
-  set data-train DF:data first data_split
-  set data-test DF:data last data_split
-
-  ; Convert Train/Test data into matrix form
-  set Xtr matrix:from-row-list (map bl data-train)
-  set Ytr matrix:from-row-list (map last data-train)
-
-  set Xte matrix:from-row-list (map bl data-test)
-  set Yte matrix:from-row-list (map last data-test)
 end
 
-; Takes a value of a categorical field and returns a binary output
-; with length equals to the number of different values it can take
-;   v_0 -> [1 0 0 0 0 0 0 0 0 0]
-;   v_1 -> [0 1 0 0 0 0 0 0 0 0]
-;    ...
-;   v_9 -> [0 0 0 0 0 0 0 0 0 1]
-
-to-report cat-to-bin-v [v L]
-  let pos position v L
-  report replace-item pos (n-values (length L) [0]) 1
+to draw-axis
+  ask drawers [
+    set color black
+    set pen-size 1
+    pu
+    setxy -1.499 0
+    pd
+    setxy 1.499 0
+    pu
+    setxy 0 -1.499
+    pd
+    setxy 0 1.499
+    pu
+  ]
 end
 
-; Convert a continuous vector to a binary vector
-to-report discretize [x]
-  let mmax max x
-  report map [ i -> ifelse-value (i = mmax) [1][0]] x
+to plotturtle
+  cd
+  draw-axis
+  let h 1.499
+  ask drawers [
+    set pen-size 2
+    set color blue
+    pu
+    carefully [setxy' -1.499 (f w-i -1.499) pd] [pu]
+    pd
+    foreach (range (- h) (h + .001) .001)
+    [
+      x -> carefully [setxy' x (f w-i x) pd] [ pu]
+    ]
+  ]
+  display
 end
 
-to plot-learning-curve [pen cost]
-  set-current-plot "Error vs. Epochs"
-  set-current-plot-pen pen
-  foreach cost plot
+to setxy' [x y]
+  setxy x y
+end
+
+to-report f [ws x]
+  let ps range (length ws)
+  report sum (map [[w p] -> w * x ^ p] ws ps)
+end
+
+to-report data-error [ws]
+  let er sum (map [[x y] -> (y - (f ws x)) ^ 2] (map first data) (map last data))
+  carefully [set er er / (length data)] [set er "N/A"]
+  report er
+end
+
+to search
+  repeat 100 [
+    let ws w-i
+    let idx random 5
+    let itemx item idx ws
+    let mut random-float .02 - .01
+    set ws replace-item idx ws (precision (itemx + mut) 4)
+    if (data-error ws) < (data-error w-i) [set-weights ws]
+  ]
+end
+
+to-report w-i
+  report (list w0 w1 w2 w3 w4)
+end
+
+to set-weights [ws]
+  set w0 item 0 ws
+  set w1 item 1 ws
+  set w2 item 2 ws
+  set w3 item 3 ws
+  set w4 item 4 ws
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-225
+380
 10
-329
-115
+813
+444
 -1
 -1
-4.6
+141.7
 1
 10
 1
@@ -136,24 +114,84 @@ GRAPHICS-WINDOW
 0
 0
 1
--10
-10
--10
-10
-0
-0
+-1
+1
+-1
+1
+1
+1
 1
 ticks
 30.0
 
-BUTTON
-15
-230
-77
-263
-Train!
-Train
+SLIDER
+20
+10
+57
+160
+w0
+w0
+-4
+4
+-0.9264
+0.01
+1
 NIL
+VERTICAL
+
+SLIDER
+60
+10
+97
+160
+w1
+w1
+-4
+4
+5.527
+.01
+1
+NIL
+VERTICAL
+
+SLIDER
+100
+10
+137
+160
+w2
+w2
+-4
+4
+26.8873
+.01
+1
+NIL
+VERTICAL
+
+SLIDER
+140
+10
+177
+160
+w3
+w3
+-4
+4
+2.6003
+.01
+1
+NIL
+VERTICAL
+
+BUTTON
+230
+80
+315
+113
+Plot!
+;plotpol\nplotturtle
+T
 1
 T
 OBSERVER
@@ -164,96 +202,128 @@ NIL
 1
 
 SLIDER
-15
-75
-215
-108
-Learning-rate
-Learning-rate
-0.0
-1.0
-0.1
-1.0E-2
-1
-NIL
-HORIZONTAL
-
-PLOT
-15
-265
-735
-415
-Error vs. Epochs
-Epochs
-Error
-0.0
-10.0
-0.0
-0.5
-true
-true
-"" ""
-PENS
-"Test" 1.0 0 -2674135 true "" ""
-"Train" 1.0 0 -16777216 true "" ""
-
-SLIDER
-15
-110
-214
-143
-Number-of-epochs
-Number-of-epochs
-0
-15000.0
-2500.0
-25
-1
-NIL
-HORIZONTAL
-
-INPUTBOX
-15
-10
-215
-70
-Network
-[4 10 3]
-1
-0
-String
-
-SLIDER
-15
-145
-215
-178
-Batch
-Batch
-0
-100
-100.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-15
 180
+10
+217
+160
+w4
+w4
+-4
+4
+-24.9401
+.01
+1
+NIL
+VERTICAL
+
+BUTTON
+230
+45
+315
+78
+NIL
+add-data
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+230
+10
+315
+43
+NIL
+clear-data
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+230
+115
+375
+160
+NIL
+data-error w-i
+17
+1
+11
+
+BUTTON
+20
+165
 215
-213
-Train-Test
-Train-Test
-0
-100
-67.0
+198
+Seacrh!
+search
+T
 1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
 1
-%
-HORIZONTAL
+
+TEXTBOX
+30
+290
+360
+341
+f(w,x) = w0 + w1.x + w2.x^2 + w3.x^3 + w4.x^4\n\nerr(w) = 1 / N Sum |y_i - f(w,x_i)|^2
+14
+0.0
+1
 
 @#$#@#$#@
+## WHAT IS IT?
+
+(a general understanding of what the model is trying to show or explain)
+
+## HOW IT WORKS
+
+(what rules the agents use to create the overall behavior of the model)
+
+## HOW TO USE IT
+
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -269,16 +339,6 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
-
-bias-node
-false
-0
-Circle -16777216 true false 0 0 300
-Circle -7500403 true true 30 30 240
-Circle -16777216 true false 90 120 120
-Circle -7500403 true true 105 135 90
-Polygon -16777216 true false 90 60 120 60 135 60 135 225 150 225 150 240 105 240 105 225 120 225 120 75 105 75 120 60
-Rectangle -7500403 true true 90 120 120 225
 
 box
 false
@@ -349,11 +409,6 @@ false
 0
 Circle -7500403 true true 90 90 120
 
-drawer
-false
-0
-Rectangle -7500403 true true 0 0 300 300
-
 face happy
 false
 0
@@ -412,15 +467,6 @@ Circle -16777216 true false 113 68 74
 Polygon -10899396 true false 189 233 219 188 249 173 279 188 234 218
 Polygon -10899396 true false 180 255 150 210 105 210 75 240 135 240
 
-hidden-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Polygon -16777216 true false 120 75 45 75 90 150 45 225 120 225 120 210 120 195 105 210 75 210 105 150 75 90 105 90 120 105 120 90
-Rectangle -16777216 true false 150 15 165 300
-Polygon -16777216 true false 195 225 195 90 210 75 255 75 255 90 225 90 210 105 210 135 210 135 255 135 255 150 210 150 210 225
-
 house
 false
 0
@@ -428,15 +474,6 @@ Rectangle -7500403 true true 45 120 255 285
 Rectangle -16777216 true false 120 210 180 285
 Polygon -7500403 true true 15 120 150 15 285 120
 Line -16777216 false 30 120 270 120
-
-input-neuron
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Rectangle -16777216 true false 180 15 210 285
-Rectangle -16777216 true false 15 135 120 165
-Polygon -16777216 true false 120 105 120 195 180 150
 
 leaf
 false
@@ -453,31 +490,6 @@ line half
 true
 0
 Line -7500403 true 150 0 150 150
-
-link
-true
-0
-Line -7500403 true 150 0 150 300
-
-link direction
-true
-0
-
-neuron-node
-false
-1
-Circle -7500403 true false 0 0 300
-Circle -2674135 true true 30 30 240
-Polygon -7500403 true false 195 75 90 75 150 150 90 225 195 225 195 210 195 195 180 210 120 210 165 150 120 90 180 90 195 105 195 75
-
-output-neuron2
-false
-1
-Circle -16777216 true false 0 0 300
-Circle -2674135 true true 15 15 270
-Rectangle -16777216 true false 75 15 105 285
-Rectangle -16777216 true false 105 135 210 165
-Polygon -16777216 true false 210 105 210 195 270 150
 
 pentagon
 false
@@ -505,11 +517,26 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
+sheep
+false
+15
+Circle -1 true true 203 65 88
+Circle -1 true true 70 65 162
+Circle -1 true true 150 105 120
+Polygon -7500403 true false 218 120 240 165 255 165 278 120
+Circle -7500403 true false 214 72 67
+Rectangle -1 true true 164 223 179 298
+Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
+Circle -1 true true 3 83 150
+Rectangle -1 true true 65 221 80 296
+Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
+Polygon -7500403 true false 276 85 285 105 302 99 294 83
+Polygon -7500403 true false 219 85 210 105 193 99 201 83
+
 square
 false
 0
-Rectangle -6459832 true false 0 0 300 300
-Rectangle -7500403 true true 15 15 285 285
+Rectangle -7500403 true true 30 30 270 270
 
 square 2
 false
@@ -590,6 +617,13 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
+wolf
+false
+0
+Polygon -16777216 true false 253 133 245 131 245 133
+Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
+Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
+
 x
 false
 0
@@ -598,7 +632,6 @@ Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
 NetLogo 6.2.0
 @#$#@#$#@
-setup repeat 100 [ train ]
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -611,6 +644,8 @@ default
 link direction
 true
 0
+Line -7500403 true 150 150 90 180
+Line -7500403 true 150 150 210 180
 @#$#@#$#@
 1
 @#$#@#$#@

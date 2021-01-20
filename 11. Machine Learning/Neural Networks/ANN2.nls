@@ -1,133 +1,45 @@
 ; N-Layer Neural Network matricial implementation in NetLogo 6 by Fernando Sancho
-;   (over a work of Stephen Larroque)
+;   (based on a work of Stephen Larroque)
+; 
+; ============ Main Procedures =====================
+;
+; ANN:Train -- Main procedure to train Neural Network
+;    Input: [MiniBatch Ws Architecture lambda Xtrain Ytrain Xtest Ytest  epsilon nIterMax debug?]
+;           MiniBatch     : Size of minibatch to be used in every epoch 
+;           Ws            : Initial Weight matrices (depends on Architecture)
+;           Architecture  : Architecture of Network [N1 ... Nn]
+;           lambda        : Regularization factor (0)
+;           Xtrain        : Matrix with input data for Train Data
+;           Ytrain        : Matrix with output data for Train Data
+;           Xtest         : Matrix with input data for Test Data
+;           Ytest         : Matrix with output data for Test Data
+;           epsilon       : Learning rate for Back-propagation step
+;           nIterMax      : Number of epochs for training loop
+;           debug?        : Print info while training
+;    Output: [Ws errtrain errtest]
+;           Ws            : Weight Matrices after training
+;           errtrain      : List of errors on train data
+;           errtest       : List of errors on test data
+;
+; ANN:ForwardProp -- Evaluation/Forward Propagation of a Neural Network
+;    Input: [Ws X]
+;           Ws           : Weight Matrices
+;           X            : Input data matrix to compute
+;    Output: [O As Zs]
+;           O            : Output data matrix
+;           As           : List of matrix activations in every layer
+;           Zs           : List of matrix 
+;
+; ANN:ComputeError -- Compute error from outputs
+;    Input: [Y O Ws lambda]
+;           Y            : Real/expected output data matrix
+;           O            : Output data matrix from the network
+;           Ws           : Weights of the network
+;           lambda       : Regularization factor
+;    Output: [err]
+;           err          : mean error (number) of O from Y
 
 extensions [matrix]
-
-
-
-;==============================================================
-;=================       EXAMPLE USAGE        =================
-;==============================================================
-
-to-report random-matrix
-  report matrix:map [random 10] matrix:make-constant 3 4 0
-end
-
-to test3
-  let A random-matrix
-  print matrix:pretty-print-text A
-  print matrix:pretty-print-text matrix:bfc A
-  print matrix:pretty-print-text matrix:from-row-list (list matrix:get-row A 1)
-end
-
-; Real example for learning a neural network, either in debug mode (weights fixed and stochasticity removed) or not
-to go-learn
-  clear-all
-
-  ;====== CONFIGURATION ======
-
-  ; Parameters
-  ;let neurons_per_layer (list 2 5 2) ; you can directly specify all the neurons if you want
-  let Architecture []
-  let lambda 0 ; to reduce overfitting, this is the cost of parameters complexity
-  let epsilon 0 ; gradient step, use smaller values if using stochastic gradient descent. May need a bit lower epsilon than in the Octave code because here the precision is more by default
-  let nIterMax 5000
-  let learnPart 0.6 ; 0.6 = 60% points will be attributed to learning and the rest to the test set, 0 to disable
-  let checkGrad false ; Check the gradient at the end?
-
-  ; Toy datasets
-  let X []
-  let y []
-
-
-  ;====== PROGRAM ======
-
-
-  let useCrossval false
-  if learnPart > 0 and learnPart < 1 [
-    set useCrossval true
-  ]
-
-  let init_Ws (ANN:InitializeWs Architecture)
-  let Ws (matrix:copy-recursive init_Ws)
-
-  ; Splitting dataset and then learning the neural network
-  let Xtrain []
-  let Ytrain []
-  let Xtest []
-  let Ytest []
-  ifelse useCrossval [
-    let onecross (crossval X y learnPart)
-    set Xtrain (item 0 onecross)
-    set Ytrain (item 1 onecross)
-    set Xtest (item 2 onecross)
-    set Ytest (item 3 onecross)
-  ]
-  ; No splitting
-  [
-    set Xtrain X
-    set Ytrain y
-    set Xtest []
-    set Ytest []
-  ]
-
-  ; Train
-  let Fit-Train (ANN:Train 3 Ws Architecture lambda Xtrain Ytrain Xtest Ytest epsilon nIterMax)
-
-  set Ws (item 0 Fit-Train)
-  let errtrain (item 1 Fit-Train)
-  let errtest (item 2 Fit-Train)
-  plot-learning-curve "Train" errtrain
-  plot-learning-curve "Test" errtest
-
-
-  ; Check on Train Data
-  let check-Train (ANN:ForwardProp Ws Xtrain)
-  let OTrain (item 0 check-Train)
-  let Atrain (item 1 check-Train)
-
-  let Otest []
-  let Atest []
-  if useCrossval [
-    let check-Test (ANN:ForwardProp Ws Xtest)
-    set Otest (item 0 check-Test)
-    set Atest (item 1 check-Test)
-  ]
-
-  ; Cost
-  let M (item 0 matrix:dimensions Xtrain)
-  let Jtrain (ANN:ComputeError Ytrain Otrain Ws lambda)
-
-  let Mtest 0
-  let Jtest 0
-  if useCrossval [
-      set Mtest (item 0 matrix:dimensions Xtest)
-      set Jtest (ANN:ComputeError Ytest Otest Ws lambda)
-  ]
-
-
-  ; Printing infos
-  print "Xtrain:"
-  print matrix:pretty-print-text Xtrain
-  print "Ytrain:"
-  print matrix:pretty-print-text Ytrain
-  if useCrossval [
-    print "Xtest:"
-    print matrix:pretty-print-text Xtest
-    print "Ytest:"
-    print matrix:pretty-print-text Ytest
-  ]
-
-  print (word "Otrain:\n" matrix:pretty-print-text Otrain "\n")
-  if useCrossval [
-    print (word "Otest:\n" matrix:pretty-print-text Otest "\n")
-  ]
-  print (word "Train error:" Jtrain "\n")
-  if useCrossval [
-     print (word "Test error:" Jtest "\n")
-  ]
-  print "---------------------------------\n"
-end
 
 
 ;==============================================================
@@ -205,31 +117,7 @@ to-report ANN:RandInitializeW [L_in L_out]
   report W
 end
 
-to-report crossval [X y learnPart]
-  let dim matrix:dimensions X
-  let M item 0 dim
-  let N item 1 dim
-
-  ; Generate list of indexes and shuffle it
-  let indlist range M
-  let indrand (shuffle indlist)
-
-  ; Get the index where we must split the two datasets
-  let numlearn (round (learnPart * M)) ; Be careful with round: round a * b = (round a) * b != (round (a * b))
-
-  let indrandlearn sort (sublist indrand 0 numlearn)
-  let indrandtest sort (sublist indrand numlearn M)
-
-  ; Split the dataset in two
-  let Xlearn (matrix:somerows X indrandlearn)
-  let Ylearn (matrix:somerows Y indrandlearn)
-  let Xtest (matrix:somerows X indrandtest)
-  let Ytest (matrix:somerows Y indrandtest)
-
-  report (list Xlearn Ylearn Xtest Ytest)
-end
-
-to-report ANN:Train [MiniBatch Ws Architecture lambda Xtrain Ytrain Xtest Ytest  epsilon nIterMax ]
+to-report ANN:Train [MiniBatch Ws Architecture lambda Xtrain Ytrain Xtest Ytest  epsilon nIterMax debug?]
 
   let dim matrix:dimensions Xtrain
   let M item 0 dim
@@ -240,32 +128,33 @@ to-report ANN:Train [MiniBatch Ws Architecture lambda Xtrain Ytrain Xtest Ytest 
   let errtrain []
   let errtest []
 
-  let temp []
+  let timer0 timer
   let porc 0
   while [t < nIterMax] [
     ; == Preparing for stochastic gradient (pick only one example for each iteration instead of all examples at once)
     let samples n-of MiniBatch (range M)
     let XBatch select-samples samples Xtrain
     let YBatch select-samples samples Ytrain
-
+    
     ; == Forward propagating + Computing cost
     ; = Learning dataset
     let forward-train (ANN:ForwardProp Ws XBatch)
     let Out (item 0 forward-train)
     let As (item 1 forward-train)
     let Zs (item 2 forward-train)
-
-
-    ; == Train and Test error
-    set errtrain lput (ANN:ComputeError YBatch Out Ws lambda) errtrain
-
-    let forward-test (ANN:ForwardProp Ws Xtest)
-    let Otest (item 0 forward-test)
-    let Atest (item 1 forward-test)
-    let Ztest (item 2 forward-test)
-
-    set errtest lput (ANN:ComputeError Ytest Otest Ws lambda) errtest
-
+    
+    if debug? [
+      ; == Train and Test error
+      set errtrain lput (ANN:ComputeError YBatch Out Ws lambda) errtrain
+      
+      let forward-test (ANN:ForwardProp Ws Xtest)
+      let Otest (item 0 forward-test)
+      let Atest (item 1 forward-test)
+      let Ztest (item 2 forward-test)
+      
+      set errtest lput (ANN:ComputeError Ytest Otest Ws lambda) errtest
+    ]
+    
     ; == Back propagating
     ; Computing gradient
     let Ws_grad (ANN:BackwardProp lambda Ws As Zs YBatch)
@@ -273,14 +162,13 @@ to-report ANN:Train [MiniBatch Ws Architecture lambda Xtrain Ytrain Xtest Ytest 
     let epsi (epsilon / (1 + (t - 1) * 0)) ; Implementing learning rate decay (aka gradient step decay) so that the network converges faster
     set Ws (map [[W W'] -> (W matrix:- (epsi matrix:* W'))] Ws (bl Ws_grad))
 
-    ; Force refreshing of the plots
-    display
-
     ; Increment t (iteration counter)
     set t (t + 1)
     
-    let pas floor (100 * (t / nIterMax))
-    if (pas mod 10 = 0) and  (pas > porc) [set porc porc + 10 print (word pas "%")]
+    if debug? [
+      let pas floor (100 * (t / nIterMax))
+      if (pas mod 10 = 0) and  (pas > porc) [set porc porc + 10 print (word pas "% (" (timer - timer0)")")]
+    ]
   ]
   report (list Ws errtrain errtest)
 end
@@ -373,13 +261,6 @@ to-report ANN:BackwardProp [lambda Ws As Zs Y]
   ]
 
   report Ws_grad
-end
-
-to plot-learning-curve [pen cost]
-  set-current-plot "Error vs. Epochs"
-  set-current-plot-pen pen
-  foreach cost plot
-;  plot cost
 end
 
 ;==============================================================
