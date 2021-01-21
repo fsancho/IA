@@ -9,6 +9,9 @@ globals [
   Ytr
   Xte
   Yte
+  real
+  Output
+  Wgs
 ]
 
 ;; Setup Procedure
@@ -17,17 +20,17 @@ to train
   clear-all
 
   ;Load data
-  load "../Datasets/iris.data"
+  load "../Datasets/optdigits.tra"
 
   ; Taking Network Architecture from Interface
   let Net (read-from-string Network)
 
   ; Training from randomized weights
-  let Ws (ANN:InitializeWs Net)
-  let Fit-Train (ANN:Train Batch Ws Net 0 Xtr Ytr Xte Yte Learning-rate Number-of-epochs true)
+  set Wgs (ANN:InitializeWs Net)
+  let Fit-Train (ANN:Train Batch Wgs Net 0 Xtr Ytr Xte Yte Learning-rate Number-of-epochs true)
 
   ; Reading outputs from Training
-  set Ws (item 0 Fit-Train)
+  set Wgs (item 0 Fit-Train)
   let errtrain (item 1 Fit-Train)
   let errtest (item 2 Fit-Train)
   plot-learning-curve "Train" errtrain
@@ -35,28 +38,44 @@ to train
 
 
   ; Re-computing Network on Train and Test Data
-  let check-Train (ANN:ForwardProp Ws Xtr)
+  let check-Train (ANN:ForwardProp Wgs Xtr)
   let OTrain (item 0 check-Train)
 
-  let check-Test (ANN:ForwardProp Ws Xte)
+  let check-Test (ANN:ForwardProp Wgs Xte)
   let Otest (item 0 check-Test)
 
   ; Compute Train and Test errors
-  let Jtrain (ANN:ComputeError Ytr Otrain Ws 0)
-  let Jtest (ANN:ComputeError Yte Otest Ws 0)
+  let Jtrain (ANN:ComputeError Ytr Otrain Wgs 0)
+  let Jtest (ANN:ComputeError Yte Otest Wgs 0)
 
 
   ; Printing infos
-  print "Train:"
-  (foreach (matrix:to-row-list Ytr) (matrix:to-row-list Otrain) [
-    [y o] -> print (word (y = (discretize o)) "--" y "--" (discretize o)"--" o )])
-  print "Test:"
-  (foreach (matrix:to-row-list Yte) (matrix:to-row-list Otest) [
-    [y o] -> print (word (y = (discretize o)) "--" y  "--" (discretize o)"--" o )])
+  ;print "Train:"
+  ;(foreach (matrix:to-row-list Ytr) (matrix:to-row-list Otrain) [
+  ;  [y o] -> print (word (y = (discretize o)) "--" y "--" (discretize o)"--" o )])
+  ;print "Test:"
+  ;(foreach (matrix:to-row-list Yte) (matrix:to-row-list Otest) [
+  ;  [y o] -> print (word (y = (discretize o)) "--" y  "--" (discretize o)"--" o )])
   print (word "Train error:" Jtrain "\n")
   print (word "Test error:" Jtest "\n")
   print "---------------------------------\n"
 
+end
+
+to one-number
+  clear-output
+  let digit one-of (sentence data-train data-test)
+  set real position 1 last digit
+  (foreach (sort patches) (bl digit ) [
+    [p d] ->
+    ask p [
+      let c n-values 3 [(1 - d) * 255]
+      set pcolor c
+    ]
+  ])
+  let rep first (matrix:to-row-list (item 0 (ANN:ForwardProp Wgs (matrix:from-row-list (list bl digit)))))
+  (foreach (range 10) rep [[n w]  -> output-print (word n ": " w)])
+  set Output position 1 discretize rep
 end
 
 ;; Data Procedures
@@ -64,30 +83,24 @@ end
 to load [f]
   ; Read dataset
   let data DF:load f
-
-  ;print df:pp data
-
   ; Classes to be classified
-  let classes DF:col-values "class" data
+  let classes sort DF:col-values "Class" data
   ; Scale input columns and binarize class column
-  let atts remove "class" (DF:header data)
+  let atts remove "Class" (DF:header data)
   foreach atts [
     att ->
-    set data DF:scale att 0 1 data ; =>  "pl" -> "pl-scale"
+    set data DF:scale att 0 1 data
     set data DF:rem-col att  data
   ]
-  ;print df:pp data
-
   set data DF:add-calc-col "temp" [r -> cat-to-bin-v (first r) classes] data
-  ;print df:pp data
-  set data DF:rem-col "class" data
-  ;print df:pp data
+  set data DF:rem-col "Class" data
+
+  ;print DF:pp data
 
   ; Separate Train ans Test data
-  print df:shape data
   let data_size first DF:shape data
   let rtrain Train-Test / 100
-  let data_split DF:split rtrain data; => [ DF1 DF2]
+  let data_split DF:split rtrain data
   set data-train DF:data first data_split
   set data-test DF:data last data_split
 
@@ -124,13 +137,13 @@ to plot-learning-curve [pen cost]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-225
-10
-329
-115
+295
+75
+327
+108
 -1
 -1
-4.6
+3.0
 1
 10
 1
@@ -140,10 +153,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--10
-10
--10
-10
+0
+7
+0
+7
 0
 0
 1
@@ -151,10 +164,10 @@ ticks
 30.0
 
 BUTTON
-15
-230
-77
-263
+220
+180
+282
+213
 Train!
 Train
 NIL
@@ -184,9 +197,9 @@ HORIZONTAL
 
 PLOT
 15
-265
+220
 735
-415
+465
 Error vs. Epochs
 Epochs
 Error
@@ -210,7 +223,7 @@ Number-of-epochs
 Number-of-epochs
 0
 15000.0
-5000.0
+15000.0
 25
 1
 NIL
@@ -222,7 +235,7 @@ INPUTBOX
 215
 70
 Network
-[4 10 3]
+[64 100 20 10]
 1
 0
 String
@@ -235,8 +248,8 @@ SLIDER
 Batch
 Batch
 0
-100
-100.0
+2000
+2000.0
 1
 1
 NIL
@@ -251,11 +264,91 @@ Train-Test
 Train-Test
 0
 100
-67.0
+70.0
 1
 1
 %
 HORIZONTAL
+
+BUTTON
+222
+75
+292
+108
+NIL
+one-number
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+330
+65
+380
+110
+Real
+real
+17
+1
+11
+
+MONITOR
+385
+65
+442
+110
+NIL
+Output
+17
+1
+11
+
+OUTPUT
+445
+10
+685
+215
+11
+
+BUTTON
+225
+10
+290
+43
+Load Data
+clear-all\nload \"../Datasets/optdigits.tra\"
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+295
+10
+365
+43
+Load Model
+set Wgs ANN:load-model user-file
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 @#$#@#$#@

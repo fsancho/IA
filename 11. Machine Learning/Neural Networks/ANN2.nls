@@ -38,8 +38,37 @@
 ;           lambda       : Regularization factor
 ;    Output: [err]
 ;           err          : mean error (number) of O from Y
+;
+; ANN:save-model -- Save Model Weights to a file
+;    Input: [f Ws]
+;           f            : File name
+;           Ws           : Weights to save
+;    Output: none
+;
+; ANN:load-model -- Load Model Weights from a file
+;    Input: [f]
+;           f            : File name
+;    Output: [Ws]
+;           Ws           : eight Matrices
 
 extensions [matrix]
+
+;==============================================================
+;===========  NEURAL NETWORK FUNCTIONS  FILES =================
+;==============================================================
+
+to ANN:save-model [f Ws]
+  file-open f
+  file-print map matrix:to-row-list Ws
+  file-close
+end
+
+to-report ANN:load-model [f]
+  file-open f
+  let rep map matrix:from-row-list (read-from-string file-read-line)
+  file-close
+  report rep
+end
 
 
 ;==============================================================

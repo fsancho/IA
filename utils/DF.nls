@@ -256,6 +256,7 @@ to-report DF:scale [att a b df]
   let att-max max vals
   let att-min min vals
   let att-amp (att-max - att-min)
+  if att-amp = 0 [set att-amp 1]
   let df2 DF:add-calc-col (word att "-scale") [ r -> ((DF:value att r df) - att-min) /  att-amp * (b - a) + a] df
   report df2
 end
